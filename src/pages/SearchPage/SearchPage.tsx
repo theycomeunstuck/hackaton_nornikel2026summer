@@ -109,7 +109,12 @@ export function SearchPage() {
 
       <div className="grid grid-cols-[minmax(0,1fr)_460px] gap-6">
         <div className="space-y-6">
-          <KnowledgeGraph graph={selectedResult.graph} />
+          <KnowledgeGraph
+            graph={selectedResult.graph}
+            contradictions={selectedResult.contradictions}
+            gaps={selectedResult.gaps}
+            mode="compact"
+          />
           <SourcesPanel sources={filteredSources} claims={filteredClaims} />
         </div>
         <div className="space-y-6">
