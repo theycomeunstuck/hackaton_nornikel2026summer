@@ -1,4 +1,5 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
+import { ProtectedRoute, PublicOnlyRoute } from "../entities/auth/model";
 import { AppShell } from "../widgets/app-shell/AppShell";
 import { AuthPage } from "../pages/AuthPage/AuthPage";
 import { ContradictionsPage } from "../pages/ContradictionsPage/ContradictionsPage";
@@ -11,19 +12,29 @@ import { UploadPage } from "../pages/UploadPage/UploadPage";
 
 export const router = createBrowserRouter([
   {
-    path: "/",
-    element: <AppShell />,
+    element: <PublicOnlyRoute />,
     children: [
-      { index: true, element: <Navigate to="/dashboard" replace /> },
-      { path: "dashboard", element: <DashboardPage /> },
-      { path: "search", element: <SearchPage /> },
-      { path: "graph", element: <GraphPage /> },
-      { path: "sources", element: <SourcesPage /> },
-      { path: "contradictions", element: <ContradictionsPage /> },
-      { path: "export", element: <ExportPage /> },
-      { path: "upload", element: <UploadPage /> },
       { path: "auth", element: <AuthPage /> },
-      { path: "*", element: <Navigate to="/dashboard" replace /> },
+    ],
+  },
+  {
+    element: <ProtectedRoute />,
+    children: [
+      {
+        path: "/",
+        element: <AppShell />,
+        children: [
+          { index: true, element: <Navigate to="/dashboard" replace /> },
+          { path: "dashboard", element: <DashboardPage /> },
+          { path: "search", element: <SearchPage /> },
+          { path: "graph", element: <GraphPage /> },
+          { path: "sources", element: <SourcesPage /> },
+          { path: "contradictions", element: <ContradictionsPage /> },
+          { path: "export", element: <ExportPage /> },
+          { path: "upload", element: <UploadPage /> },
+          { path: "*", element: <Navigate to="/dashboard" replace /> },
+        ],
+      },
     ],
   },
 ]);
