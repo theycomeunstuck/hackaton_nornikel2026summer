@@ -108,7 +108,12 @@ export function SearchPage() {
         eyebrow="Уточнение выдачи"
         summary="Можно ограничить доказательства по типу источника, уровню достоверности и году публикации."
       >
-        <FiltersPanel filters={filters} sourceTypes={sourceTypes} onChange={setFilters} />
+        <FiltersPanel
+          filters={filters}
+          sourceTypes={sourceTypes}
+          onChange={setFilters}
+          onReset={() => setFilters(initialFilters)}
+        />
       </DisclosureSection>
 
       <section className="grid grid-cols-[minmax(0,1fr)_minmax(360px,0.36fr)] gap-6">

@@ -1,4 +1,9 @@
 import type { ConfidenceLevel, SourceType } from "../../entities/source/types";
+import { FilterField } from "../../shared/ui/filters/FilterField";
+import { FilterInput } from "../../shared/ui/filters/FilterInput";
+import { FilterPanel } from "../../shared/ui/filters/FilterPanel";
+import { FilterSelect, type FilterOption } from "../../shared/ui/filters/FilterSelect";
+import { ResetFiltersButton } from "../../shared/ui/filters/ResetFiltersButton";
 
 export type EvidenceFilters = {
   geography: string;
@@ -12,6 +17,7 @@ type FiltersPanelProps = {
   filters: EvidenceFilters;
   sourceTypes: SourceType[];
   onChange: (filters: EvidenceFilters) => void;
+  onReset?: () => void;
 };
 
 const sourceTypeLabel: Record<SourceType, string> = {
@@ -23,91 +29,80 @@ const sourceTypeLabel: Record<SourceType, string> = {
   reference_book: "Справочник",
 };
 
-export function FiltersPanel({ filters, sourceTypes, onChange }: FiltersPanelProps) {
+const confidenceOptions: FilterOption[] = [
+  { value: "all", label: "Любая" },
+  { value: "high", label: "Высокая" },
+  { value: "medium", label: "Средняя" },
+  { value: "low", label: "Низкая" },
+];
+
+const geographyOptions: FilterOption[] = [
+  { value: "all", label: "Все площадки" },
+  { value: "arctic", label: "Арктический кластер" },
+  { value: "lab", label: "Лабораторные данные" },
+  { value: "pilot", label: "Пилотные испытания" },
+];
+
+export function FiltersPanel({ filters, sourceTypes, onChange, onReset }: FiltersPanelProps) {
+  const sourceTypeOptions: FilterOption[] = [
+    { value: "all", label: "Все типы" },
+    ...sourceTypes.map((sourceType) => ({
+      value: sourceType,
+      label: sourceTypeLabel[sourceType],
+    })),
+  ];
+
   return (
-    <section className="rounded border border-white/75 bg-white/66 p-4 shadow-glass backdrop-blur-2xl">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-            Фильтры
-          </p>
-          <h3 className="mt-1 text-base font-semibold text-slate-950">Ограничения поиска</h3>
-        </div>
-        <span className="rounded border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
-          Работают по текущим данным
-        </span>
+    <FilterPanel
+      title="Ограничения поиска"
+      description="Уточните выдачу по источникам, достоверности и периоду."
+      action={onReset ? <ResetFiltersButton onClick={onReset} /> : null}
+      columnsClassName="grid-cols-4"
+    >
+      <FilterField label="География">
+        <FilterSelect
+          value={filters.geography}
+          options={geographyOptions}
+          onChange={(value) => onChange({ ...filters, geography: value })}
+        />
+      </FilterField>
+
+      <FilterField label="Тип источника">
+        <FilterSelect
+          value={filters.sourceType}
+          options={sourceTypeOptions}
+          onChange={(value) =>
+            onChange({ ...filters, sourceType: value as EvidenceFilters["sourceType"] })
+          }
+        />
+      </FilterField>
+
+      <FilterField label="Достоверность">
+        <FilterSelect
+          value={filters.confidence}
+          options={confidenceOptions}
+          onChange={(value) =>
+            onChange({ ...filters, confidence: value as EvidenceFilters["confidence"] })
+          }
+        />
+      </FilterField>
+
+      <div className="grid grid-cols-2 gap-2">
+        <FilterField label="Год от">
+          <FilterInput
+            type="number"
+            value={filters.yearFrom}
+            onChange={(event) => onChange({ ...filters, yearFrom: Number(event.target.value) })}
+          />
+        </FilterField>
+        <FilterField label="Год до">
+          <FilterInput
+            type="number"
+            value={filters.yearTo}
+            onChange={(event) => onChange({ ...filters, yearTo: Number(event.target.value) })}
+          />
+        </FilterField>
       </div>
-
-      <div className="mt-4 grid grid-cols-4 gap-3">
-        <label className="text-xs font-medium text-slate-600">
-          География
-          <select
-            value={filters.geography}
-            onChange={(event) => onChange({ ...filters, geography: event.target.value })}
-            className="mt-2 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
-          >
-            <option value="all">Все площадки</option>
-            <option value="arctic">Арктический кластер</option>
-            <option value="lab">Лабораторные данные</option>
-            <option value="pilot">Пилотные испытания</option>
-          </select>
-        </label>
-
-        <label className="text-xs font-medium text-slate-600">
-          Тип источника
-          <select
-            value={filters.sourceType}
-            onChange={(event) =>
-              onChange({ ...filters, sourceType: event.target.value as EvidenceFilters["sourceType"] })
-            }
-            className="mt-2 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
-          >
-            <option value="all">Все типы</option>
-            {sourceTypes.map((sourceType) => (
-              <option key={sourceType} value={sourceType}>
-                {sourceTypeLabel[sourceType]}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="text-xs font-medium text-slate-600">
-          Достоверность
-          <select
-            value={filters.confidence}
-            onChange={(event) =>
-              onChange({ ...filters, confidence: event.target.value as EvidenceFilters["confidence"] })
-            }
-            className="mt-2 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
-          >
-            <option value="all">Любая</option>
-            <option value="high">Высокая</option>
-            <option value="medium">Средняя</option>
-            <option value="low">Низкая</option>
-          </select>
-        </label>
-
-        <div className="grid grid-cols-2 gap-2">
-          <label className="text-xs font-medium text-slate-600">
-            Год от
-            <input
-              type="number"
-              value={filters.yearFrom}
-              onChange={(event) => onChange({ ...filters, yearFrom: Number(event.target.value) })}
-              className="mt-2 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
-            />
-          </label>
-          <label className="text-xs font-medium text-slate-600">
-            Год до
-            <input
-              type="number"
-              value={filters.yearTo}
-              onChange={(event) => onChange({ ...filters, yearTo: Number(event.target.value) })}
-              className="mt-2 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
-            />
-          </label>
-        </div>
-      </div>
-    </section>
+    </FilterPanel>
   );
 }

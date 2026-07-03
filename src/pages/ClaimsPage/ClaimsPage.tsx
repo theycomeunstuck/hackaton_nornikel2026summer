@@ -8,6 +8,12 @@ import {
   type ClaimFilters,
   type ClaimStatus,
 } from "../../shared/lib/claimStats";
+import { FilterChip } from "../../shared/ui/filters/FilterChip";
+import { FilterField } from "../../shared/ui/filters/FilterField";
+import { FilterInput } from "../../shared/ui/filters/FilterInput";
+import { FilterPanel } from "../../shared/ui/filters/FilterPanel";
+import { FilterSelect, type FilterOption } from "../../shared/ui/filters/FilterSelect";
+import { ResetFiltersButton } from "../../shared/ui/filters/ResetFiltersButton";
 import { MetricCard } from "../../shared/ui/MetricCard";
 import { SectionCard } from "../../shared/ui/SectionCard";
 import { StatusBadge } from "../../shared/ui/StatusBadge";
@@ -41,6 +47,13 @@ const initialFilters: ClaimFilters = {
   search: "",
 };
 
+const confidenceOptions: FilterOption[] = [
+  { value: "all", label: "Любая" },
+  { value: "high", label: "Высокая" },
+  { value: "medium", label: "Средняя" },
+  { value: "low", label: "Низкая" },
+];
+
 export function ClaimsPage() {
   const [filters, setFilters] = useState<ClaimFilters>(initialFilters);
 
@@ -48,6 +61,24 @@ export function ClaimsPage() {
     () => filterClaimItems(claimStats.items, filters),
     [filters],
   );
+  const scenarioOptions: FilterOption[] = [
+    { value: "all", label: "Все направления" },
+    ...claimStats.availableScenarios.map((scenario) => ({
+      value: scenario.id,
+      label: scenario.title,
+    })),
+  ];
+  const statusOptions: FilterOption[] = [
+    { value: "all", label: "Любой" },
+    ...Object.entries(statusFilterLabel).map(([value, label]) => ({ value, label })),
+  ];
+  const sourceTypeOptions: FilterOption[] = [
+    { value: "all", label: "Все типы" },
+    ...claimStats.availableSourceTypes.map((sourceType) => ({
+      value: sourceType,
+      label: sourceTypeLabel[sourceType],
+    })),
+  ];
 
   return (
     <div className="mx-auto max-w-[1680px] space-y-6">
@@ -91,131 +122,90 @@ export function ClaimsPage() {
 
       <div className="grid grid-cols-[minmax(0,1fr)_360px] gap-6">
         <SectionCard title="Реестр утверждений" eyebrow="Доказательные карточки">
-          <div className="grid grid-cols-6 gap-3 rounded border border-slate-200 bg-slate-50 p-4">
-            <label className="text-xs font-medium text-slate-600">
-              Направление
-              <select
+          <FilterPanel
+            title="Фильтры базы утверждений"
+            description="Сузьте список по направлению, статусу, источнику и тексту утверждения."
+            action={<ResetFiltersButton label="Очистить фильтры" onClick={() => setFilters(initialFilters)} />}
+            columnsClassName="grid-cols-6"
+          >
+            <FilterField label="Направление">
+              <FilterSelect
                 value={filters.scenarioId}
-                onChange={(event) => setFilters({ ...filters, scenarioId: event.target.value })}
-                className="mt-2 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm"
-              >
-                <option value="all">Все направления</option>
-                {claimStats.availableScenarios.map((scenario) => (
-                  <option key={scenario.id} value={scenario.id}>
-                    {scenario.title}
-                  </option>
-                ))}
-              </select>
-            </label>
+                options={scenarioOptions}
+                onChange={(value) => setFilters({ ...filters, scenarioId: value })}
+              />
+            </FilterField>
 
-            <label className="text-xs font-medium text-slate-600">
-              Статус
-              <select
+            <FilterField label="Статус">
+              <FilterSelect
                 value={filters.status}
-                onChange={(event) =>
-                  setFilters({ ...filters, status: event.target.value as "all" | ClaimStatus })
+                options={statusOptions}
+                onChange={(value) =>
+                  setFilters({ ...filters, status: value as "all" | ClaimStatus })
                 }
-                className="mt-2 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm"
-              >
-                <option value="all">Любой</option>
-                {Object.entries(statusFilterLabel).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </label>
+              />
+            </FilterField>
 
-            <label className="text-xs font-medium text-slate-600">
-              Уверенность
-              <select
+            <FilterField label="Достоверность">
+              <FilterSelect
                 value={filters.confidence}
-                onChange={(event) =>
-                  setFilters({
-                    ...filters,
-                    confidence: event.target.value as "all" | ConfidenceLevel,
-                  })
+                options={confidenceOptions}
+                onChange={(value) =>
+                  setFilters({ ...filters, confidence: value as "all" | ConfidenceLevel })
                 }
-                className="mt-2 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm"
-              >
-                <option value="all">Любая</option>
-                <option value="high">Высокая</option>
-                <option value="medium">Средняя</option>
-                <option value="low">Низкая</option>
-              </select>
-            </label>
+              />
+            </FilterField>
 
-            <label className="text-xs font-medium text-slate-600">
-              Тип источника
-              <select
+            <FilterField label="Тип источника">
+              <FilterSelect
                 value={filters.sourceType}
-                onChange={(event) =>
-                  setFilters({
-                    ...filters,
-                    sourceType: event.target.value as "all" | SourceType,
-                  })
+                options={sourceTypeOptions}
+                onChange={(value) =>
+                  setFilters({ ...filters, sourceType: value as "all" | SourceType })
                 }
-                className="mt-2 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm"
-              >
-                <option value="all">Все типы</option>
-                {claimStats.availableSourceTypes.map((sourceType) => (
-                  <option key={sourceType} value={sourceType}>
-                    {sourceTypeLabel[sourceType]}
-                  </option>
-                ))}
-              </select>
-            </label>
+              />
+            </FilterField>
 
-            <label className="text-xs font-medium text-slate-600">
-              Материал
-              <input
+            <FilterField label="Материал">
+              <FilterInput
                 value={filters.material}
                 onChange={(event) => setFilters({ ...filters, material: event.target.value })}
-                placeholder="Ca, Ni, Au..."
-                className="mt-2 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm"
+                placeholder="например: Ni, Au, Ca"
               />
-            </label>
+            </FilterField>
 
-            <label className="text-xs font-medium text-slate-600">
-              Поиск
-              <input
+            <FilterField label="Поиск по тексту">
+              <FilterInput
                 type="search"
                 value={filters.search}
                 onChange={(event) => setFilters({ ...filters, search: event.target.value })}
-                placeholder="утверждение, процесс..."
-                className="mt-2 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm"
+                placeholder="утверждение или процесс"
               />
-            </label>
-          </div>
+            </FilterField>
 
-          <div className="mt-4 grid grid-cols-[260px_minmax(0,1fr)] gap-3 rounded border border-slate-200 bg-white/70 p-4">
-            <label className="text-xs font-medium text-slate-600">
-              Фильтр по процессу
-              <input
+            <FilterField label="Материал или процесс" className="col-span-2">
+              <FilterInput
                 value={filters.process}
                 onChange={(event) => setFilters({ ...filters, process: event.target.value })}
-                placeholder="electrowinning, smelting..."
-                className="mt-2 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm"
+                placeholder="например: электроэкстракция"
               />
-            </label>
-            <div>
+            </FilterField>
+            <div className="col-span-4">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
                 Быстрый выбор материалов
               </p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {claimStats.availableMaterials.slice(0, 14).map((material) => (
-                  <button
+                  <FilterChip
                     key={material}
-                    type="button"
+                    label={material}
+                    active={filters.material === material}
                     onClick={() => setFilters({ ...filters, material })}
-                    className="rounded border border-ice-100 bg-ice-50 px-2.5 py-1 text-xs font-medium text-ice-600 transition hover:border-ice-300"
-                  >
-                    {material}
-                  </button>
+                  />
                 ))}
               </div>
             </div>
-          </div>
+          </FilterPanel>
 
           <div className="mt-5 space-y-4">
             {filteredItems.length > 0 ? (

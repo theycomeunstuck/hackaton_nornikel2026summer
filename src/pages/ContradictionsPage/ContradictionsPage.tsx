@@ -11,6 +11,11 @@ import {
 } from "../../shared/lib/contradictionStats";
 import { getSourceTypeLabel } from "../../shared/lib/sourceStats";
 import { ConfidenceBadge } from "../../shared/ui/ConfidenceBadge";
+import { FilterField } from "../../shared/ui/filters/FilterField";
+import { FilterInput } from "../../shared/ui/filters/FilterInput";
+import { FilterPanel } from "../../shared/ui/filters/FilterPanel";
+import { FilterSelect, type FilterOption } from "../../shared/ui/filters/FilterSelect";
+import { ResetFiltersButton } from "../../shared/ui/filters/ResetFiltersButton";
 import { MetricCard } from "../../shared/ui/MetricCard";
 import { SectionCard } from "../../shared/ui/SectionCard";
 import { StatusBadge, type StatusTone } from "../../shared/ui/StatusBadge";
@@ -23,6 +28,13 @@ const initialFilters: ContradictionFilters = {
   sourceType: "all",
   search: "",
 };
+
+const severityOptions: FilterOption[] = [
+  { value: "all", label: "Любая" },
+  { value: "minor", label: "Низкая" },
+  { value: "moderate", label: "Средняя" },
+  { value: "critical", label: "Критичная" },
+];
 
 function getSeverityTone(severity: Contradiction["severity"] | KnowledgeGap["severity"]): StatusTone {
   if (severity === "critical" || severity === "high") {
@@ -130,6 +142,13 @@ export function ContradictionsPage() {
     () => Array.from(new Set(contradictionStats.items.flatMap((item) => item.sourceTypes))),
     [],
   );
+  const sourceTypeOptions: FilterOption[] = [
+    { value: "all", label: "Все типы" },
+    ...sourceTypes.map((sourceType) => ({
+      value: sourceType,
+      label: getSourceTypeLabel(sourceType),
+    })),
+  ];
 
   return (
     <div className="mx-auto max-w-[1680px] space-y-6">
@@ -188,69 +207,50 @@ export function ContradictionsPage() {
 
       <div className="grid grid-cols-[minmax(0,1fr)_420px] gap-6">
         <SectionCard title="Разбор противоречий" eyebrow="Конфликтующие доказательства">
-          <div className="grid grid-cols-4 gap-3 rounded border border-slate-200 bg-slate-50 p-4">
-            <label className="text-xs font-medium text-slate-600">
-              Серьезность
-              <select
+          <FilterPanel
+            title="Фильтры противоречий"
+            description="Отберите конфликты по серьезности, теме, источнику или тексту описания."
+            action={<ResetFiltersButton label="Очистить фильтры" onClick={() => setFilters(initialFilters)} />}
+            columnsClassName="grid-cols-4"
+          >
+            <FilterField label="Серьёзность">
+              <FilterSelect
                 value={filters.severity}
-                onChange={(event) =>
-                  setFilters({
-                    ...filters,
-                    severity: event.target.value as ContradictionFilters["severity"],
-                  })
+                options={severityOptions}
+                onChange={(value) =>
+                  setFilters({ ...filters, severity: value as ContradictionFilters["severity"] })
                 }
-                className="mt-2 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm"
-              >
-                <option value="all">Любая</option>
-                <option value="minor">Низкая</option>
-                <option value="moderate">Средняя</option>
-                <option value="critical">Критичная</option>
-              </select>
-            </label>
+              />
+            </FilterField>
 
-            <label className="text-xs font-medium text-slate-600">
-              Тема / материал
-              <input
+            <FilterField label="Материал или процесс">
+              <FilterInput
                 type="search"
                 value={filters.topic}
                 onChange={(event) => setFilters({ ...filters, topic: event.target.value })}
-                placeholder="nickel, catholyte..."
-                className="mt-2 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm"
+                placeholder="никель, католит"
               />
-            </label>
+            </FilterField>
 
-            <label className="text-xs font-medium text-slate-600">
-              Тип источника
-              <select
+            <FilterField label="Тип источника">
+              <FilterSelect
                 value={filters.sourceType}
-                onChange={(event) =>
-                  setFilters({
-                    ...filters,
-                    sourceType: event.target.value as "all" | SourceType,
-                  })
+                options={sourceTypeOptions}
+                onChange={(value) =>
+                  setFilters({ ...filters, sourceType: value as "all" | SourceType })
                 }
-                className="mt-2 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm"
-              >
-                <option value="all">Все типы</option>
-                {sourceTypes.map((sourceType) => (
-                  <option key={sourceType} value={sourceType}>
-                    {getSourceTypeLabel(sourceType)}
-                  </option>
-                ))}
-              </select>
-            </label>
+              />
+            </FilterField>
 
-            <label className="text-xs font-medium text-slate-600">
-              Поиск
-              <input
+            <FilterField label="Поиск по тексту">
+              <FilterInput
                 type="search"
                 value={filters.search}
                 onChange={(event) => setFilters({ ...filters, search: event.target.value })}
-                placeholder="описание, источник..."
-                className="mt-2 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm"
+                placeholder="описание или источник"
               />
-            </label>
-          </div>
+            </FilterField>
+          </FilterPanel>
 
           <div className="mt-4 space-y-4">
             {filteredItems.length > 0 ? (

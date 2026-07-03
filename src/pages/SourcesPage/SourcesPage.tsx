@@ -8,6 +8,11 @@ import {
   type SourceListItem,
 } from "../../shared/lib/sourceStats";
 import { ConfidenceBadge } from "../../shared/ui/ConfidenceBadge";
+import { FilterField } from "../../shared/ui/filters/FilterField";
+import { FilterInput } from "../../shared/ui/filters/FilterInput";
+import { FilterPanel } from "../../shared/ui/filters/FilterPanel";
+import { FilterSelect, type FilterOption } from "../../shared/ui/filters/FilterSelect";
+import { ResetFiltersButton } from "../../shared/ui/filters/ResetFiltersButton";
 import { MetricCard } from "../../shared/ui/MetricCard";
 import { SectionCard } from "../../shared/ui/SectionCard";
 import { StatusBadge } from "../../shared/ui/StatusBadge";
@@ -22,6 +27,18 @@ const initialFilters: SourceFilters = {
   yearTo: sourceStats.yearRange.to,
   search: "",
 };
+
+const reliabilityOptions: FilterOption[] = [
+  { value: "all", label: "Любая" },
+  { value: "high", label: "Высокая" },
+  { value: "medium", label: "Средняя" },
+  { value: "low", label: "Низкая" },
+];
+
+const geographyOptions: FilterOption[] = [
+  { value: "all", label: "Все значения" },
+  { value: "unknown", label: "Не указана" },
+];
 
 function DistributionBars({ items }: { items: Array<{ label: string; count: number }> }) {
   const maxCount = Math.max(...items.map((item) => item.count), 1);
@@ -133,6 +150,13 @@ export function SourcesPage() {
     () => filterSourceItems(sourceStats.items, filters),
     [filters],
   );
+  const sourceTypeOptions: FilterOption[] = [
+    { value: "all", label: "Все типы" },
+    ...sourceStats.availableSourceTypes.map((sourceType) => ({
+      value: sourceType,
+      label: getSourceTypeLabel(sourceType),
+    })),
+  ];
 
   return (
     <div className="mx-auto max-w-[1680px] space-y-6">
@@ -174,100 +198,72 @@ export function SourcesPage() {
 
       <div className="grid grid-cols-[minmax(0,1fr)_420px] gap-6">
         <SectionCard title="Реестр источников" eyebrow="Проверяемые ссылки">
-          <div className="grid grid-cols-5 gap-3 rounded border border-slate-200 bg-slate-50 p-4">
-            <label className="text-xs font-medium text-slate-600">
-              Тип источника
-              <select
+          <FilterPanel
+            title="Фильтры источников"
+            description="Проверьте корпус по типу документа, надежности и году публикации."
+            action={<ResetFiltersButton label="Очистить фильтры" onClick={() => setFilters(initialFilters)} />}
+            columnsClassName="grid-cols-5"
+          >
+            <FilterField label="Тип источника">
+              <FilterSelect
                 value={filters.sourceType}
-                onChange={(event) =>
-                  setFilters({
-                    ...filters,
-                    sourceType: event.target.value as SourceFilters["sourceType"],
-                  })
+                options={sourceTypeOptions}
+                onChange={(value) =>
+                  setFilters({ ...filters, sourceType: value as SourceFilters["sourceType"] })
                 }
-                className="mt-2 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm"
-              >
-                <option value="all">Все типы</option>
-                {sourceStats.availableSourceTypes.map((sourceType) => (
-                  <option key={sourceType} value={sourceType}>
-                    {getSourceTypeLabel(sourceType)}
-                  </option>
-                ))}
-              </select>
-            </label>
+              />
+            </FilterField>
 
-            <label className="text-xs font-medium text-slate-600">
-              География
-              <select
+            <FilterField label="География">
+              <FilterSelect
                 value={filters.geography}
-                onChange={(event) =>
-                  setFilters({
-                    ...filters,
-                    geography: event.target.value as SourceFilters["geography"],
-                  })
+                options={geographyOptions}
+                onChange={(value) =>
+                  setFilters({ ...filters, geography: value as SourceFilters["geography"] })
                 }
-                className="mt-2 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm"
-              >
-                <option value="all">Все</option>
-                <option value="unknown">Не указана</option>
-              </select>
-            </label>
+              />
+            </FilterField>
 
-            <label className="text-xs font-medium text-slate-600">
-              Надежность
-              <select
+            <FilterField label="Надёжность">
+              <FilterSelect
                 value={filters.reliability}
-                onChange={(event) =>
-                  setFilters({
-                    ...filters,
-                    reliability: event.target.value as "all" | ConfidenceLevel,
-                  })
+                options={reliabilityOptions}
+                onChange={(value) =>
+                  setFilters({ ...filters, reliability: value as "all" | ConfidenceLevel })
                 }
-                className="mt-2 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm"
-              >
-                <option value="all">Любая</option>
-                <option value="high">Высокая</option>
-                <option value="medium">Средняя</option>
-                <option value="low">Низкая</option>
-              </select>
-            </label>
+              />
+            </FilterField>
 
             <div className="grid grid-cols-2 gap-2">
-              <label className="text-xs font-medium text-slate-600">
-                Год от
-                <input
+              <FilterField label="Год от">
+                <FilterInput
                   type="number"
                   value={filters.yearFrom}
                   onChange={(event) =>
                     setFilters({ ...filters, yearFrom: Number(event.target.value) })
                   }
-                  className="mt-2 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm"
                 />
-              </label>
-              <label className="text-xs font-medium text-slate-600">
-                Год до
-                <input
+              </FilterField>
+              <FilterField label="Год до">
+                <FilterInput
                   type="number"
                   value={filters.yearTo}
                   onChange={(event) =>
                     setFilters({ ...filters, yearTo: Number(event.target.value) })
                   }
-                  className="mt-2 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm"
                 />
-              </label>
+              </FilterField>
             </div>
 
-            <label className="text-xs font-medium text-slate-600">
-              Поиск
-              <input
+            <FilterField label="Поиск по тексту">
+              <FilterInput
                 type="search"
                 value={filters.search}
                 onChange={(event) => setFilters({ ...filters, search: event.target.value })}
-                placeholder="название, автор, тег..."
-                className="mt-2 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm"
+                placeholder="название, автор, тег"
               />
-            </label>
-          </div>
+            </FilterField>
+          </FilterPanel>
 
           <div className="mt-4 space-y-3">
             {filteredItems.length > 0 ? (
