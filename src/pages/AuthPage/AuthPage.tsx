@@ -23,8 +23,8 @@ export function AuthPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
-  const [email, setEmail] = useState(testCredentials.email);
-  const [password, setPassword] = useState(testCredentials.password);
+  const [loginValue, setLoginValue] = useState(testCredentials.email);
+  const [secretValue, setSecretValue] = useState(testCredentials.password);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -34,7 +34,7 @@ export function AuthPage() {
     setIsSubmitting(true);
 
     try {
-      await login({ email, password });
+      await login({ email: loginValue, password: secretValue });
       navigate(getRedirectPath(location.state), { replace: true });
     } catch (caughtError) {
       const message =
@@ -92,8 +92,8 @@ export function AuthPage() {
               Электронная почта
               <input
                 type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
+                value={loginValue}
+                onChange={(event) => setLoginValue(event.target.value)}
                 className="mt-2 w-full rounded border border-white/10 bg-white/90 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-ice-300 focus:ring-4 focus:ring-ice-500/20"
                 autoComplete="email"
               />
@@ -103,8 +103,8 @@ export function AuthPage() {
               Пароль
               <input
                 type="password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
+                value={secretValue}
+                onChange={(event) => setSecretValue(event.target.value)}
                 className="mt-2 w-full rounded border border-white/10 bg-white/90 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-ice-300 focus:ring-4 focus:ring-ice-500/20"
                 autoComplete="current-password"
               />
