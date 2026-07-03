@@ -136,7 +136,11 @@ const relationColor: Record<string, string> = {
   influences: "#2dd4bf",
   requires: "#818cf8",
   measured_in: "#f59e0b",
+  measured_as: "#f59e0b",
   contains: "#94a3b8",
+  reduces: "#22d3ee",
+  polishes: "#67e8f9",
+  sets: "#60a5fa",
   selected_for: "#38bdf8",
 };
 
@@ -153,9 +157,34 @@ const relationLabel: Record<string, string> = {
   influences: "влияет",
   requires: "требует",
   measured_in: "измеряется",
+  measured_as: "измеряется",
   contains: "содержит",
+  reduces: "снижает",
+  polishes: "полировка",
+  sets: "задает",
   selected_for: "выбрано",
 };
+
+function getNodeBaseStyle(color: (typeof nodeColorByType)[VisualNodeType], mode: KnowledgeGraphMode) {
+  return {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: mode === "compact" ? "10px 14px" : "12px 16px",
+    borderRadius: 18,
+    border: `1px solid ${color.border}`,
+    background: color.background,
+    color: color.color,
+    fontSize: mode === "compact" ? 11 : 12,
+    fontWeight: 700,
+    lineHeight: 1.32,
+    whiteSpace: "normal",
+    textAlign: "center" as const,
+    overflowWrap: "break-word" as const,
+    wordBreak: "normal" as const,
+    boxShadow: `0 0 0 1px rgba(255,255,255,0.04), 0 0 24px ${color.glow}, 0 18px 36px rgba(0,0,0,0.34)`,
+  };
+}
 
 function getNodePosition(index: number, mode: KnowledgeGraphMode): { x: number; y: number } {
   const columns = mode === "compact" ? 3 : 4;
@@ -193,20 +222,9 @@ function createFlowNode(node: GraphNode, index: number, mode: KnowledgeGraphMode
       metadata: node.metadata,
     },
     style: {
+      ...getNodeBaseStyle(color, mode),
       width: mode === "compact" ? 180 : 220,
       minHeight: mode === "compact" ? 48 : 54,
-      padding: mode === "compact" ? "10px 14px" : "12px 16px",
-      borderRadius: 18,
-      border: `1px solid ${color.border}`,
-      background: color.background,
-      color: color.color,
-      fontSize: mode === "compact" ? 11 : 12,
-      fontWeight: 700,
-      lineHeight: 1.35,
-      whiteSpace: "normal",
-      textAlign: "center",
-      overflowWrap: "break-word",
-      boxShadow: `0 0 0 1px rgba(255,255,255,0.04), 0 0 24px ${color.glow}, 0 18px 36px rgba(0,0,0,0.34)`,
     },
   };
 }
@@ -237,30 +255,30 @@ function createIssueNode(
       },
     },
     style: {
+      ...getNodeBaseStyle(color, mode),
       width: mode === "compact" ? 190 : 230,
       minHeight: mode === "compact" ? 54 : 64,
-      padding: mode === "compact" ? "10px 14px" : "12px 16px",
-      borderRadius: 18,
       border: `2px solid ${color.border}`,
-      background: color.background,
-      color: color.color,
-      fontSize: mode === "compact" ? 11 : 12,
       fontWeight: 800,
-      lineHeight: 1.35,
-      whiteSpace: "normal",
-      textAlign: "center",
-      overflowWrap: "break-word",
       boxShadow: `0 0 0 1px rgba(255,255,255,0.04), 0 0 28px ${color.glow}, 0 18px 36px rgba(0,0,0,0.36)`,
     },
   };
 }
 
 function getEdgeLabel(relation: string, fallbackLabel?: string): string {
-  const label = relationLabel[relation] ?? fallbackLabel ?? relation;
+  const label = relationLabel[relation] ?? (fallbackLabel ? relationLabel[fallbackLabel] : undefined) ?? fallbackLabel ?? relation;
   return label.length > 18 ? `${label.slice(0, 17)}…` : label;
 }
 
-function createFlowEdge(edge: GraphEdge): FlowEdge {
+function getEdgeStrokeWidth(relation: string, mode: KnowledgeGraphMode): number {
+  if (relation === "contradicts" || relation === "has_gap") {
+    return mode === "compact" ? 1.9 : 2.25;
+  }
+
+  return mode === "compact" ? 1.65 : 1.95;
+}
+
+function createFlowEdge(edge: GraphEdge, mode: KnowledgeGraphMode): FlowEdge {
   const color = relationColor[edge.relation] ?? "#64748b";
 
   return {
@@ -278,20 +296,22 @@ function createFlowEdge(edge: GraphEdge): FlowEdge {
     },
     style: {
       stroke: color,
-      strokeWidth: edge.relation === "contradicts" ? 1.7 : 1.25,
-      opacity: 0.72,
+      strokeWidth: getEdgeStrokeWidth(edge.relation, mode),
+      opacity: 0.88,
     },
     labelStyle: {
-      fill: "#cbd5e1",
-      fontSize: 10,
-      fontWeight: 600,
+      fill: "#f8fafc",
+      fontSize: mode === "compact" ? 10 : 11,
+      fontWeight: 700,
     },
     labelBgStyle: {
-      fill: "#0f172a",
-      fillOpacity: 0.78,
+      fill: "#111827",
+      fillOpacity: 0.92,
+      stroke: "rgba(125, 211, 252, 0.34)",
+      strokeWidth: 1,
     },
-    labelBgPadding: [6, 3],
-    labelBgBorderRadius: 10,
+    labelBgPadding: [8, 4],
+    labelBgBorderRadius: 12,
   };
 }
 
@@ -318,21 +338,23 @@ function createIssueEdges(issues: Array<Contradiction | KnowledgeGap>, visualTyp
       },
       style: {
         stroke: color,
-        strokeWidth: 1.65,
-        opacity: 0.78,
+        strokeWidth: visualType === "contradiction" ? 2.2 : 2,
+        opacity: 0.9,
         strokeDasharray: visualType === "gap" ? "6 4" : undefined,
       },
       labelStyle: {
-        fill: "#e2e8f0",
-        fontSize: 10,
-        fontWeight: 600,
+        fill: "#f8fafc",
+        fontSize: 11,
+        fontWeight: 700,
       },
       labelBgStyle: {
-        fill: "#0f172a",
-        fillOpacity: 0.82,
+        fill: "#111827",
+        fillOpacity: 0.94,
+        stroke: visualType === "contradiction" ? "rgba(251, 113, 133, 0.4)" : "rgba(251, 146, 60, 0.42)",
+        strokeWidth: 1,
       },
-      labelBgPadding: [6, 3],
-      labelBgBorderRadius: 10,
+      labelBgPadding: [8, 4],
+      labelBgBorderRadius: 12,
     }));
   });
 }
@@ -355,9 +377,11 @@ function GraphControls() {
         <button
           type="button"
           className={buttonClassName}
+          title="Центрировать граф"
+          aria-label="Центрировать граф"
           onClick={() => fitView({ padding: 0.22, duration: 420 })}
         >
-          Вписать
+          Центр
         </button>
       </div>
     </Panel>
@@ -388,7 +412,7 @@ export function KnowledgeGraph({
     const nodeIds = new Set([...baseNodes, ...issueNodes].map((node) => node.id));
     const baseEdges = graph.edges
       .filter((edge) => nodeIds.has(edge.source) && nodeIds.has(edge.target))
-      .map(createFlowEdge);
+      .map((edge) => createFlowEdge(edge, mode));
     const issueEdges = createIssueEdges(contradictions, "contradiction").filter((edge) =>
       nodeIds.has(edge.target),
     );
