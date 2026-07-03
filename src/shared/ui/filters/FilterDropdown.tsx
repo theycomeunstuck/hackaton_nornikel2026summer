@@ -98,7 +98,7 @@ export function FilterDropdown({
       </button>
 
       {isOpen ? (
-        <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-50 overflow-hidden rounded-xl border border-ice-200/90 bg-white/94 shadow-[0_18px_44px_rgba(15,23,42,0.18)] backdrop-blur-2xl">
+        <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-50 overflow-hidden rounded-xl border border-ice-200 bg-[#f8fbfd] shadow-[0_18px_44px_rgba(15,23,42,0.18)]">
           <div
             role="listbox"
             aria-label={label}
@@ -117,7 +117,7 @@ export function FilterDropdown({
                   className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-sm transition ${
                     isSelected
                       ? "bg-ice-500 text-white shadow-sm"
-                      : "text-slate-700 hover:bg-ice-50 hover:text-ice-700"
+                      : "text-slate-800 hover:bg-ice-50 hover:text-ice-700"
                   }`}
                 >
                   <span className="min-w-0 truncate">{option.label}</span>
