@@ -16,7 +16,6 @@ const navigationItems: NavigationItem[] = [
   { label: "Противоречия", path: "/contradictions", marker: "CT" },
   { label: "Экспорт", path: "/export", marker: "EX" },
   { label: "Загрузка документов", path: "/upload", marker: "UP", secondary: true },
-  { label: "Вход", path: "/auth", marker: "ID", secondary: true },
 ];
 
 function getNavLinkClass(isActive: boolean): string {

@@ -37,7 +37,7 @@ const headerByPath: Record<string, HeaderMeta> = {
   },
   "/upload": {
     title: "Загрузка документов",
-    subtitle: "Будущая точка пополнения корпуса научно-технических материалов.",
+    subtitle: "Mock pipeline для пополнения evidence index claims, sources и graph relations.",
   },
   "/auth": {
     title: "Вход",
