@@ -60,24 +60,24 @@ function ContradictionCard({ item }: { item: ContradictionListItem }) {
 
       <div className="mt-4 grid grid-cols-2 gap-4">
         <div className="rounded border border-white/80 bg-white/86 p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Claim A</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Утверждение A</p>
           <p className="mt-2 text-sm leading-6 text-slate-700">
-            {item.claimA?.statement ?? item.contradiction.conflictingStatements[0] ?? "Claim is not linked."}
+            {item.claimA?.statement ?? item.contradiction.conflictingStatements[0] ?? "Утверждение не связано."}
           </p>
           {sourceA ? (
             <p className="mt-3 text-xs text-slate-500">
-              {sourceA.documentTitle}, p. {sourceA.page}
+              {sourceA.documentTitle}, стр. {sourceA.page}
             </p>
           ) : null}
         </div>
         <div className="rounded border border-white/80 bg-white/86 p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Claim B</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Утверждение B</p>
           <p className="mt-2 text-sm leading-6 text-slate-700">
-            {item.claimB?.statement ?? item.contradiction.conflictingStatements[1] ?? "Claim is not linked."}
+            {item.claimB?.statement ?? item.contradiction.conflictingStatements[1] ?? "Утверждение не связано."}
           </p>
           {sourceB ? (
             <p className="mt-3 text-xs text-slate-500">
-              {sourceB.documentTitle}, p. {sourceB.page}
+              {sourceB.documentTitle}, стр. {sourceB.page}
             </p>
           ) : null}
         </div>
@@ -85,17 +85,17 @@ function ContradictionCard({ item }: { item: ContradictionListItem }) {
 
       <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Materials</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Материалы</p>
           <p className="mt-2 text-slate-700">{formatList(item.materials)}</p>
         </div>
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Processes</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Процессы</p>
           <p className="mt-2 text-slate-700">{formatList(item.processes)}</p>
         </div>
       </div>
 
       <p className="mt-4 rounded border border-white/80 bg-white/80 p-3 text-sm leading-6 text-slate-700">
-        <span className="font-semibold">Possible reason / next step: </span>
+        <span className="font-semibold">Возможная причина и следующий шаг: </span>
         {item.contradiction.resolutionHint}
       </p>
     </article>
@@ -113,7 +113,7 @@ function GapCard({ gap }: { gap: KnowledgeGap }) {
         <StatusBadge label={gap.severity} tone={getSeverityTone(gap.severity)} />
       </div>
       <p className="mt-3 text-sm leading-6 text-slate-700">
-        <span className="font-semibold">Recommendation: </span>
+        <span className="font-semibold">Рекомендация: </span>
         {gap.recommendedAction}
       </p>
     </article>
@@ -137,20 +137,20 @@ export function ContradictionsPage() {
         <div className="grid grid-cols-[minmax(0,1fr)_390px] gap-8">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-ice-600">
-              Contradictions
+              Противоречия
             </p>
             <h2 className="mt-3 text-3xl font-semibold text-slate-950">
               Противоречия и слабые места доказательной базы
             </h2>
             <p className="mt-3 max-w-4xl text-sm leading-6 text-slate-600">
-              Противоречия показывают conflicting claims, разные условия экспериментов
+              Противоречия показывают конфликтующие утверждения, разные условия экспериментов
               или несовпадающие выводы источников. Это не ошибка системы, а точка для
               экспертной проверки.
             </p>
           </div>
           <div className="rounded border border-orange-200 bg-orange-50 p-5">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange-700">
-              Review principle
+              Принцип проверки
             </p>
             <p className="mt-3 text-lg font-semibold text-slate-950">
               Конфликт источников должен быть виден до переноса вывода в отчет.
@@ -161,36 +161,36 @@ export function ContradictionsPage() {
 
       <section className="grid grid-cols-4 gap-4">
         <MetricCard
-          label="Всего contradictions"
+          label="Всего противоречий"
           value={String(contradictionStats.total)}
-          description="Структурированные конфликты claims в mock-корпусе."
+          description="Структурированные конфликты утверждений в текущем корпусе."
           tone={contradictionStats.total > 0 ? "amber" : "green"}
         />
         <MetricCard
-          label="Needs review"
+          label="Нужна проверка"
           value={String(contradictionStats.claimsNeedingReviewCount)}
-          description="Claims, связанные с противоречиями."
+          description="Утверждения, связанные с противоречиями."
           tone="amber"
         />
         <MetricCard
-          label="Related gaps"
+          label="Связанные пробелы"
           value={String(contradictionStats.relatedGapsCount)}
-          description="Knowledge gaps, которые могут снижать уверенность."
+          description="Пробелы, которые могут снижать уверенность."
           tone="violet"
         />
         <MetricCard
-          label="Critical / moderate"
+          label="Критичные / средние"
           value={`${contradictionStats.severityCounts.critical}/${contradictionStats.severityCounts.moderate}`}
-          description="Серьёзные и умеренные conflicts."
+          description="Серьезные и умеренные конфликты."
           tone={contradictionStats.severityCounts.critical > 0 ? "red" : "amber"}
         />
       </section>
 
       <div className="grid grid-cols-[minmax(0,1fr)_420px] gap-6">
-        <SectionCard title="Contradiction review" eyebrow="Conflicting evidence">
+        <SectionCard title="Разбор противоречий" eyebrow="Конфликтующие доказательства">
           <div className="grid grid-cols-4 gap-3 rounded border border-slate-200 bg-slate-50 p-4">
             <label className="text-xs font-medium text-slate-600">
-              Severity
+              Серьезность
               <select
                 value={filters.severity}
                 onChange={(event) =>
@@ -202,14 +202,14 @@ export function ContradictionsPage() {
                 className="mt-2 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm"
               >
                 <option value="all">Любая</option>
-                <option value="minor">Minor</option>
-                <option value="moderate">Moderate</option>
-                <option value="critical">Critical</option>
+                <option value="minor">Низкая</option>
+                <option value="moderate">Средняя</option>
+                <option value="critical">Критичная</option>
               </select>
             </label>
 
             <label className="text-xs font-medium text-slate-600">
-              Topic / material
+              Тема / материал
               <input
                 type="search"
                 value={filters.topic}
@@ -220,7 +220,7 @@ export function ContradictionsPage() {
             </label>
 
             <label className="text-xs font-medium text-slate-600">
-              Source type
+              Тип источника
               <select
                 value={filters.sourceType}
                 onChange={(event) =>
@@ -241,12 +241,12 @@ export function ContradictionsPage() {
             </label>
 
             <label className="text-xs font-medium text-slate-600">
-              Search
+              Поиск
               <input
                 type="search"
                 value={filters.search}
                 onChange={(event) => setFilters({ ...filters, search: event.target.value })}
-                placeholder="Описание, источник..."
+                placeholder="описание, источник..."
                 className="mt-2 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm"
               />
             </label>
@@ -266,7 +266,7 @@ export function ContradictionsPage() {
         </SectionCard>
 
         <div className="space-y-6">
-          <SectionCard title="Knowledge gaps" eyebrow="Related weak spots">
+          <SectionCard title="Связанные пробелы" eyebrow="Слабые зоны">
             <div className="space-y-3">
               {contradictionStats.gaps.map((gap) => (
                 <GapCard key={gap.id} gap={gap} />
@@ -276,12 +276,12 @@ export function ContradictionsPage() {
 
           <section className="rounded border border-graphite-800 bg-graphite-900 p-5 text-white shadow-glass">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ice-300">
-              Next workflow
+              Следующий шаг
             </p>
-            <h2 className="mt-2 text-xl font-semibold">Проверить evidence context</h2>
+            <h2 className="mt-2 text-xl font-semibold">Проверить доказательный контекст</h2>
             <p className="mt-2 text-sm leading-6 text-slate-300">
-              Откройте поиск доказательств или граф знаний, чтобы увидеть claims,
-              источники и связи вокруг conflict.
+              Откройте поиск доказательств или граф знаний, чтобы увидеть утверждения,
+              источники и связи вокруг конфликта.
             </p>
             <div className="mt-4 grid grid-cols-2 gap-3">
               <Link

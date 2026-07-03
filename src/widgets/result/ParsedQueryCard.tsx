@@ -50,61 +50,65 @@ export function ParsedQueryCard({ parsedQuery }: ParsedQueryCardProps) {
     : "Не задан";
 
   return (
-    <SectionCard title="Как система поняла запрос" eyebrow="Parsed query">
+    <SectionCard title="Как система поняла запрос" eyebrow="Структура запроса">
       <div className="space-y-4">
         <div className="rounded border border-slate-200 bg-slate-50 px-4 py-3">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-            Normalized question
+            Нормализованный вопрос
           </p>
           <p className="mt-2 text-sm leading-6 text-slate-700">{parsedQuery.normalizedQuestion}</p>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Intent</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Намерение</p>
             <p className="mt-2 text-sm font-semibold text-slate-900">{parsedQuery.intent}</p>
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Time range</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Период</p>
             <p className="mt-2 text-sm font-semibold text-slate-900">{timeRange}</p>
           </div>
         </div>
 
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Materials</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Материалы</p>
           <div className="mt-2">
             <TagList items={parsedQuery.materials} />
           </div>
         </div>
 
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Processes</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Процессы</p>
           <div className="mt-2">
             <TagList items={parsedQuery.processes} />
           </div>
         </div>
 
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Technologies / equipment</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Технологии и оборудование</p>
           <div className="mt-2">
             <TagList items={parsedQuery.equipment} />
           </div>
         </div>
 
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Numeric conditions</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Числовые условия</p>
           <div className="mt-2 flex flex-wrap gap-2">
-            {parsedQuery.numericConditions.map((condition) => (
-              <span key={condition.id} className="rounded border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-700">
-                {formatCondition(condition)}
-              </span>
-            ))}
+            {parsedQuery.numericConditions.length > 0 ? (
+              parsedQuery.numericConditions.map((condition) => (
+                <span key={condition.id} className="rounded border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-700">
+                  {formatCondition(condition)}
+                </span>
+              ))
+            ) : (
+              <span className="text-sm text-slate-400">Не выделены</span>
+            )}
           </div>
         </div>
 
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Geography</p>
-          <p className="mt-2 text-sm text-slate-500">Не указана в mock-контракте</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">География</p>
+          <p className="mt-2 text-sm text-slate-500">Не указана</p>
         </div>
       </div>
     </SectionCard>

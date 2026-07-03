@@ -73,14 +73,14 @@ export function FileDropzone({ selectedFile, onFileSelect }: FileDropzoneProps) 
       <div className="grid grid-cols-[minmax(0,1fr)_180px] items-center gap-5">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ice-600">
-            Document intake
+            Прием документа
           </p>
           <h3 className="mt-2 text-xl font-semibold text-slate-950">
             Перетащите документ или выберите файл
           </h3>
           <p className="mt-2 text-sm leading-6 text-slate-600">
-            Поддерживаются PDF, DOCX, TXT, CSV и XLSX. В этой итерации файл не
-            отправляется на backend, обработка симулируется локально.
+            Поддерживаются PDF, DOCX, TXT, CSV и XLSX. Файл подготавливается к
+            локальной обработке и пополнению индекса доказательств.
           </p>
         </div>
 
@@ -97,26 +97,26 @@ export function FileDropzone({ selectedFile, onFileSelect }: FileDropzoneProps) 
         <div className="mt-5 grid grid-cols-3 gap-3 rounded border border-ice-100 bg-ice-50 p-4 text-sm">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-              Name
+              Имя
             </p>
             <p className="mt-1 font-semibold text-slate-900">{selectedFile.name}</p>
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-              Size
+              Размер
             </p>
             <p className="mt-1 font-semibold text-slate-900">{formatFileSize(selectedFile.size)}</p>
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-              Type
+              Тип
             </p>
             <p className="mt-1 font-semibold text-slate-900">{selectedFile.type}</p>
           </div>
         </div>
       ) : (
         <div className="mt-5 rounded border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
-          Файл пока не выбран. После выбора можно запустить mock processing pipeline.
+          Файл пока не выбран. После выбора можно запустить обработку документа.
         </div>
       )}
     </div>

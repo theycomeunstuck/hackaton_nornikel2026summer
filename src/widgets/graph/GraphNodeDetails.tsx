@@ -15,15 +15,29 @@ type GraphNodeDetailsProps = {
   node: GraphNodeDetailsData | null;
 };
 
+const nodeTypeLabel: Record<string, string> = {
+  claim: "утверждение",
+  material: "материал",
+  process: "процесс",
+  technology: "технология",
+  equipment: "оборудование",
+  parameter: "параметр",
+  condition: "условие",
+  effect: "эффект",
+  source: "источник",
+  contradiction: "противоречие",
+  gap: "пробел",
+};
+
 export function GraphNodeDetails({ node }: GraphNodeDetailsProps) {
   if (!node) {
     return (
       <aside className="rounded border border-slate-200 bg-white/85 p-4">
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-          Node details
+          Детали узла
         </p>
         <p className="mt-3 text-sm leading-6 text-slate-500">
-          Выберите узел графа, чтобы увидеть тип, confidence, описание и связанные
+          Выберите узел графа, чтобы увидеть тип, достоверность, описание и связанные
           идентификаторы.
         </p>
       </aside>
@@ -35,13 +49,13 @@ export function GraphNodeDetails({ node }: GraphNodeDetailsProps) {
   return (
     <aside className="rounded border border-ice-100 bg-white/90 p-4 shadow-sm">
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ice-600">
-        Node details
+        Детали узла
       </p>
       <div className="mt-3 flex items-start justify-between gap-3">
         <div>
           <h3 className="text-base font-semibold leading-6 text-slate-950">{node.label}</h3>
           <p className="mt-1 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
-            {node.type}
+            {nodeTypeLabel[node.type] ?? node.type}
           </p>
         </div>
         {node.confidence ? <ConfidenceBadge confidence={node.confidence} /> : null}
@@ -56,7 +70,7 @@ export function GraphNodeDetails({ node }: GraphNodeDetailsProps) {
         {node.description ? (
           <div>
             <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-              Description
+              Описание
             </dt>
             <dd className="mt-1 leading-6 text-slate-700">{node.description}</dd>
           </div>
@@ -65,7 +79,7 @@ export function GraphNodeDetails({ node }: GraphNodeDetailsProps) {
         {node.relatedIds && node.relatedIds.length > 0 ? (
           <div>
             <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-              Related IDs
+              Связанные ID
             </dt>
             <dd className="mt-2 flex flex-wrap gap-2">
               {node.relatedIds.map((relatedId) => (
@@ -80,7 +94,7 @@ export function GraphNodeDetails({ node }: GraphNodeDetailsProps) {
         {metadataEntries.length > 0 ? (
           <div>
             <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-              Metadata
+              Метаданные
             </dt>
             <dd className="mt-2 space-y-1">
               {metadataEntries.map(([key, value]) => (

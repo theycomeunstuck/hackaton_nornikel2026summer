@@ -53,12 +53,12 @@ const confidenceScore: Record<EvidenceClaim["confidence"], number> = {
 };
 
 const sourceTypeLabel: Record<SourceType, string> = {
-  scientific_article: "Scientific articles",
-  internal_report: "Internal reports",
-  patent: "Patents",
-  experiment_protocol: "Experiment protocols",
-  technical_standard: "Technical standards",
-  reference_book: "Reference books",
+  scientific_article: "Научные статьи",
+  internal_report: "Внутренние отчеты",
+  patent: "Патенты",
+  experiment_protocol: "Протоколы экспериментов",
+  technical_standard: "Технические стандарты",
+  reference_book: "Справочники",
 };
 
 function getAllClaims(results: SearchResult[]): EvidenceClaim[] {
@@ -156,45 +156,45 @@ export function buildDashboardStats(
   return {
     metrics: [
       {
-        label: "Indexed documents",
+        label: "Индексированные документы",
         value: String(documents.filter((document) => document.status === "indexed").length),
         description: "Научные статьи, отчеты, протоколы и внутренние материалы в корпусе.",
         tone: "cyan",
       },
       {
-        label: "Extracted claims",
+        label: "Извлеченные утверждения",
         value: String(claims.length),
-        description: "Структурированные утверждения, извлеченные из выбранных сценариев.",
+        description: "Структурированные утверждения, извлеченные из текущего корпуса.",
         tone: "green",
       },
       {
-        label: "Source references",
+        label: "Ссылки на источники",
         value: String(sourceReferencesCount),
-        description: "Уникальные ссылки на страницы и chunks, поддерживающие claims.",
+        description: "Уникальные ссылки на страницы и фрагменты, поддерживающие утверждения.",
         tone: "violet",
       },
       {
-        label: "Graph relations",
+        label: "Связи графа",
         value: String(getGraphRelationsCount(results)),
         description: "Связи между материалами, процессами, условиями, эффектами и источниками.",
         tone: "cyan",
       },
       {
-        label: "Contradictions",
+        label: "Противоречия",
         value: String(contradictions.length),
-        description: "Конфликтующие claims, требующие экспертной проверки.",
+        description: "Конфликтующие утверждения, требующие экспертной проверки.",
         tone: contradictions.length > 0 ? "red" : "green",
       },
       {
-        label: "Knowledge gaps",
+        label: "Пробелы в знаниях",
         value: String(gaps.length),
         description: "Недостающие данные и слабые зоны доказательной базы.",
         tone: gaps.length > 0 ? "amber" : "green",
       },
       {
-        label: "Average confidence",
+        label: "Средняя уверенность",
         value: getAverageConfidence(claims),
-        description: "Средняя нормированная уверенность по claims в mock-корпусе.",
+        description: "Средняя нормированная уверенность по утверждениям в корпусе.",
         tone: "green",
       },
     ],

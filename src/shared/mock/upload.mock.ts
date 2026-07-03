@@ -34,37 +34,37 @@ export const uploadProcessingSteps: UploadProcessingStep[] = [
   {
     id: "file_uploaded",
     title: "Файл загружен",
-    description: "Документ добавлен в локальную mock-очередь обработки.",
+    description: "Документ добавлен в локальную очередь обработки.",
   },
   {
     id: "text_extracted",
-    title: "Текст извлечён",
+    title: "Текст извлечен",
     description: "Содержимое подготовлено для разбиения на научно-технические фрагменты.",
   },
   {
     id: "chunks_created",
-    title: "Чанки сформированы",
-    description: "Фрагменты привязаны к страницам и будущим source references.",
+    title: "Фрагменты сформированы",
+    description: "Фрагменты привязаны к страницам и будущим ссылкам на источники.",
   },
   {
     id: "claims_extracted",
-    title: "Claims извлечены",
+    title: "Утверждения извлечены",
     description: "Найдены утверждения, которые могут быть проверены источниками.",
   },
   {
     id: "entities_conditions_found",
     title: "Сущности и условия найдены",
-    description: "Выделены materials, processes, equipment и numeric conditions.",
+    description: "Выделены материалы, процессы, оборудование и числовые условия.",
   },
   {
     id: "graph_relations_built",
     title: "Связи графа построены",
-    description: "Claims связаны с источниками, условиями, эффектами и процессами.",
+    description: "Утверждения связаны с источниками, условиями, эффектами и процессами.",
   },
   {
     id: "evidence_index_updated",
-    title: "Evidence index обновлён",
-    description: "Новые claims, источники и связи готовы для поиска доказательств.",
+    title: "Индекс доказательств обновлен",
+    description: "Новые утверждения, источники и связи готовы для поиска доказательств.",
   },
 ];
 

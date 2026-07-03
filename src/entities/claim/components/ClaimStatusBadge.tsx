@@ -6,11 +6,11 @@ type ClaimStatusBadgeProps = {
 };
 
 const statusLabel: Record<ClaimStatus, string> = {
-  confirmed: "confirmed",
-  weakly_supported: "weak support",
-  conflicting: "conflicting",
-  new: "new",
-  needs_review: "needs review",
+  confirmed: "подтверждено",
+  weakly_supported: "слабая поддержка",
+  conflicting: "конфликт",
+  new: "новое",
+  needs_review: "нужна проверка",
 };
 
 export function ClaimStatusBadge({ status }: ClaimStatusBadgeProps) {

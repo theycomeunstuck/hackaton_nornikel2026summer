@@ -48,40 +48,40 @@ export function GraphPage() {
         <div className="grid grid-cols-[minmax(0,1fr)_520px] gap-8">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-ice-600">
-              Knowledge graph
+              Граф знаний
             </p>
             <h2 className="mt-3 text-3xl font-semibold text-slate-950">
               Граф доказательных связей
             </h2>
             <p className="mt-3 max-w-4xl text-sm leading-6 text-slate-600">
-              Граф показывает, как claims связаны с материалами, процессами,
-              технологиями, условиями, эффектами и источниками. Узлы
-              противоречий и пробелов выделены отдельно, чтобы эксперт сразу видел
-              слабые места доказательной базы.
+              Граф показывает, как утверждения связаны с материалами, процессами,
+              технологиями, условиями, эффектами и источниками. Узлы противоречий
+              и пробелов выделены отдельно, чтобы эксперт сразу видел слабые зоны
+              доказательной базы.
             </p>
           </div>
           <div className="grid grid-cols-4 gap-3">
             <div className="rounded border border-ice-100 bg-ice-50 px-4 py-3">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ice-600">
-                Nodes
+                Узлы
               </p>
               <p className="mt-2 text-2xl font-semibold text-slate-950">{graphStats.nodes}</p>
             </div>
             <div className="rounded border border-emerald-100 bg-emerald-50 px-4 py-3">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-700">
-                Edges
+                Связи
               </p>
               <p className="mt-2 text-2xl font-semibold text-slate-950">{graphStats.edges}</p>
             </div>
             <div className="rounded border border-amber-100 bg-amber-50 px-4 py-3">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-amber-700">
-                Claims
+                Утверждения
               </p>
               <p className="mt-2 text-2xl font-semibold text-slate-950">{graphStats.claims}</p>
             </div>
             <div className="rounded border border-violet-100 bg-violet-50 px-4 py-3">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-violet-700">
-                Sources
+                Источники
               </p>
               <p className="mt-2 text-2xl font-semibold text-slate-950">{graphStats.sources}</p>
             </div>

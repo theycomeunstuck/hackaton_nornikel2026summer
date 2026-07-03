@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
+import type { Condition } from "../../entities/claim/types";
 import {
   getExtractionResultMock,
   uploadDocumentMock,
   type UploadDocumentMockResponse,
 } from "../../entities/document/api";
-import type { Condition } from "../../entities/claim/types";
 import type { UploadExtractionResult } from "../../shared/mock/upload.mock";
 import { mockUploadExtractionResult } from "../../shared/mock/upload.mock";
 import { ConfidenceBadge } from "../../shared/ui/ConfidenceBadge";
@@ -58,16 +58,16 @@ function TagGroup({ title, items }: { title: string; items: string[] }) {
 function ExtractedObjectsPanel({ extraction }: { extraction: UploadExtractionResult }) {
   return (
     <div className="space-y-6">
-      <SectionCard title="Извлечённые объекты" eyebrow="Extraction result">
+      <SectionCard title="Извлеченные объекты" eyebrow="Результат обработки">
         <div className="grid grid-cols-3 gap-5">
-          <TagGroup title="Materials" items={extraction.materials} />
-          <TagGroup title="Processes" items={extraction.processes} />
-          <TagGroup title="Equipment" items={extraction.equipment} />
+          <TagGroup title="Материалы" items={extraction.materials} />
+          <TagGroup title="Процессы" items={extraction.processes} />
+          <TagGroup title="Оборудование" items={extraction.equipment} />
         </div>
 
         <div className="mt-6 rounded border border-slate-200 bg-slate-50 p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-            Parameters / numeric conditions
+            Параметры и числовые условия
           </p>
           <div className="mt-3 grid grid-cols-2 gap-3">
             {extraction.conditions.map((condition) => (
@@ -79,7 +79,7 @@ function ExtractedObjectsPanel({ extraction }: { extraction: UploadExtractionRes
         </div>
       </SectionCard>
 
-      <SectionCard title="Claims и source references" eyebrow="Evidence objects">
+      <SectionCard title="Утверждения и ссылки на источники" eyebrow="Доказательные объекты">
         <div className="space-y-3">
           {extraction.claims.map((claim) => (
             <article key={claim.id} className="rounded border border-slate-200 bg-white/86 p-4">
@@ -89,15 +89,15 @@ function ExtractedObjectsPanel({ extraction }: { extraction: UploadExtractionRes
               </div>
               <div className="mt-3 grid grid-cols-3 gap-3 text-xs text-slate-500">
                 <div>
-                  <span className="font-semibold uppercase tracking-[0.12em] text-slate-400">Document</span>
+                  <span className="font-semibold uppercase tracking-[0.12em] text-slate-400">Документ</span>
                   <p className="mt-1 text-slate-700">{claim.sourceRef.documentTitle}</p>
                 </div>
                 <div>
-                  <span className="font-semibold uppercase tracking-[0.12em] text-slate-400">Page</span>
+                  <span className="font-semibold uppercase tracking-[0.12em] text-slate-400">Страница</span>
                   <p className="mt-1 text-slate-700">{claim.sourceRef.page}</p>
                 </div>
                 <div>
-                  <span className="font-semibold uppercase tracking-[0.12em] text-slate-400">Chunk</span>
+                  <span className="font-semibold uppercase tracking-[0.12em] text-slate-400">Фрагмент</span>
                   <p className="mt-1 text-slate-700">{claim.sourceRef.chunkId}</p>
                 </div>
               </div>
@@ -106,7 +106,7 @@ function ExtractedObjectsPanel({ extraction }: { extraction: UploadExtractionRes
         </div>
       </SectionCard>
 
-      <SectionCard title="Graph relations" eyebrow="Claims graph">
+      <SectionCard title="Связи графа" eyebrow="Граф утверждений">
         <div className="grid grid-cols-2 gap-3">
           {extraction.graphRelations.map((relation) => (
             <div key={relation.id} className="rounded border border-slate-200 bg-white/86 p-3">
@@ -136,31 +136,31 @@ export function UploadPage() {
 
     return [
       {
-        label: "Claims added",
+        label: "Добавлено утверждений",
         value: String(data.claims.length),
-        description: "Новые claims подготовлены для evidence table.",
+        description: "Новые утверждения подготовлены для таблицы доказательств.",
         tone: "green" as const,
       },
       {
-        label: "Source references",
+        label: "Ссылки на источники",
         value: String(data.sourceRefs.length),
-        description: "Созданы ссылки на document/page/chunk.",
+        description: "Созданы ссылки на документ, страницу и фрагмент.",
         tone: "cyan" as const,
       },
       {
-        label: "Entities found",
+        label: "Найдено сущностей",
         value: String(entitiesCount),
-        description: "Materials, processes и equipment.",
+        description: "Материалы, процессы и оборудование.",
         tone: "violet" as const,
       },
       {
-        label: "Graph relations",
+        label: "Связи графа",
         value: String(data.graphRelations.length),
-        description: "Связи для claims graph.",
+        description: "Связи для графа утверждений.",
         tone: "cyan" as const,
       },
       {
-        label: "Numeric conditions",
+        label: "Числовые условия",
         value: String(data.conditions.length),
         description: "Структурированные параметры и условия.",
         tone: "amber" as const,
@@ -180,7 +180,7 @@ export function UploadPage() {
   };
 
   const handleProcessingComplete = async () => {
-    const documentId = uploadResponse?.documentId ?? "mock-document";
+    const documentId = uploadResponse?.documentId ?? "local-document";
     const result = await getExtractionResultMock(documentId);
     setExtraction(result);
   };
@@ -191,23 +191,23 @@ export function UploadPage() {
         <div className="grid grid-cols-[minmax(0,1fr)_420px] gap-8">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-ice-600">
-              Document upload
+              Загрузка документов
             </p>
             <h2 className="mt-3 text-3xl font-semibold text-slate-950">
-              Загрузка документа в evidence index
+              Загрузка документа в индекс доказательств
             </h2>
             <p className="mt-3 max-w-4xl text-sm leading-6 text-slate-600">
-              Mock pipeline показывает, как документ проходит extraction: текст,
-              chunks, claims, entities, numeric conditions, source references и graph
-              relations. Реальная backend-загрузка в этой итерации не выполняется.
+              Процесс показывает, как документ проходит обработку: текст,
+              фрагменты, утверждения, сущности, числовые условия, ссылки на источники
+              и связи графа.
             </p>
           </div>
           <div className="rounded border border-ice-100 bg-graphite-900 p-5 text-white">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ice-300">
-              Evidence index
+              Индекс доказательств
             </p>
             <p className="mt-3 text-lg font-semibold">
-              Новый документ должен добавить проверяемые claims, источники и связи в граф.
+              Новый документ должен добавить проверяемые утверждения, источники и связи в граф.
             </p>
           </div>
         </div>
@@ -224,11 +224,11 @@ export function UploadPage() {
         </div>
 
         <div className="space-y-6">
-          <SectionCard title="Processing state" eyebrow="Mock status">
+          <SectionCard title="Состояние обработки" eyebrow="Статус документа">
             <div className="grid grid-cols-2 gap-4">
               <div className="rounded border border-slate-200 bg-slate-50 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-                  Selected file
+                  Выбранный файл
                 </p>
                 <p className="mt-2 text-sm font-semibold text-slate-900">
                   {selectedFile?.name ?? "Файл не выбран"}
@@ -236,11 +236,11 @@ export function UploadPage() {
               </div>
               <div className="rounded border border-slate-200 bg-slate-50 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-                  Document status
+                  Статус документа
                 </p>
                 <div className="mt-2">
                   <StatusBadge
-                    label={extraction ? "completed" : uploadResponse ? "uploaded" : "empty"}
+                    label={extraction ? "завершено" : uploadResponse ? "загружено" : "пусто"}
                     tone={extraction ? "success" : uploadResponse ? "info" : "neutral"}
                   />
                 </div>
@@ -248,15 +248,15 @@ export function UploadPage() {
             </div>
             {!selectedFile ? (
               <p className="mt-4 rounded border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
-                Выберите файл, чтобы запустить mock processing pipeline.
+                Выберите файл, чтобы запустить обработку документа.
               </p>
             ) : null}
           </SectionCard>
 
           {extraction ? (
-            <SectionCard title="Evidence index обновлён" eyebrow="Update summary">
+            <SectionCard title="Индекс доказательств обновлен" eyebrow="Итог обработки">
               <p className="text-sm leading-6 text-slate-700">
-                Evidence index обновлён: новые claims, источники и связи добавлены в граф.
+                Индекс доказательств обновлен: новые утверждения, источники и связи добавлены в граф.
               </p>
               <div className="mt-4 grid grid-cols-5 gap-3">
                 {summaryMetrics.map((metric) => (
@@ -277,10 +277,10 @@ export function UploadPage() {
       {extraction ? (
         <ExtractedObjectsPanel extraction={extraction} />
       ) : (
-        <SectionCard title="Extracted objects" eyebrow="Waiting for processing">
+        <SectionCard title="Извлеченные объекты" eyebrow="Ожидание обработки">
           <div className="rounded border border-slate-200 bg-slate-50 p-6 text-sm text-slate-500">
-            После завершения pipeline здесь появятся materials, processes, equipment,
-            numeric conditions, claims, source references и graph relations.
+            После завершения обработки здесь появятся материалы, процессы, оборудование,
+            числовые условия, утверждения, ссылки на источники и связи графа.
           </div>
         </SectionCard>
       )}

@@ -16,6 +16,13 @@ type StepState = UploadProcessingStep & {
   status: UploadProcessingStepStatus;
 };
 
+const statusLabel: Record<UploadProcessingStepStatus, string> = {
+  pending: "ожидает",
+  running: "в работе",
+  done: "готово",
+  failed: "ошибка",
+};
+
 function createInitialSteps(): StepState[] {
   return uploadProcessingSteps.map((step) => ({
     ...step,
@@ -94,14 +101,14 @@ export function ProcessingPipeline({ canStart, onComplete, onReset }: Processing
       <div className="flex items-start justify-between gap-5">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ice-600">
-            Processing pipeline
+            Конвейер обработки
           </p>
           <h3 className="mt-2 text-xl font-semibold text-slate-950">
-            От документа к evidence index
+            От документа к индексу доказательств
           </h3>
           <p className="mt-2 text-sm leading-6 text-slate-600">
-            Pipeline показывает, как файл превращается в chunks, claims, entities,
-            source references и graph relations.
+            Процесс показывает, как файл превращается в фрагменты, утверждения,
+            сущности, ссылки на источники и связи графа.
           </p>
         </div>
         <button
@@ -116,7 +123,7 @@ export function ProcessingPipeline({ canStart, onComplete, onReset }: Processing
 
       <div className="mt-5">
         <div className="flex items-center justify-between text-sm">
-          <span className="font-semibold text-slate-700">Progress</span>
+          <span className="font-semibold text-slate-700">Прогресс</span>
           <span className="text-slate-500">{progress}%</span>
         </div>
         <div className="mt-2 h-2 overflow-hidden rounded bg-slate-100">
@@ -144,7 +151,7 @@ export function ProcessingPipeline({ canStart, onComplete, onReset }: Processing
               <p className="mt-1 text-xs leading-5 text-slate-600">{step.description}</p>
             </div>
             <div className="flex justify-end">
-              <StatusBadge label={step.status} tone={getStatusTone(step.status)} />
+              <StatusBadge label={statusLabel[step.status]} tone={getStatusTone(step.status)} />
             </div>
           </div>
         ))}

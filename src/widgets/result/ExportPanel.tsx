@@ -38,7 +38,7 @@ export function ExportPanel({ query, result, scenarioTitle }: ExportPanelProps) 
       content: markdown,
       contentType: "text/markdown;charset=utf-8",
     });
-    setStatus({ tone: "success", message: "Markdown report скачан." });
+    setStatus({ tone: "success", message: "Markdown-отчет скачан." });
   };
 
   const handleJsonDownload = () => {
@@ -55,24 +55,23 @@ export function ExportPanel({ query, result, scenarioTitle }: ExportPanelProps) 
       content: json,
       contentType: "application/json;charset=utf-8",
     });
-    setStatus({ tone: "success", message: "JSON report скачан." });
+    setStatus({ tone: "success", message: "JSON-отчет скачан." });
   };
 
   return (
-    <SectionCard title="Экспорт отчёта" eyebrow="Export report">
+    <SectionCard title="Экспорт отчета" eyebrow="Отчет по доказательствам">
       <div className="rounded border border-ice-100 bg-ice-50/70 p-4">
         <div className="flex items-start justify-between gap-4">
           <div>
             <h3 className="text-sm font-semibold text-slate-950">
-              Evidence report по текущему результату
+              Сформируйте отчет из текущего результата поиска
             </h3>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              Экспорт включает исходный запрос, parsed query, краткий вывод,
-              confidence, evidence table, источники, противоречия, gaps и summary
-              графа.
+              Markdown и JSON включают запрос, разбор запроса, краткий вывод,
+              таблицу доказательств, источники, противоречия, пробелы и сводку графа.
             </p>
           </div>
-          <StatusBadge label={result ? "ready" : "empty"} tone={result ? "success" : "warning"} />
+          <StatusBadge label={result ? "готово" : "нет результата"} tone={result ? "success" : "warning"} />
         </div>
       </div>
 
@@ -97,20 +96,20 @@ export function ExportPanel({ query, result, scenarioTitle }: ExportPanelProps) 
           type="button"
           disabled
           className="rounded border border-slate-200 bg-slate-100 px-3 py-3 text-sm font-semibold text-slate-400"
-          title="PDF export will be connected through backend"
+          title="PDF-отчет будет доступен после подключения серверного формирования отчетов."
         >
-          PDF через backend
+          PDF позже
         </button>
       </div>
 
       <div className="mt-4 rounded border border-slate-200 bg-white/80 p-3">
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-          Current export context
+          Текущий контекст экспорта
         </p>
         <p className="mt-2 text-sm leading-6 text-slate-700">
           {result
-            ? `${scenarioTitle ?? result.title}: ${result.evidence.length} claims, ${result.sources.length} sources, ${result.contradictions.length} contradictions, ${result.gaps.length} gaps.`
-            : "Выберите SearchResult для экспорта."}
+            ? `${scenarioTitle ?? result.title}: ${result.evidence.length} утверждений, ${result.sources.length} источников, ${result.contradictions.length} противоречий, ${result.gaps.length} пробелов.`
+            : "Выберите результат поиска для экспорта."}
         </p>
       </div>
 

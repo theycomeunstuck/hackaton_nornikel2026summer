@@ -9,7 +9,7 @@ type LocationState = {
   };
 };
 
-const demoCredentials: LoginRequest = {
+const testCredentials: LoginRequest = {
   email: "researcher@demo.local",
   password: "demo123",
 };
@@ -23,8 +23,8 @@ export function AuthPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
-  const [email, setEmail] = useState(demoCredentials.email);
-  const [password, setPassword] = useState(demoCredentials.password);
+  const [email, setEmail] = useState(testCredentials.email);
+  const [password, setPassword] = useState(testCredentials.password);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -40,7 +40,7 @@ export function AuthPage() {
       const message =
         caughtError instanceof Error
           ? caughtError.message
-          : "Не удалось выполнить demo-вход.";
+          : "Не удалось войти. Проверьте электронную почту и пароль.";
       setError(message);
     } finally {
       setIsSubmitting(false);
@@ -52,23 +52,21 @@ export function AuthPage() {
       <div className="mx-auto grid min-h-[calc(100vh-80px)] max-w-7xl grid-cols-[minmax(0,1fr)_440px] items-center gap-12">
         <section>
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-ice-300">
-            Научный клубок
+            R&D Evidence Hub
           </p>
           <h1 className="mt-5 max-w-4xl text-5xl font-semibold leading-tight">
-            Evidence-first поиск научно-технических утверждений, источников,
-            противоречий и пробелов.
+            Проверка научно-технических утверждений по источникам, условиям и связям
           </h1>
           <p className="mt-6 max-w-3xl text-base leading-7 text-slate-300">
-            Demo-доступ открывает промышленный R&D workspace: dashboard, поиск
-            доказательств, граф знаний, источники, gaps, contradictions и экспорт
-            отчётов.
+            Корпоративная рабочая область для анализа источников, утверждений,
+            противоречий и пробелов в научно-технических данных.
           </p>
 
           <div className="mt-8 grid max-w-4xl grid-cols-3 gap-4">
             {[
-              ["Claims", "утверждения с confidence"],
-              ["Sources", "страницы и chunks"],
-              ["Graph", "связи материалов и процессов"],
+              ["База утверждений", "проверяемые выводы"],
+              ["Источники", "страницы и фрагменты"],
+              ["Граф знаний", "связи материалов и процессов"],
             ].map(([title, description]) => (
               <div key={title} className="rounded border border-white/10 bg-white/8 p-4">
                 <p className="text-lg font-semibold text-white">{title}</p>
@@ -81,17 +79,17 @@ export function AuthPage() {
         <section className="rounded border border-white/12 bg-white/10 p-6 shadow-glass backdrop-blur-2xl">
           <div className="rounded border border-ice-300/20 bg-ice-500/10 p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ice-200">
-              Demo access
+              Тестовый доступ
             </p>
-            <h2 className="mt-2 text-2xl font-semibold">Вход в систему</h2>
+            <h2 className="mt-2 text-2xl font-semibold">Вход в рабочую область</h2>
             <p className="mt-2 text-sm leading-6 text-slate-300">
-              Используйте demo credentials для локальной авторизации без backend.
+              Используйте тестовые учетные данные, чтобы открыть защищенные разделы.
             </p>
           </div>
 
           <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
             <label className="block text-sm font-medium text-slate-200">
-              Email
+              Электронная почта
               <input
                 type="email"
                 value={email}
@@ -102,7 +100,7 @@ export function AuthPage() {
             </label>
 
             <label className="block text-sm font-medium text-slate-200">
-              Password
+              Пароль
               <input
                 type="password"
                 value={password}
@@ -123,12 +121,12 @@ export function AuthPage() {
               disabled={isSubmitting}
               className="w-full rounded bg-ice-500 px-5 py-3 text-sm font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-ice-600 disabled:cursor-not-allowed disabled:bg-slate-600"
             >
-              {isSubmitting ? "Входим..." : "Войти"}
+              {isSubmitting ? "Вход..." : "Войти"}
             </button>
           </form>
 
           <div className="mt-5 rounded border border-white/10 bg-white/6 p-4 text-sm text-slate-300">
-            <p className="font-semibold text-white">Demo credentials</p>
+            <p className="font-semibold text-white">Тестовый доступ</p>
             <p className="mt-2">researcher@demo.local / demo123</p>
           </div>
         </section>

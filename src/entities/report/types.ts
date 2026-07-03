@@ -29,7 +29,7 @@ export interface ExportOptions {
 }
 
 export interface FrontendReportMetadata {
-  productName: "Научный клубок";
+  productName: "R&D Evidence Hub";
   query: string;
   scenarioTitle?: string;
   generatedAt: string;

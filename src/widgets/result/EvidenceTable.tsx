@@ -38,22 +38,22 @@ function formatList(items: string[]): string {
 
 export function EvidenceTable({ claims }: EvidenceTableProps) {
   return (
-    <SectionCard title="Таблица доказательств" eyebrow="Evidence table" className="border-ice-100 bg-white/82">
+    <SectionCard title="Таблица доказательств" eyebrow="Утверждения и источники" className="border-ice-100 bg-white/82">
       <div className="overflow-hidden rounded border border-slate-200 bg-white">
         <table className="w-full table-fixed border-collapse text-left text-sm">
           <thead className="bg-graphite-900 text-xs uppercase tracking-[0.12em] text-slate-200">
             <tr>
-              <th className="w-[24%] px-4 py-3">Claim / утверждение</th>
-              <th className="w-[10%] px-4 py-3">Material</th>
-              <th className="w-[10%] px-4 py-3">Process</th>
-              <th className="w-[10%] px-4 py-3">Technology</th>
-              <th className="w-[13%] px-4 py-3">Conditions</th>
-              <th className="w-[12%] px-4 py-3">Effect</th>
-              <th className="w-[11%] px-4 py-3">Source</th>
-              <th className="w-[5%] px-4 py-3">Page</th>
-              <th className="w-[8%] px-4 py-3">Confidence</th>
-              <th className="w-[5%] px-4 py-3">Year</th>
-              <th className="w-[8%] px-4 py-3">Geography</th>
+              <th className="w-[24%] px-4 py-3">Утверждение</th>
+              <th className="w-[10%] px-4 py-3">Материал</th>
+              <th className="w-[10%] px-4 py-3">Процесс</th>
+              <th className="w-[10%] px-4 py-3">Технология</th>
+              <th className="w-[13%] px-4 py-3">Условия</th>
+              <th className="w-[12%] px-4 py-3">Эффект</th>
+              <th className="w-[11%] px-4 py-3">Источник</th>
+              <th className="w-[5%] px-4 py-3">Стр.</th>
+              <th className="w-[8%] px-4 py-3">Достоверность</th>
+              <th className="w-[5%] px-4 py-3">Год</th>
+              <th className="w-[8%] px-4 py-3">География</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200">
@@ -87,7 +87,7 @@ export function EvidenceTable({ claims }: EvidenceTableProps) {
             ) : (
               <tr>
                 <td colSpan={11} className="px-4 py-10 text-center text-sm text-slate-500">
-                  По текущим фильтрам claims не найдены.
+                  По текущим фильтрам утверждения не найдены.
                 </td>
               </tr>
             )}

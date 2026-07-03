@@ -110,7 +110,7 @@ function getSourceItems(
       language: document?.language ?? "unknown",
       geography: "unknown",
       relatedClaimsCount: relatedClaims.length,
-      excerpt: relatedClaims[0]?.statement ?? "Excerpt is not available in current mock data.",
+      excerpt: relatedClaims[0]?.statement ?? "Фрагмент для источника не найден.",
       references,
     };
   });
@@ -138,7 +138,7 @@ export function buildSourceStats(
         label: "Всего источников",
         value: String(sources.length),
         tone: "cyan",
-        description: "Публикации, отчеты и протоколы, поддерживающие claims.",
+        description: "Публикации, отчеты и протоколы, поддерживающие утверждения.",
       },
       ...typeDistribution.map((item) => ({
         label: item.label,
@@ -147,16 +147,16 @@ export function buildSourceStats(
         description: "Распределение по типу источника.",
       })),
       {
-        label: "High reliability",
+        label: "Высокая надежность",
         value: String(sources.filter((source) => source.reliability === "high").length),
         tone: "green",
         description: "Источники с высокой надежностью.",
       },
       {
-        label: "Year range",
+        label: "Диапазон лет",
         value: `${yearRange.from}-${yearRange.to}`,
         tone: "violet",
-        description: "Диапазон годов в текущем mock-корпусе.",
+        description: "Диапазон годов в текущем корпусе источников.",
       },
     ],
     typeDistribution,

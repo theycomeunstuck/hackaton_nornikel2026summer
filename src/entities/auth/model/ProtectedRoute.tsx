@@ -9,7 +9,7 @@ export function ProtectedRoute() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-graphite-950 text-white">
         <div className="rounded border border-white/10 bg-white/8 px-6 py-5 text-sm">
-          Проверяем demo-доступ...
+          Проверяем доступ...
         </div>
       </div>
     );

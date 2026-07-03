@@ -10,18 +10,18 @@ export function SearchPanel({ query, onQueryChange, onSearch }: SearchPanelProps
       <div className="flex items-start justify-between gap-6">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-ice-600">
-            Evidence search
+            Поиск доказательств
           </p>
           <h2 className="mt-2 text-2xl font-semibold text-slate-950">
-            Поиск доказательств по научно-техническому вопросу
+            Проверьте научно-технический вопрос по источникам
           </h2>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-            Запрос превращается в parsed query, claims, source references и evidence
-            table. Каждый вывод должен быть привязан к источнику.
+            Сформулируйте вопрос с материалами, процессами, параметрами и требуемым результатом.
+            Система покажет утверждения, источники, условия и уровень достоверности.
           </p>
         </div>
         <div className="rounded border border-ice-100 bg-ice-50 px-4 py-3 text-sm font-semibold text-ice-600">
-          No source - no factual claim
+          Каждый вывод должен иметь проверяемый источник
         </div>
       </div>
 

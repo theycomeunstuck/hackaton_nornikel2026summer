@@ -1,14 +1,14 @@
 import type { LoginRequest, LoginResponse, User } from "./types";
 
-const demoUser: User = {
-  id: "demo-researcher-001",
-  name: "Демо Исследователь",
+const testUser: User = {
+  id: "researcher-001",
+  name: "Инженер-исследователь",
   email: "researcher@demo.local",
   role: "researcher",
   organization: "Научно-технический центр",
 };
 
-const demoAccessToken = "mock-access-token-scientific-knot";
+const testAccessToken = "local-access-token-evidence-hub";
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => {
@@ -19,21 +19,21 @@ function delay(ms: number): Promise<void> {
 export async function loginMock(request: LoginRequest): Promise<LoginResponse> {
   await delay(420);
 
-  if (request.email === demoUser.email && request.password === "demo123") {
+  if (request.email === testUser.email && request.password === "demo123") {
     return {
-      accessToken: demoAccessToken,
-      user: demoUser,
+      accessToken: testAccessToken,
+      user: testUser,
     };
   }
 
-  throw new Error("Неверный email или пароль для demo-доступа.");
+  throw new Error("Неверная электронная почта или пароль для тестового доступа.");
 }
 
 export async function getCurrentUserMock(token: string): Promise<User | null> {
   await delay(220);
 
-  if (token === demoAccessToken) {
-    return demoUser;
+  if (token === testAccessToken) {
+    return testUser;
   }
 
   return null;

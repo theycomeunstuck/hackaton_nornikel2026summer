@@ -2,6 +2,7 @@ import type { Condition, Effect, EvidenceClaim } from "../../entities/claim/type
 import type { Contradiction } from "../../entities/contradiction/types";
 import type { KnowledgeGap } from "../../entities/gap/types";
 import type { ParsedQuery } from "../../entities/query/types";
+import type { SourceType } from "../../entities/source/types";
 import type { SearchResult } from "../types/search";
 
 export type ReportExportInput = {
@@ -13,13 +14,22 @@ export type ReportExportInput = {
 
 export type JsonReportPayload = {
   metadata: {
-    productName: "Научный клубок";
+    productName: "R&D Evidence Hub";
     query: string;
     scenarioTitle?: string;
     generatedAt: string;
     note: string;
   };
   result: SearchResult;
+};
+
+const sourceTypeLabel: Record<SourceType, string> = {
+  scientific_article: "научная статья",
+  internal_report: "внутренний отчет",
+  patent: "патент",
+  experiment_protocol: "протокол эксперимента",
+  technical_standard: "технический стандарт",
+  reference_book: "справочник",
 };
 
 function formatList(items: string[]): string {
@@ -55,18 +65,18 @@ function formatEffect(effect: Effect): string {
 function formatParsedQuery(parsedQuery: ParsedQuery): string {
   const timeScope = parsedQuery.timeScope
     ? `${parsedQuery.timeScope.fromYear}-${parsedQuery.timeScope.toYear}`
-    : "not specified";
+    : "не указан";
 
   return [
-    `- Intent: ${parsedQuery.intent}`,
-    `- Domain: ${parsedQuery.domain}`,
-    `- Normalized question: ${parsedQuery.normalizedQuestion}`,
-    `- Materials: ${formatList(parsedQuery.materials)}`,
-    `- Processes: ${formatList(parsedQuery.processes)}`,
-    `- Equipment / technologies: ${formatList(parsedQuery.equipment)}`,
-    `- Target parameters: ${formatList(parsedQuery.targetParameters)}`,
-    `- Time range: ${timeScope}`,
-    `- Numeric conditions: ${parsedQuery.numericConditions.map(formatCondition).join("; ") || "—"}`,
+    `- Намерение: ${parsedQuery.intent}`,
+    `- Область: ${parsedQuery.domain}`,
+    `- Нормализованный вопрос: ${parsedQuery.normalizedQuestion}`,
+    `- Материалы: ${formatList(parsedQuery.materials)}`,
+    `- Процессы: ${formatList(parsedQuery.processes)}`,
+    `- Оборудование и технологии: ${formatList(parsedQuery.equipment)}`,
+    `- Целевые параметры: ${formatList(parsedQuery.targetParameters)}`,
+    `- Период: ${timeScope}`,
+    `- Числовые условия: ${parsedQuery.numericConditions.map(formatCondition).join("; ") || "—"}`,
   ].join("\n");
 }
 
@@ -86,27 +96,27 @@ function formatEvidenceRow(claim: EvidenceClaim): string {
 
 function formatContradiction(contradiction: Contradiction): string {
   const sources = contradiction.sourceRefs
-    .map((sourceRef) => `${sourceRef.documentTitle}, p. ${sourceRef.page}`)
+    .map((sourceRef) => `${sourceRef.documentTitle}, стр. ${sourceRef.page}`)
     .join("; ");
 
   return [
     `### ${contradiction.title}`,
-    `- Severity: ${contradiction.severity}`,
-    `- Confidence: ${contradiction.confidence}`,
-    `- Description: ${contradiction.description}`,
-    `- Sources: ${sources}`,
-    `- Resolution hint: ${contradiction.resolutionHint}`,
+    `- Важность: ${contradiction.severity}`,
+    `- Достоверность: ${contradiction.confidence}`,
+    `- Описание: ${contradiction.description}`,
+    `- Источники: ${sources}`,
+    `- Рекомендация: ${contradiction.resolutionHint}`,
   ].join("\n");
 }
 
 function formatGap(gap: KnowledgeGap): string {
   return [
     `### ${gap.title}`,
-    `- Severity: ${gap.severity}`,
-    `- Confidence: ${gap.confidence}`,
-    `- Description: ${gap.description}`,
-    `- Missing evidence: ${gap.missingEvidence}`,
-    `- Recommended action: ${gap.recommendedAction}`,
+    `- Важность: ${gap.severity}`,
+    `- Достоверность: ${gap.confidence}`,
+    `- Описание: ${gap.description}`,
+    `- Недостающие доказательства: ${gap.missingEvidence}`,
+    `- Рекомендация: ${gap.recommendedAction}`,
   ].join("\n");
 }
 
@@ -120,66 +130,66 @@ export function buildMarkdownReport({
   const sources = result.sources
     .map(
       (source) =>
-        `- ${source.title} (${source.sourceType}, ${source.year}) — reliability: ${source.reliability}`,
+        `- ${source.title} (${sourceTypeLabel[source.sourceType]}, ${source.year}) — надежность: ${source.reliability}`,
     )
     .join("\n");
   const contradictions =
     result.contradictions.length > 0
       ? result.contradictions.map(formatContradiction).join("\n\n")
-      : "No structured contradictions in the selected result.";
+      : "В выбранном результате нет структурированных противоречий.";
   const gaps =
     result.gaps.length > 0
       ? result.gaps.map(formatGap).join("\n\n")
-      : "No structured knowledge gaps in the selected result.";
+      : "В выбранном результате нет структурированных пробелов.";
 
   return [
-    `# Evidence report: ${result.title}`,
+    `# Отчет по доказательствам: ${result.title}`,
     "",
-    `Generated at: ${generatedAt}`,
-    `Product: Научный клубок`,
-    scenarioTitle ? `Demo scenario: ${scenarioTitle}` : undefined,
+    `Дата формирования: ${generatedAt}`,
+    "Продукт: R&D Evidence Hub",
+    scenarioTitle ? `Сценарий анализа: ${scenarioTitle}` : undefined,
     "",
-    "## Source principle",
-    "Нет источника — нет фактического утверждения.",
+    "## Принцип проверки",
+    "Каждый вывод должен иметь проверяемый источник.",
     "",
-    "## Original query",
+    "## Исходный запрос",
     query,
     "",
-    "## Parsed query",
+    "## Разбор запроса",
     formatParsedQuery(result.parsedQuery),
     "",
-    "## Answer summary",
+    "## Краткий вывод",
     result.answer.shortConclusion,
     "",
-    `- Confidence: ${result.answer.confidence}`,
-    `- Confidence reason: ${result.answer.confidenceReason}`,
+    `- Достоверность: ${result.answer.confidence}`,
+    `- Причина оценки: ${result.answer.confidenceReason}`,
     "",
-    "### Key findings",
+    "### Ключевые выводы",
     result.answer.keyFindings.map((finding) => `- ${finding}`).join("\n"),
     "",
-    "### Limitations",
+    "### Ограничения",
     result.answer.limitations.map((limitation) => `- ${limitation}`).join("\n") || "- —",
     "",
-    "## Evidence table",
-    "| Claim | Material | Process | Conditions | Effect | Source | Page | Confidence | Year |",
+    "## Таблица доказательств",
+    "| Утверждение | Материал | Процесс | Условия | Эффект | Источник | Страница | Достоверность | Год |",
     "| --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     evidenceRows,
     "",
-    "## Sources",
-    sources || "No sources in the selected result.",
+    "## Источники",
+    sources || "В выбранном результате нет источников.",
     "",
-    "## Contradictions",
+    "## Противоречия",
     contradictions,
     "",
-    "## Knowledge gaps",
+    "## Пробелы в данных",
     gaps,
     "",
-    "## Graph summary",
-    `- Nodes: ${result.graph.nodes.length}`,
-    `- Edges: ${result.graph.edges.length}`,
+    "## Сводка графа",
+    `- Узлы: ${result.graph.nodes.length}`,
+    `- Связи: ${result.graph.edges.length}`,
     "",
-    "## Report note",
-    "All factual claims in this report must remain connected to source references, pages and chunks.",
+    "## Примечание",
+    "Фактические выводы в отчете должны сохранять связь с источниками, страницами и фрагментами.",
     "",
   ]
     .filter((line): line is string => line !== undefined)
@@ -194,11 +204,11 @@ export function buildJsonReport({
 }: ReportExportInput): string {
   const payload: JsonReportPayload = {
     metadata: {
-      productName: "Научный клубок",
+      productName: "R&D Evidence Hub",
       query,
       scenarioTitle,
       generatedAt,
-      note: "All factual claims must remain connected to source references, pages and chunks.",
+      note: "Фактические выводы должны сохранять связь с источниками, страницами и фрагментами.",
     },
     result,
   };

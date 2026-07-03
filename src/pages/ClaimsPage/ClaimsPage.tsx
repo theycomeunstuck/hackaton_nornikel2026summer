@@ -15,12 +15,20 @@ import { StatusBadge } from "../../shared/ui/StatusBadge";
 const claimStats = buildClaimStats();
 
 const sourceTypeLabel: Record<SourceType, string> = {
-  scientific_article: "Scientific article",
-  internal_report: "Internal report",
-  patent: "Patent",
-  experiment_protocol: "Experiment protocol",
-  technical_standard: "Technical standard",
-  reference_book: "Reference book",
+  scientific_article: "Научная статья",
+  internal_report: "Внутренний отчет",
+  patent: "Патент",
+  experiment_protocol: "Протокол эксперимента",
+  technical_standard: "Технический стандарт",
+  reference_book: "Справочник",
+};
+
+const statusFilterLabel: Record<ClaimStatus, string> = {
+  confirmed: "Подтверждено",
+  weakly_supported: "Слабая поддержка",
+  conflicting: "Конфликт",
+  new: "Новое",
+  needs_review: "Нужна проверка",
 };
 
 const initialFilters: ClaimFilters = {
@@ -47,23 +55,23 @@ export function ClaimsPage() {
         <div className="grid grid-cols-[minmax(0,1fr)_420px] gap-8">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-ice-600">
-              Claims / Evidence
+              База утверждений
             </p>
             <h2 className="mt-3 text-3xl font-semibold text-slate-950">
-              База утверждений
+              Проверяемые научно-технические утверждения
             </h2>
             <p className="mt-3 max-w-4xl text-sm leading-6 text-slate-600">
               Раздел показывает накопленные научно-технические утверждения, каждое
-              из которых связано с источником, условиями, confidence и возможными
+              из которых связано с источником, условиями, уверенностью и возможными
               ограничениями.
             </p>
           </div>
           <div className="rounded border border-ice-100 bg-graphite-900 p-5 text-white">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ice-300">
-              Evidence principle
+              Принцип доказательности
             </p>
             <p className="mt-3 text-lg font-semibold">
-              Нет источника — нет фактического утверждения.
+              Нет источника - нет фактического утверждения.
             </p>
           </div>
         </div>
@@ -82,16 +90,16 @@ export function ClaimsPage() {
       </section>
 
       <div className="grid grid-cols-[minmax(0,1fr)_360px] gap-6">
-        <SectionCard title="Evidence-backed claims" eyebrow="Claim registry">
+        <SectionCard title="Реестр утверждений" eyebrow="Доказательные карточки">
           <div className="grid grid-cols-6 gap-3 rounded border border-slate-200 bg-slate-50 p-4">
             <label className="text-xs font-medium text-slate-600">
-              Scenario
+              Направление
               <select
                 value={filters.scenarioId}
                 onChange={(event) => setFilters({ ...filters, scenarioId: event.target.value })}
                 className="mt-2 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm"
               >
-                <option value="all">Все сценарии</option>
+                <option value="all">Все направления</option>
                 {claimStats.availableScenarios.map((scenario) => (
                   <option key={scenario.id} value={scenario.id}>
                     {scenario.title}
@@ -101,7 +109,7 @@ export function ClaimsPage() {
             </label>
 
             <label className="text-xs font-medium text-slate-600">
-              Status
+              Статус
               <select
                 value={filters.status}
                 onChange={(event) =>
@@ -110,16 +118,16 @@ export function ClaimsPage() {
                 className="mt-2 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm"
               >
                 <option value="all">Любой</option>
-                <option value="confirmed">Confirmed</option>
-                <option value="weakly_supported">Weak support</option>
-                <option value="conflicting">Conflicting</option>
-                <option value="needs_review">Needs review</option>
-                <option value="new">New</option>
+                {Object.entries(statusFilterLabel).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
               </select>
             </label>
 
             <label className="text-xs font-medium text-slate-600">
-              Confidence
+              Уверенность
               <select
                 value={filters.confidence}
                 onChange={(event) =>
@@ -131,14 +139,14 @@ export function ClaimsPage() {
                 className="mt-2 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm"
               >
                 <option value="all">Любая</option>
-                <option value="high">High</option>
-                <option value="medium">Medium</option>
-                <option value="low">Low</option>
+                <option value="high">Высокая</option>
+                <option value="medium">Средняя</option>
+                <option value="low">Низкая</option>
               </select>
             </label>
 
             <label className="text-xs font-medium text-slate-600">
-              Source type
+              Тип источника
               <select
                 value={filters.sourceType}
                 onChange={(event) =>
@@ -159,7 +167,7 @@ export function ClaimsPage() {
             </label>
 
             <label className="text-xs font-medium text-slate-600">
-              Material
+              Материал
               <input
                 value={filters.material}
                 onChange={(event) => setFilters({ ...filters, material: event.target.value })}
@@ -169,12 +177,12 @@ export function ClaimsPage() {
             </label>
 
             <label className="text-xs font-medium text-slate-600">
-              Search
+              Поиск
               <input
                 type="search"
                 value={filters.search}
                 onChange={(event) => setFilters({ ...filters, search: event.target.value })}
-                placeholder="Claim, process..."
+                placeholder="утверждение, процесс..."
                 className="mt-2 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm"
               />
             </label>
@@ -182,7 +190,7 @@ export function ClaimsPage() {
 
           <div className="mt-4 grid grid-cols-[260px_minmax(0,1fr)] gap-3 rounded border border-slate-200 bg-white/70 p-4">
             <label className="text-xs font-medium text-slate-600">
-              Process filter
+              Фильтр по процессу
               <input
                 value={filters.process}
                 onChange={(event) => setFilters({ ...filters, process: event.target.value })}
@@ -192,7 +200,7 @@ export function ClaimsPage() {
             </label>
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-                Quick materials
+                Быстрый выбор материалов
               </p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {claimStats.availableMaterials.slice(0, 14).map((material) => (
@@ -214,36 +222,36 @@ export function ClaimsPage() {
               filteredItems.map((item) => <ClaimCard key={item.claim.id} item={item} />)
             ) : (
               <div className="rounded border border-amber-200 bg-amber-50 p-6 text-sm text-amber-700">
-                По текущим фильтрам claims не найдены. Измените status, confidence,
-                material или строку поиска.
+                По текущим фильтрам утверждения не найдены. Измените статус, уверенность,
+                материал или строку поиска.
               </div>
             )}
           </div>
         </SectionCard>
 
         <div className="space-y-6">
-          <SectionCard title="Status logic" eyebrow="How statuses are formed">
+          <SectionCard title="Логика статусов" eyebrow="Как формируются метки">
             <div className="space-y-3 text-sm leading-6 text-slate-700">
               <div className="flex items-start gap-3">
-                <StatusBadge label="confirmed" tone="success" />
-                <span>High confidence без связанных contradictions и gaps.</span>
+                <StatusBadge label="подтверждено" tone="success" />
+                <span>Высокая уверенность без связанных противоречий и пробелов.</span>
               </div>
               <div className="flex items-start gap-3">
-                <StatusBadge label="weak support" tone="warning" />
-                <span>Medium или low confidence без явного conflict.</span>
+                <StatusBadge label="слабая поддержка" tone="warning" />
+                <span>Средняя или низкая уверенность без явного конфликта.</span>
               </div>
               <div className="flex items-start gap-3">
-                <StatusBadge label="conflicting" tone="danger" />
-                <span>Claim напрямую связан с contradiction.</span>
+                <StatusBadge label="конфликт" tone="danger" />
+                <span>Утверждение напрямую связано с противоречием.</span>
               </div>
               <div className="flex items-start gap-3">
-                <StatusBadge label="needs review" tone="warning" />
-                <span>Claim затрагивает scenario/material/process с knowledge gap.</span>
+                <StatusBadge label="нужна проверка" tone="warning" />
+                <span>Утверждение затрагивает направление, материал или процесс с пробелом.</span>
               </div>
             </div>
           </SectionCard>
 
-          <SectionCard title="Scenario grouping" eyebrow="Demo scenarios">
+          <SectionCard title="Группировка по направлениям" eyebrow="Рабочие сценарии">
             <div className="space-y-3">
               {claimStats.availableScenarios.map((scenario) => (
                 <button
@@ -260,12 +268,12 @@ export function ClaimsPage() {
 
           <section className="rounded border border-graphite-800 bg-graphite-900 p-5 text-white shadow-glass">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ice-300">
-              Next workflow
+              Следующий шаг
             </p>
-            <h2 className="mt-2 text-xl font-semibold">Проверить claim в контексте</h2>
+            <h2 className="mt-2 text-xl font-semibold">Проверить утверждение в контексте</h2>
             <p className="mt-2 text-sm leading-6 text-slate-300">
-              Перейдите к evidence search, графу или источникам, чтобы проверить
-              source references и связи.
+              Перейдите к поиску доказательств, графу или источникам, чтобы проверить
+              ссылки и связи.
             </p>
             <div className="mt-4 grid grid-cols-1 gap-3">
               <Link

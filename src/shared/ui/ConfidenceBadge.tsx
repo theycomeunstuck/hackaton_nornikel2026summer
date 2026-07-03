@@ -5,9 +5,9 @@ type ConfidenceBadgeProps = {
 };
 
 const confidenceLabel: Record<ConfidenceLevel, string> = {
-  high: "High",
-  medium: "Medium",
-  low: "Low",
+  high: "Высокая",
+  medium: "Средняя",
+  low: "Низкая",
 };
 
 const confidenceClassName: Record<ConfidenceLevel, string> = {

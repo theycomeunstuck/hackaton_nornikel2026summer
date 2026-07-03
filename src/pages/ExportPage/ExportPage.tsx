@@ -24,23 +24,23 @@ export function ExportPage() {
         <div className="grid grid-cols-[minmax(0,1fr)_390px] gap-8">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-ice-600">
-              Export report
+              Отчеты
             </p>
             <h2 className="mt-3 text-3xl font-semibold text-slate-950">
-              Экспорт доказательных отчётов
+              Экспорт доказательных отчетов
             </h2>
             <p className="mt-3 max-w-4xl text-sm leading-6 text-slate-600">
-              Markdown и JSON отчёты формируются на SearchPage из текущего
-              SearchResult: исходный запрос, parsed query, answer summary, evidence
-              table, sources, contradictions, gaps и graph summary.
+              Markdown и JSON отчеты формируются на странице поиска из текущего результата:
+              исходный запрос, структура запроса, краткий вывод, таблица доказательств,
+              источники, противоречия, пробелы и сводка графа.
             </p>
           </div>
           <div className="rounded border border-ice-100 bg-graphite-900 p-5 text-white">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ice-300">
-              Report principle
+              Принцип отчета
             </p>
             <p className="mt-3 text-lg font-semibold">
-              Каждый factual claim в отчёте должен сохранять source reference.
+              Каждое фактическое утверждение в отчете должно сохранять ссылку на источник.
             </p>
           </div>
         </div>
@@ -48,62 +48,59 @@ export function ExportPage() {
 
       <section className="grid grid-cols-5 gap-4">
         <MetricCard
-          label="Demo scenarios"
+          label="Сценарии"
           value={String(exportSummary.scenarios)}
-          description="Сценарии, доступные для export report."
+          description="Рабочие направления, доступные для отчета."
           tone="cyan"
         />
         <MetricCard
-          label="Claims"
+          label="Утверждения"
           value={String(exportSummary.claims)}
-          description="Claims, попадающие в evidence table."
+          description="Утверждения, попадающие в таблицу доказательств."
           tone="green"
         />
         <MetricCard
-          label="Sources"
+          label="Источники"
           value={String(exportSummary.sources)}
-          description="Уникальные источники для citations."
+          description="Уникальные источники для ссылок в отчете."
           tone="violet"
         />
         <MetricCard
-          label="Gaps"
+          label="Пробелы"
           value={String(exportSummary.gaps)}
-          description="Knowledge gaps, отмечаемые в отчёте."
+          description="Недостающие данные, отмечаемые в отчете."
           tone="amber"
         />
         <MetricCard
-          label="Contradictions"
+          label="Противоречия"
           value={String(exportSummary.contradictions)}
-          description="Conflicts, требующие expert review."
+          description="Конфликты, требующие экспертной проверки."
           tone={exportSummary.contradictions > 0 ? "red" : "green"}
         />
       </section>
 
       <div className="grid grid-cols-[minmax(0,1fr)_420px] gap-6">
-        <SectionCard title="Как получить отчёт" eyebrow="Frontend export">
+        <SectionCard title="Как получить отчет" eyebrow="Форматы экспорта">
           <div className="grid grid-cols-3 gap-4">
             <article className="rounded border border-ice-100 bg-ice-50 p-4">
-              <StatusBadge label="available" tone="success" />
+              <StatusBadge label="доступно" tone="success" />
               <h3 className="mt-3 text-base font-semibold text-slate-950">Markdown</h3>
               <p className="mt-2 text-sm leading-6 text-slate-600">
-                Подходит для быстрого evidence review, вставки в заметки и проверки
-                структуры отчёта.
+                Подходит для быстрой экспертной проверки, заметок и ревью структуры отчета.
               </p>
             </article>
             <article className="rounded border border-emerald-100 bg-emerald-50 p-4">
-              <StatusBadge label="available" tone="success" />
+              <StatusBadge label="доступно" tone="success" />
               <h3 className="mt-3 text-base font-semibold text-slate-950">JSON</h3>
               <p className="mt-2 text-sm leading-6 text-slate-600">
-                Сохраняет metadata, текущий SearchResult и структуру для будущей
-                backend-интеграции.
+                Сохраняет метаданные, текущий результат и структурированные поля для интеграций.
               </p>
             </article>
             <article className="rounded border border-slate-200 bg-slate-50 p-4">
-              <StatusBadge label="backend option" tone="neutral" />
+              <StatusBadge label="серверный экспорт" tone="neutral" />
               <h3 className="mt-3 text-base font-semibold text-slate-950">PDF</h3>
               <p className="mt-2 text-sm leading-6 text-slate-600">
-                Оставлен как будущая backend-опция для оформления официального
-                отчёта.
+                Предусмотрен для оформленных корпоративных отчетов после подключения серверной генерации.
               </p>
             </article>
           </div>
@@ -111,12 +108,12 @@ export function ExportPage() {
 
         <section className="rounded border border-graphite-800 bg-graphite-900 p-5 text-white shadow-glass">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ice-300">
-            Demo action
+            Действие
           </p>
-          <h2 className="mt-2 text-xl font-semibold">Экспорт выполняется из SearchPage</h2>
+          <h2 className="mt-2 text-xl font-semibold">Экспорт выполняется из страницы поиска</h2>
           <p className="mt-2 text-sm leading-6 text-slate-300">
-            Выберите demo scenario, проверьте evidence table и скачайте Markdown
-            или JSON из панели “Экспорт отчёта”.
+            Выберите направление анализа, проверьте таблицу доказательств и скачайте Markdown
+            или JSON из панели экспорта отчета.
           </p>
           <div className="mt-4 grid grid-cols-1 gap-3">
             <Link

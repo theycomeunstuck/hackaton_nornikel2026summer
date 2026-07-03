@@ -8,7 +8,7 @@ type AnswerSummaryCardProps = {
 
 export function AnswerSummaryCard({ answer }: AnswerSummaryCardProps) {
   return (
-    <SectionCard title="Краткий вывод" eyebrow="Answer summary">
+    <SectionCard title="Краткий вывод" eyebrow="Резюме доказательств">
       <div className="rounded border border-ice-100 bg-ice-50/70 p-4">
         <div className="flex items-start justify-between gap-4">
           <p className="text-base leading-7 text-slate-900">{answer.shortConclusion}</p>
@@ -19,7 +19,7 @@ export function AnswerSummaryCard({ answer }: AnswerSummaryCardProps) {
 
       <div className="mt-4 grid grid-cols-2 gap-4">
         <div>
-          <h3 className="text-sm font-semibold text-slate-950">Key findings</h3>
+          <h3 className="text-sm font-semibold text-slate-950">Ключевые выводы</h3>
           <ul className="mt-3 space-y-2">
             {answer.keyFindings.map((finding) => (
               <li key={finding} className="border-l-2 border-emerald-400 pl-3 text-sm leading-6 text-slate-700">
@@ -30,7 +30,7 @@ export function AnswerSummaryCard({ answer }: AnswerSummaryCardProps) {
         </div>
 
         <div>
-          <h3 className="text-sm font-semibold text-slate-950">Warnings / limitations</h3>
+          <h3 className="text-sm font-semibold text-slate-950">Ограничения и предупреждения</h3>
           {answer.limitations.length > 0 ? (
             <ul className="mt-3 space-y-2">
               {answer.limitations.map((limitation) => (

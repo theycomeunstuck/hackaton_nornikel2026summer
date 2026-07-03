@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import type { EvidenceClaim } from "../../entities/claim/types";
 import type { Contradiction } from "../../entities/contradiction/types";
 import type { KnowledgeGap } from "../../entities/gap/types";
+import type { SourceType } from "../../entities/source/types";
 import { buildDashboardStats, type SourceDistributionItem } from "../../shared/lib/dashboardStats";
 import { ConfidenceBadge } from "../../shared/ui/ConfidenceBadge";
 import { MetricCard } from "../../shared/ui/MetricCard";
@@ -9,6 +10,15 @@ import { SectionCard } from "../../shared/ui/SectionCard";
 import { StatusBadge, type StatusTone } from "../../shared/ui/StatusBadge";
 
 const dashboardStats = buildDashboardStats();
+
+const sourceTypeLabel: Record<SourceType, string> = {
+  scientific_article: "Научная статья",
+  internal_report: "Внутренний отчет",
+  patent: "Патент",
+  experiment_protocol: "Протокол эксперимента",
+  technical_standard: "Технический стандарт",
+  reference_book: "Справочник",
+};
 
 function formatList(items: string[], limit = 3): string {
   if (items.length === 0) {
@@ -77,22 +87,22 @@ function RecentClaimItem({ claim }: { claim: EvidenceClaim }) {
       <div className="mt-3 grid grid-cols-[1fr_1fr_180px] gap-3 text-xs text-slate-500">
         <div>
           <span className="font-semibold uppercase tracking-[0.12em] text-slate-400">
-            Material
+            Материал
           </span>
           <p className="mt-1 text-slate-700">{formatList(claim.materials)}</p>
         </div>
         <div>
           <span className="font-semibold uppercase tracking-[0.12em] text-slate-400">
-            Process
+            Процесс
           </span>
           <p className="mt-1 text-slate-700">{formatList(claim.processes)}</p>
         </div>
         <div>
           <span className="font-semibold uppercase tracking-[0.12em] text-slate-400">
-            Source
+            Источник
           </span>
           <p className="mt-1 text-slate-700">
-            {claim.sourceRef.year}, p. {claim.sourceRef.page}
+            {claim.sourceRef.year}, стр. {claim.sourceRef.page}
           </p>
         </div>
       </div>
@@ -107,30 +117,30 @@ export function DashboardPage() {
         <div className="grid grid-cols-[minmax(0,1fr)_420px] gap-8 p-7">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-ice-600">
-              Научный клубок
+              R&D Evidence Hub
             </p>
             <h2 className="mt-3 max-w-4xl text-4xl font-semibold leading-tight text-slate-950">
-              Evidence-first dashboard для промышленного R&D корпуса
+              Панель проверки научно-технических утверждений
             </h2>
             <p className="mt-4 max-w-4xl text-base leading-7 text-slate-600">
-              Система связывает научно-технические утверждения с источниками,
-              условиями, графом связей, противоречиями и пробелами.
+              Здесь видно, какие выводы уже подтверждены источниками, где есть
+              противоречия и какие вопросы требуют дополнительной проверки.
             </p>
             <div className="mt-6 inline-flex items-center rounded border border-ice-100 bg-graphite-900 px-5 py-4 text-sm font-semibold text-white shadow-sm">
-              Нет источника — нет фактического утверждения.
+              Каждый вывод должен иметь проверяемый источник.
             </div>
           </div>
 
           <div className="rounded border border-ice-100 bg-ice-50/75 p-5">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ice-600">
-              What expert sees first
+              На что обратить внимание
             </p>
             <div className="mt-4 space-y-3">
               {[
-                "что уже известно и подтверждено источниками",
+                "какие утверждения поддержаны источниками",
                 "какие условия и параметры влияют на вывод",
                 "где есть противоречия и пробелы",
-                "куда перейти для evidence search или graph review",
+                "куда перейти для поиска доказательств или анализа графа",
               ].map((item) => (
                 <div key={item} className="flex items-start gap-3 text-sm leading-6 text-slate-700">
                   <span className="mt-2 h-2 w-2 rounded-full bg-ice-500" />
@@ -155,7 +165,7 @@ export function DashboardPage() {
       </section>
 
       <div className="grid grid-cols-[minmax(0,1.25fr)_minmax(420px,0.75fr)] gap-6">
-        <SectionCard title="Recent indexed claims" eyebrow="Evidence stream">
+        <SectionCard title="Последние утверждения" eyebrow="Поток доказательств">
           <div className="space-y-3">
             {dashboardStats.recentClaims.map((claim) => (
               <RecentClaimItem key={claim.id} claim={claim} />
@@ -163,16 +173,16 @@ export function DashboardPage() {
           </div>
         </SectionCard>
 
-        <SectionCard title="Source coverage" eyebrow="Corpus coverage">
+        <SectionCard title="Покрытие источников" eyebrow="Корпус документов">
           <div className="grid grid-cols-2 gap-5">
             <div>
-              <h3 className="text-sm font-semibold text-slate-950">By source type</h3>
+              <h3 className="text-sm font-semibold text-slate-950">По типу источника</h3>
               <div className="mt-4">
                 <DistributionList items={dashboardStats.sourceTypeDistribution} />
               </div>
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-slate-950">By reliability</h3>
+              <h3 className="text-sm font-semibold text-slate-950">По надежности</h3>
               <div className="mt-4">
                 <DistributionList items={dashboardStats.sourceReliabilityDistribution} />
               </div>
@@ -180,7 +190,7 @@ export function DashboardPage() {
           </div>
 
           <div className="mt-6 border-t border-slate-200 pt-5">
-            <h3 className="text-sm font-semibold text-slate-950">Latest important sources</h3>
+            <h3 className="text-sm font-semibold text-slate-950">Важные источники</h3>
             <div className="mt-3 space-y-3">
               {dashboardStats.importantSources.map((source) => (
                 <article key={source.id} className="rounded border border-slate-200 bg-white/80 p-3">
@@ -190,7 +200,7 @@ export function DashboardPage() {
                         {source.title}
                       </p>
                       <p className="mt-1 text-xs text-slate-500">
-                        {source.sourceType} / {source.year}
+                        {sourceTypeLabel[source.sourceType]} / {source.year}
                       </p>
                     </div>
                     <ConfidenceBadge confidence={source.reliability} />
@@ -203,7 +213,7 @@ export function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-6">
-        <SectionCard title="High-priority gaps" eyebrow="Knowledge gaps">
+        <SectionCard title="Приоритетные пробелы" eyebrow="Вопросы для экспертной проверки">
           <div className="space-y-3">
             {dashboardStats.highPriorityGaps.map((gap) => (
               <article key={gap.id} className="rounded border border-amber-200 bg-amber-50/65 p-4">
@@ -215,7 +225,7 @@ export function DashboardPage() {
                   <StatusBadge label={gap.severity} tone={getGapTone(gap.severity)} />
                 </div>
                 <p className="mt-3 text-sm leading-6 text-slate-700">
-                  <span className="font-semibold">Recommendation: </span>
+                  <span className="font-semibold">Рекомендация: </span>
                   {gap.recommendedAction}
                 </p>
               </article>
@@ -223,7 +233,7 @@ export function DashboardPage() {
           </div>
         </SectionCard>
 
-        <SectionCard title="Possible contradictions" eyebrow="Evidence conflicts">
+        <SectionCard title="Возможные противоречия" eyebrow="Конфликты доказательств">
           {dashboardStats.possibleContradictions.length > 0 ? (
             <div className="space-y-3">
               {dashboardStats.possibleContradictions.map((contradiction) => (
@@ -249,19 +259,19 @@ export function DashboardPage() {
                     {contradiction.sourceRefs.slice(0, 2).map((sourceRef, index) => (
                       <div key={sourceRef.chunkId} className="rounded border border-white/80 bg-white/80 p-3">
                         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-                          Source {index === 0 ? "A" : "B"}
+                          Источник {index === 0 ? "A" : "B"}
                         </p>
                         <p className="mt-1 text-sm font-medium leading-5 text-slate-800">
                           {sourceRef.documentTitle}
                         </p>
                         <p className="mt-1 text-xs text-slate-500">
-                          p. {sourceRef.page} / {sourceRef.year}
+                          стр. {sourceRef.page} / {sourceRef.year}
                         </p>
                       </div>
                     ))}
                   </div>
                   <p className="mt-3 text-sm leading-6 text-slate-700">
-                    <span className="font-semibold">Possible reason: </span>
+                    <span className="font-semibold">Возможная причина: </span>
                     {contradiction.resolutionHint}
                   </p>
                 </article>
@@ -269,13 +279,13 @@ export function DashboardPage() {
             </div>
           ) : (
             <div className="rounded border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
-              В текущем mock-корпусе явных противоречий нет.
+              В текущем корпусе явных противоречий нет.
             </div>
           )}
         </SectionCard>
       </div>
 
-      <SectionCard title="Demo scenarios overview" eyebrow="MVP scenarios">
+      <SectionCard title="Сценарии анализа" eyebrow="Рабочие направления">
         <div className="grid grid-cols-3 gap-4">
           {dashboardStats.scenarioOverviews.map((scenario) => (
             <article key={scenario.id} className="rounded border border-slate-200 bg-white/84 p-4">
@@ -285,33 +295,33 @@ export function DashboardPage() {
                   <p className="mt-2 text-sm leading-6 text-slate-600">{scenario.description}</p>
                 </div>
                 {scenario.contradictionsCount > 0 ? (
-                  <StatusBadge label="conflict" tone="warning" />
+                  <StatusBadge label="конфликт" tone="warning" />
                 ) : scenario.gapsCount > 0 ? (
-                  <StatusBadge label="gap" tone="warning" />
+                  <StatusBadge label="пробел" tone="warning" />
                 ) : (
-                  <StatusBadge label="stable" tone="success" />
+                  <StatusBadge label="стабильно" tone="success" />
                 )}
               </div>
               <div className="mt-4 grid grid-cols-4 gap-2 text-center">
                 <div className="rounded bg-slate-50 px-2 py-3">
                   <p className="text-lg font-semibold text-slate-950">{scenario.claimsCount}</p>
-                  <p className="text-xs text-slate-500">claims</p>
+                  <p className="text-xs text-slate-500">утверждений</p>
                 </div>
                 <div className="rounded bg-slate-50 px-2 py-3">
                   <p className="text-lg font-semibold text-slate-950">{scenario.sourcesCount}</p>
-                  <p className="text-xs text-slate-500">sources</p>
+                  <p className="text-xs text-slate-500">источников</p>
                 </div>
                 <div className="rounded bg-slate-50 px-2 py-3">
                   <p className="text-lg font-semibold text-slate-950">
                     {scenario.graphNodesCount}/{scenario.graphEdgesCount}
                   </p>
-                  <p className="text-xs text-slate-500">graph</p>
+                  <p className="text-xs text-slate-500">узлы/связи</p>
                 </div>
                 <div className="rounded bg-slate-50 px-2 py-3">
                   <p className="text-lg font-semibold text-slate-950">
                     {scenario.gapsCount}/{scenario.contradictionsCount}
                   </p>
-                  <p className="text-xs text-slate-500">gaps/conflicts</p>
+                  <p className="text-xs text-slate-500">пробелы/конфликты</p>
                 </div>
               </div>
             </article>
@@ -322,12 +332,12 @@ export function DashboardPage() {
       <section className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-4 rounded border border-graphite-800 bg-graphite-900 p-5 text-white shadow-glass">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ice-300">
-            Next expert workflow
+            Рекомендуемое действие
           </p>
           <h2 className="mt-2 text-xl font-semibold">Перейти от обзора к проверке доказательств</h2>
           <p className="mt-2 text-sm leading-6 text-slate-300">
-            Откройте evidence workspace для claims и source references или граф связей
-            для визуального разбора зависимостей.
+            Откройте рабочую область поиска для утверждений и источников или граф знаний
+            для разбора зависимостей.
           </p>
         </div>
         <Link

@@ -14,7 +14,7 @@ export function DemoScenarioButtons({
   return (
     <section className="rounded border border-white/75 bg-white/66 p-4 shadow-glass backdrop-blur-2xl">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-        Demo scenarios
+        Типовые запросы
       </p>
       <div className="mt-3 grid grid-cols-3 gap-3">
         {scenarios.map((scenario) => {

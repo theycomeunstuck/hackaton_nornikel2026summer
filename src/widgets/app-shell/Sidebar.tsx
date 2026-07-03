@@ -8,14 +8,14 @@ type NavigationItem = {
 };
 
 const navigationItems: NavigationItem[] = [
-  { label: "Dashboard", path: "/dashboard", marker: "OV" },
-  { label: "Поиск доказательств", path: "/search", marker: "EV" },
-  { label: "База утверждений", path: "/claims", marker: "CL" },
-  { label: "Граф знаний", path: "/graph", marker: "KG" },
-  { label: "Источники", path: "/sources", marker: "SR" },
-  { label: "Противоречия", path: "/contradictions", marker: "CT" },
-  { label: "Экспорт", path: "/export", marker: "EX" },
-  { label: "Загрузка документов", path: "/upload", marker: "UP", secondary: true },
+  { label: "Обзор", path: "/dashboard", marker: "ОБ" },
+  { label: "Поиск доказательств", path: "/search", marker: "ПД" },
+  { label: "База утверждений", path: "/claims", marker: "БУ" },
+  { label: "Граф знаний", path: "/graph", marker: "ГЗ" },
+  { label: "Источники", path: "/sources", marker: "ИС" },
+  { label: "Противоречия", path: "/contradictions", marker: "ПР" },
+  { label: "Экспорт", path: "/export", marker: "ЭК" },
+  { label: "Загрузка документов", path: "/upload", marker: "ЗД", secondary: true },
 ];
 
 function getNavLinkClass(isActive: boolean): string {
@@ -37,11 +37,11 @@ export function Sidebar() {
     <aside className="sticky top-0 flex h-screen w-72 shrink-0 flex-col border-r border-white/10 bg-graphite-950 px-5 py-6 text-white">
       <div className="border-b border-white/10 pb-6">
         <div className="flex h-12 w-12 items-center justify-center rounded bg-ice-500/18 text-lg font-bold text-ice-100 ring-1 ring-ice-300/25">
-          НК
+          EH
         </div>
-        <h2 className="mt-4 text-xl font-semibold">Научный клубок</h2>
+        <h2 className="mt-4 text-xl font-semibold">R&D Evidence Hub</h2>
         <p className="mt-2 text-sm leading-5 text-slate-400">
-          Evidence-first dashboard для научно-технических исследований.
+          Проверка научно-технических утверждений по источникам.
         </p>
       </div>
 
@@ -62,7 +62,7 @@ export function Sidebar() {
 
       <div className="border-t border-white/10 pt-4">
         <p className="px-3 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-          Secondary
+          Дополнительно
         </p>
         <div className="mt-3 flex flex-col gap-2">
           {secondaryItems.map((item) => (

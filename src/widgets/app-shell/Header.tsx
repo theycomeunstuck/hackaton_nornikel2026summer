@@ -8,40 +8,36 @@ type HeaderMeta = {
 
 const headerByPath: Record<string, HeaderMeta> = {
   "/dashboard": {
-    title: "Обзор исследовательских доказательств",
-    subtitle: "Сводка по источникам, утверждениям, пробелам и противоречиям.",
+    title: "Обзор",
+    subtitle: "Сводка по утверждениям, источникам, противоречиям и пробелам.",
   },
   "/search": {
     title: "Поиск доказательств",
-    subtitle: "Рабочая область для evidence-first запроса и проверки источников.",
+    subtitle: "Рабочая область анализа источников, утверждений и условий.",
   },
   "/claims": {
     title: "База утверждений",
-    subtitle: "Накопленные claims, связанные с источниками, confidence и ограничениями.",
+    subtitle: "Проверяемые выводы с источниками, условиями и достоверностью.",
   },
   "/graph": {
     title: "Граф знаний",
-    subtitle: "Связи между материалами, процессами, параметрами и источниками.",
+    subtitle: "Связи между утверждениями, материалами, процессами и источниками.",
   },
   "/sources": {
     title: "Источники",
-    subtitle: "Индексированные документы, патенты, отчеты и публикации.",
+    subtitle: "Документы, страницы и фрагменты, подтверждающие выводы.",
   },
   "/contradictions": {
     title: "Противоречия",
-    subtitle: "Конфликтующие утверждения и слабые места доказательной базы.",
+    subtitle: "Конфликты и слабые места доказательной базы.",
   },
   "/export": {
     title: "Экспорт",
-    subtitle: "Подготовка доказательных отчетов для команды и экспертов.",
+    subtitle: "Формирование отчетов из текущих результатов поиска.",
   },
   "/upload": {
     title: "Загрузка документов",
-    subtitle: "Mock pipeline для пополнения evidence index claims, sources и graph relations.",
-  },
-  "/auth": {
-    title: "Вход",
-    subtitle: "Будущий контур доступа для внутренних пользователей.",
+    subtitle: "Обработка документа и пополнение индекса доказательств.",
   },
 };
 
@@ -61,7 +57,7 @@ export function Header() {
       <div className="flex items-center justify-between gap-8">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-ice-600">
-            Научный клубок
+            R&D Evidence Hub
           </p>
           <h1 className="mt-2 text-2xl font-semibold text-slate-950">{meta.title}</h1>
           <p className="mt-1 text-sm text-slate-600">{meta.subtitle}</p>
@@ -71,9 +67,9 @@ export function Header() {
             <div className="flex items-center gap-3">
               <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-[0_0_18px_rgba(16,185,129,0.8)]" />
               <div>
-                <p className="font-semibold text-slate-900">{user?.name ?? "Demo user"}</p>
+                <p className="font-semibold text-slate-900">{user?.name ?? "Инженер-исследователь"}</p>
                 <p className="text-xs text-slate-500">
-                  {user?.role ?? "researcher"}
+                  Исследователь
                   {user?.organization ? ` / ${user.organization}` : ""}
                 </p>
               </div>

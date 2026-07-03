@@ -284,7 +284,7 @@ export function KnowledgeGraph({
   return (
     <SectionCard
       title={title}
-      eyebrow={mode === "compact" ? "Knowledge graph preview" : "Knowledge graph"}
+      eyebrow={mode === "compact" ? "Предпросмотр графа знаний" : "Граф знаний"}
       className={mode === "full" ? "bg-white/78" : ""}
     >
       {nodes.length === 0 ? (

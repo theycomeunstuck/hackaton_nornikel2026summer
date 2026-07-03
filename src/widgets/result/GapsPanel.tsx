@@ -12,9 +12,15 @@ const severityClassName: Record<KnowledgeGap["severity"], string> = {
   high: "border-red-200 bg-red-50 text-red-700",
 };
 
+const severityLabel: Record<KnowledgeGap["severity"], string> = {
+  low: "низкая",
+  medium: "средняя",
+  high: "высокая",
+};
+
 export function GapsPanel({ gaps }: GapsPanelProps) {
   return (
-    <SectionCard title="Пробелы в данных" eyebrow="Knowledge gaps">
+    <SectionCard title="Пробелы в данных" eyebrow="Слабые места доказательной базы">
       {gaps.length > 0 ? (
         <div className="space-y-3">
           {gaps.map((gap) => (
@@ -26,17 +32,17 @@ export function GapsPanel({ gaps }: GapsPanelProps) {
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-2">
                   <span className={`rounded border px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.12em] ${severityClassName[gap.severity]}`}>
-                    {gap.severity}
+                    {severityLabel[gap.severity]}
                   </span>
                   <ConfidenceBadge confidence={gap.confidence} />
                 </div>
               </div>
               <p className="mt-3 text-sm leading-6 text-slate-700">
-                <span className="font-semibold">Missing evidence: </span>
+                <span className="font-semibold">Недостающие доказательства: </span>
                 {gap.missingEvidence}
               </p>
               <p className="mt-2 text-sm leading-6 text-slate-700">
-                <span className="font-semibold">Recommendation: </span>
+                <span className="font-semibold">Рекомендация: </span>
                 {gap.recommendedAction}
               </p>
             </article>

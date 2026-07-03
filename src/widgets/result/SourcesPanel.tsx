@@ -1,5 +1,5 @@
 import type { EvidenceClaim } from "../../entities/claim/types";
-import type { SourceMetadata } from "../../entities/source/types";
+import type { SourceMetadata, SourceType } from "../../entities/source/types";
 import { ConfidenceBadge } from "../../shared/ui/ConfidenceBadge";
 import { SectionCard } from "../../shared/ui/SectionCard";
 
@@ -8,9 +8,18 @@ type SourcesPanelProps = {
   claims: EvidenceClaim[];
 };
 
+const sourceTypeLabel: Record<SourceType, string> = {
+  scientific_article: "Научная статья",
+  internal_report: "Внутренний отчет",
+  patent: "Патент",
+  experiment_protocol: "Протокол эксперимента",
+  technical_standard: "Технический стандарт",
+  reference_book: "Справочник",
+};
+
 export function SourcesPanel({ sources, claims }: SourcesPanelProps) {
   return (
-    <SectionCard title="Источники" eyebrow="Source references">
+    <SectionCard title="Источники" eyebrow="Ссылки на доказательства">
       <div className="space-y-3">
         {sources.map((source) => {
           const refs = claims
@@ -24,7 +33,7 @@ export function SourcesPanel({ sources, claims }: SourcesPanelProps) {
                   <div>
                     <p className="text-sm font-semibold leading-6 text-slate-950">{source.title}</p>
                     <p className="mt-1 text-xs text-slate-500">
-                      {source.sourceType} / {source.year} / Geography: не указана
+                      {sourceTypeLabel[source.sourceType]} / {source.year} / География: не указана
                     </p>
                   </div>
                   <ConfidenceBadge confidence={source.reliability} />
@@ -32,17 +41,17 @@ export function SourcesPanel({ sources, claims }: SourcesPanelProps) {
               </summary>
               <div className="mt-3 border-t border-slate-100 pt-3">
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-                  Page / chunk references
+                  Страницы и фрагменты
                 </p>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {refs.length > 0 ? (
                     refs.map((ref) => (
                       <span key={`${ref.page}-${ref.chunkId}`} className="rounded border border-ice-100 bg-ice-50 px-2.5 py-1 text-xs text-ice-600">
-                        p. {ref.page} / {ref.chunkId}
+                        стр. {ref.page} / {ref.chunkId}
                       </span>
                     ))
                   ) : (
-                    <span className="text-sm text-slate-500">Нет активных ссылок после фильтрации.</span>
+                    <span className="text-sm text-slate-500">После фильтрации активных ссылок нет.</span>
                   )}
                 </div>
               </div>

@@ -1,4 +1,5 @@
 import type { Condition, Effect } from "../types";
+import type { SourceType } from "../../source/types";
 import type { ClaimMemoryItem } from "../../../shared/lib/claimStats";
 import { ConfidenceBadge } from "../../../shared/ui/ConfidenceBadge";
 import { StatusBadge } from "../../../shared/ui/StatusBadge";
@@ -6,6 +7,15 @@ import { ClaimStatusBadge } from "./ClaimStatusBadge";
 
 type ClaimCardProps = {
   item: ClaimMemoryItem;
+};
+
+const sourceTypeLabel: Record<SourceType, string> = {
+  scientific_article: "Научная статья",
+  internal_report: "Внутренний отчет",
+  patent: "Патент",
+  experiment_protocol: "Протокол эксперимента",
+  technical_standard: "Технический стандарт",
+  reference_book: "Справочник",
 };
 
 function formatList(items: string[]): string {
@@ -48,9 +58,9 @@ export function ClaimCard({ item }: ClaimCardProps) {
               <ClaimStatusBadge status={item.status} />
               <ConfidenceBadge confidence={item.claim.confidence} />
               {item.relatedContradictions.length > 0 ? (
-                <StatusBadge label="contradiction" tone="danger" />
+                <StatusBadge label="противоречие" tone="danger" />
               ) : null}
-              {item.relatedGaps.length > 0 ? <StatusBadge label="gap" tone="warning" /> : null}
+              {item.relatedGaps.length > 0 ? <StatusBadge label="пробел" tone="warning" /> : null}
             </div>
             <h3 className="mt-3 text-base font-semibold leading-7 text-slate-950">
               {item.claim.statement}
@@ -59,10 +69,10 @@ export function ClaimCard({ item }: ClaimCardProps) {
           </div>
           <div className="min-w-44 rounded border border-ice-100 bg-ice-50 p-3 text-sm">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ice-600">
-              Source
+              Источник
             </p>
             <p className="mt-2 font-semibold leading-5 text-slate-900">
-              p. {item.claim.sourceRef.page} / {item.claim.year}
+              стр. {item.claim.sourceRef.page} / {item.claim.year}
             </p>
             <p className="mt-1 text-xs text-slate-500">{item.claim.sourceRef.chunkId}</p>
           </div>
@@ -70,20 +80,20 @@ export function ClaimCard({ item }: ClaimCardProps) {
 
         <div className="mt-4 grid grid-cols-4 gap-3 text-sm">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Materials</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Материалы</p>
             <p className="mt-1 text-slate-700">{formatList(item.claim.materials)}</p>
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Process</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Процесс</p>
             <p className="mt-1 text-slate-700">{formatList(item.claim.processes)}</p>
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Technology</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Технология</p>
             <p className="mt-1 text-slate-700">{formatList(item.claim.equipment)}</p>
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Support</p>
-            <p className="mt-1 text-slate-700">{item.supportingSourcesCount} source</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Поддержка</p>
+            <p className="mt-1 text-slate-700">{item.supportingSourcesCount} ист.</p>
           </div>
         </div>
       </summary>
@@ -93,7 +103,7 @@ export function ClaimCard({ item }: ClaimCardProps) {
           <div className="space-y-4">
             <div className="rounded border border-slate-200 bg-slate-50 p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-                Full claim
+                Полное утверждение
               </p>
               <p className="mt-2 text-sm leading-6 text-slate-700">{item.claim.statement}</p>
             </div>
@@ -101,7 +111,7 @@ export function ClaimCard({ item }: ClaimCardProps) {
             <div className="grid grid-cols-2 gap-4">
               <div className="rounded border border-slate-200 bg-white p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-                  Conditions
+                  Условия
                 </p>
                 <div className="mt-3 space-y-2">
                   {item.relatedConditions.length > 0 ? (
@@ -117,7 +127,7 @@ export function ClaimCard({ item }: ClaimCardProps) {
               </div>
               <div className="rounded border border-slate-200 bg-white p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-                  Effects
+                  Эффекты
                 </p>
                 <div className="mt-3 space-y-2">
                   {item.relatedEffects.length > 0 ? (
@@ -135,7 +145,7 @@ export function ClaimCard({ item }: ClaimCardProps) {
 
             <div className="rounded border border-slate-200 bg-white p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-                Related graph relations
+                Связанные отношения графа
               </p>
               <div className="mt-3 space-y-2">
                 {item.relatedGraphRelations.length > 0 ? (
@@ -149,7 +159,7 @@ export function ClaimCard({ item }: ClaimCardProps) {
                     </div>
                   ))
                 ) : (
-                  <p className="text-sm text-slate-500">Связи графа для claim не найдены.</p>
+                  <p className="text-sm text-slate-500">Связи графа для утверждения не найдены.</p>
                 )}
               </div>
             </div>
@@ -158,37 +168,37 @@ export function ClaimCard({ item }: ClaimCardProps) {
           <aside className="space-y-4">
             <div className="rounded border border-ice-100 bg-ice-50 p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ice-600">
-                Source reference
+                Ссылка на источник
               </p>
               <p className="mt-2 text-sm font-semibold leading-6 text-slate-900">
                 {item.claim.sourceRef.documentTitle}
               </p>
               <p className="mt-2 text-xs leading-5 text-slate-600">
-                {item.claim.sourceRef.sourceType} / p. {item.claim.sourceRef.page} / {item.claim.sourceRef.chunkId}
+                {sourceTypeLabel[item.claim.sourceRef.sourceType]} / стр. {item.claim.sourceRef.page} / {item.claim.sourceRef.chunkId}
               </p>
               {item.relatedSource ? (
                 <p className="mt-2 text-xs leading-5 text-slate-600">
-                  Authors: {item.relatedSource.authors.join(", ")}
+                  Авторы: {item.relatedSource.authors.join(", ")}
                 </p>
               ) : null}
             </div>
 
             <div className="rounded border border-orange-200 bg-orange-50 p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-orange-700">
-                Review context
+                Контекст проверки
               </p>
               <p className="mt-2 text-sm leading-6 text-slate-700">
                 {item.relatedContradictions.length > 0
                   ? item.relatedContradictions.map((contradiction) => contradiction.title).join("; ")
                   : item.relatedGaps.length > 0
                     ? item.relatedGaps.map((gap) => gap.title).join("; ")
-                    : "Дополнительная экспертная проверка не требуется по текущим mock-связям."}
+                    : "Дополнительная экспертная проверка не требуется по текущим связям."}
               </p>
               <p className="mt-3 text-sm leading-6 text-slate-700">
-                <span className="font-semibold">Next step: </span>
+                <span className="font-semibold">Следующий шаг: </span>
                 {item.status === "confirmed"
-                  ? "Можно использовать в evidence report с сохранением source reference."
-                  : "Проверить условия эксперимента, источники и связанные gaps перед использованием в отчете."}
+                  ? "Можно использовать в доказательном отчете с сохранением ссылки на источник."
+                  : "Проверить условия эксперимента, источники и связанные пробелы перед использованием в отчете."}
               </p>
             </div>
           </aside>

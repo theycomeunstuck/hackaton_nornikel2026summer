@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import type { ConfidenceLevel, SourceType } from "../../entities/source/types";
+import type { ConfidenceLevel } from "../../entities/source/types";
 import {
   buildSourceStats,
   filterSourceItems,
@@ -47,6 +47,9 @@ function DistributionBars({ items }: { items: Array<{ label: string; count: numb
 }
 
 function SourceCard({ item }: { item: SourceListItem }) {
+  const languageLabel = item.language === "en" ? "английский" : item.language === "ru" ? "русский" : "не указан";
+  const geographyLabel = item.geography === "unknown" ? "не указана" : item.geography;
+
   return (
     <details className="rounded border border-slate-200 bg-white/86 p-4 shadow-sm">
       <summary className="cursor-pointer list-none">
@@ -64,11 +67,11 @@ function SourceCard({ item }: { item: SourceListItem }) {
           </div>
           <div className="text-sm text-slate-600">
             <p className="font-semibold text-slate-900">{getSourceTypeLabel(item.source.sourceType)}</p>
-            <p className="mt-1 text-xs text-slate-500">type</p>
+            <p className="mt-1 text-xs text-slate-500">тип</p>
           </div>
           <div className="text-sm text-slate-600">
             <p className="font-semibold text-slate-900">{item.source.year}</p>
-            <p className="mt-1 text-xs text-slate-500">year</p>
+            <p className="mt-1 text-xs text-slate-500">год</p>
           </div>
           <div className="flex justify-end">
             <ConfidenceBadge confidence={item.source.reliability} />
@@ -79,26 +82,26 @@ function SourceCard({ item }: { item: SourceListItem }) {
       <div className="mt-4 border-t border-slate-200 pt-4">
         <div className="grid grid-cols-4 gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Authors</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Авторы</p>
             <p className="mt-2 text-sm leading-6 text-slate-700">{item.source.authors.join(", ")}</p>
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Language</p>
-            <p className="mt-2 text-sm leading-6 text-slate-700">{item.language}</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Язык</p>
+            <p className="mt-2 text-sm leading-6 text-slate-700">{languageLabel}</p>
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Geography</p>
-            <p className="mt-2 text-sm leading-6 text-slate-700">{item.geography}</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">География</p>
+            <p className="mt-2 text-sm leading-6 text-slate-700">{geographyLabel}</p>
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Related claims</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Связанные утверждения</p>
             <p className="mt-2 text-sm leading-6 text-slate-700">{item.relatedClaimsCount}</p>
           </div>
         </div>
 
         <div className="mt-4 rounded border border-slate-200 bg-slate-50 p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-            Linked claims / references
+            Связанные утверждения и ссылки
           </p>
           <div className="mt-3 space-y-3">
             {item.references.length > 0 ? (
@@ -109,12 +112,12 @@ function SourceCard({ item }: { item: SourceListItem }) {
                     <ConfidenceBadge confidence={reference.confidence} />
                   </div>
                   <p className="mt-2 text-xs text-slate-500">
-                    p. {reference.page} / {reference.chunkId} / {reference.year}
+                    стр. {reference.page} / {reference.chunkId} / {reference.year}
                   </p>
                 </div>
               ))
             ) : (
-              <p className="text-sm text-slate-500">Связанные claims не найдены.</p>
+              <p className="text-sm text-slate-500">Связанные утверждения не найдены.</p>
             )}
           </div>
         </div>
@@ -137,20 +140,20 @@ export function SourcesPage() {
         <div className="grid grid-cols-[minmax(0,1fr)_360px] gap-8">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-ice-600">
-              Sources
+              Источники
             </p>
             <h2 className="mt-3 text-3xl font-semibold text-slate-950">
-              Доказательная база claims
+              Доказательная база утверждений
             </h2>
             <p className="mt-3 max-w-4xl text-sm leading-6 text-slate-600">
               Источники связывают утверждения с конкретными документами, страницами и
-              chunks. Эксперт может быстро увидеть тип источника, надежность и claims,
-              которые он поддерживает.
+              фрагментами. Эксперт может быстро увидеть тип источника, надежность и
+              поддерживаемые утверждения.
             </p>
           </div>
           <div className="rounded border border-ice-100 bg-graphite-900 p-5 text-white">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ice-300">
-              Evidence principle
+              Принцип доказательности
             </p>
             <p className="mt-3 text-lg font-semibold">Фактическое утверждение должно иметь источник.</p>
           </div>
@@ -170,10 +173,10 @@ export function SourcesPage() {
       </section>
 
       <div className="grid grid-cols-[minmax(0,1fr)_420px] gap-6">
-        <SectionCard title="Реестр источников" eyebrow="Source registry">
+        <SectionCard title="Реестр источников" eyebrow="Проверяемые ссылки">
           <div className="grid grid-cols-5 gap-3 rounded border border-slate-200 bg-slate-50 p-4">
             <label className="text-xs font-medium text-slate-600">
-              Source type
+              Тип источника
               <select
                 value={filters.sourceType}
                 onChange={(event) =>
@@ -194,7 +197,7 @@ export function SourcesPage() {
             </label>
 
             <label className="text-xs font-medium text-slate-600">
-              Geography
+              География
               <select
                 value={filters.geography}
                 onChange={(event) =>
@@ -206,12 +209,12 @@ export function SourcesPage() {
                 className="mt-2 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm"
               >
                 <option value="all">Все</option>
-                <option value="unknown">Unknown</option>
+                <option value="unknown">Не указана</option>
               </select>
             </label>
 
             <label className="text-xs font-medium text-slate-600">
-              Reliability
+              Надежность
               <select
                 value={filters.reliability}
                 onChange={(event) =>
@@ -223,15 +226,15 @@ export function SourcesPage() {
                 className="mt-2 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm"
               >
                 <option value="all">Любая</option>
-                <option value="high">High</option>
-                <option value="medium">Medium</option>
-                <option value="low">Low</option>
+                <option value="high">Высокая</option>
+                <option value="medium">Средняя</option>
+                <option value="low">Низкая</option>
               </select>
             </label>
 
             <div className="grid grid-cols-2 gap-2">
               <label className="text-xs font-medium text-slate-600">
-                Year from
+                Год от
                 <input
                   type="number"
                   value={filters.yearFrom}
@@ -242,7 +245,7 @@ export function SourcesPage() {
                 />
               </label>
               <label className="text-xs font-medium text-slate-600">
-                Year to
+                Год до
                 <input
                   type="number"
                   value={filters.yearTo}
@@ -255,12 +258,12 @@ export function SourcesPage() {
             </div>
 
             <label className="text-xs font-medium text-slate-600">
-              Search
+              Поиск
               <input
                 type="search"
                 value={filters.search}
                 onChange={(event) => setFilters({ ...filters, search: event.target.value })}
-                placeholder="Title, author, tag..."
+                placeholder="название, автор, тег..."
                 className="mt-2 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm"
               />
             </label>
@@ -278,19 +281,19 @@ export function SourcesPage() {
         </SectionCard>
 
         <div className="space-y-6">
-          <SectionCard title="Coverage by type" eyebrow="Distribution">
+          <SectionCard title="Покрытие по типу" eyebrow="Распределение">
             <DistributionBars items={sourceStats.typeDistribution} />
           </SectionCard>
-          <SectionCard title="Reliability" eyebrow="Source confidence">
+          <SectionCard title="Надежность" eyebrow="Качество источников">
             <DistributionBars items={sourceStats.reliabilityDistribution} />
           </SectionCard>
-          <SectionCard title="Read-only page" eyebrow="MVP status">
+          <SectionCard title="Режим просмотра" eyebrow="Статус раздела">
             <p className="text-sm leading-6 text-slate-600">
-              Страница работает на mock data и не выполняет backend-запросы. География
-              отмечена как unknown, потому что такого поля пока нет в текущем mock-контракте.
+              Страница показывает сведения из текущего индекса доказательств.
+              География отмечена как не указанная, если она отсутствует в данных источника.
             </p>
             <div className="mt-4">
-              <StatusBadge label="mock-first" tone="info" />
+              <StatusBadge label="только просмотр" tone="info" />
             </div>
           </SectionCard>
         </div>
