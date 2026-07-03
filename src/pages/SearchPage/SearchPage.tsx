@@ -69,6 +69,10 @@ export function SearchPage() {
   );
 
   const sourceTypes = useMemo(() => getSourceTypes(selectedResult), [selectedResult]);
+  const selectedScenario = useMemo(
+    () => demoScenarios.find((scenario) => scenario.id === selectedResult.scenarioId),
+    [selectedResult.scenarioId],
+  );
 
   const handleScenarioSelect = (scenario: DemoScenario) => {
     const nextResult = getResultByScenario(scenario);
@@ -120,7 +124,11 @@ export function SearchPage() {
         <div className="space-y-6">
           <ContradictionsPanel contradictions={selectedResult.contradictions} />
           <GapsPanel gaps={selectedResult.gaps} />
-          <ExportPanel />
+          <ExportPanel
+            query={query}
+            result={selectedResult}
+            scenarioTitle={selectedScenario?.title}
+          />
         </div>
       </div>
     </div>
