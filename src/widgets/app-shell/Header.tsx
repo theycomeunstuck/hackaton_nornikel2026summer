@@ -15,6 +15,10 @@ const headerByPath: Record<string, HeaderMeta> = {
     title: "Поиск доказательств",
     subtitle: "Рабочая область для evidence-first запроса и проверки источников.",
   },
+  "/claims": {
+    title: "База утверждений",
+    subtitle: "Накопленные claims, связанные с источниками, confidence и ограничениями.",
+  },
   "/graph": {
     title: "Граф знаний",
     subtitle: "Связи между материалами, процессами, параметрами и источниками.",

@@ -10,6 +10,7 @@ type NavigationItem = {
 const navigationItems: NavigationItem[] = [
   { label: "Dashboard", path: "/dashboard", marker: "OV" },
   { label: "Поиск доказательств", path: "/search", marker: "EV" },
+  { label: "База утверждений", path: "/claims", marker: "CL" },
   { label: "Граф знаний", path: "/graph", marker: "KG" },
   { label: "Источники", path: "/sources", marker: "SR" },
   { label: "Противоречия", path: "/contradictions", marker: "CT" },
