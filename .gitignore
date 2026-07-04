@@ -40,3 +40,7 @@ coverage/
 
 # Agents
 .agents/
+
+# Local environment files
+.env.local
+.env.*.local
