@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { searchEvidenceByScenario } from "../../shared/api/searchApi";
 import { demoScenarios } from "../../shared/mock/demoScenarios";
 import type { DemoScenarioId, SearchResult } from "../../shared/types/search";
+import { ParsedQueryCard } from "../../widgets/result/ParsedQueryCard";
 import { DemoScenarioButtons } from "../../widgets/search/DemoScenarioButtons";
 
 const defaultScenarioId: DemoScenarioId = "desalination";
@@ -131,6 +132,8 @@ export function SearchPage() {
           </div>
         ) : null}
       </section>
+
+      {result ? <ParsedQueryCard parsedQuery={result.parsedQuery} /> : null}
     </div>
   );
 }
