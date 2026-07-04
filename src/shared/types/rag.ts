@@ -39,16 +39,35 @@ export type SourceType =
 export type GraphNodeType =
   | "material"
   | "process"
-  | "parameter"
-  | "condition"
-  | "equipment"
-  | "source"
-  | "claim"
-  | "effect"
   | "technology"
+  | "equipment"
+  | "condition"
+  | "effect"
+  | "parameter"
+  | "experiment"
+  | "source"
   | "contradiction"
   | "gap"
+  | "claim"
   | "other";
+
+export type QuerySourceType = "publication" | "report" | "experiment" | "patent" | "standard";
+
+export interface QueryFilters {
+  material?: string;
+  process?: string;
+  geography?: "domestic" | "foreign" | "russia" | "all";
+  yearFrom?: number;
+  yearTo?: number;
+  confidence?: "low" | "medium" | "high";
+  sourceTypes?: QuerySourceType[];
+}
+
+export interface QueryRequest {
+  query: string;
+  scenarioId?: string;
+  filters?: QueryFilters;
+}
 
 export type GraphRelation =
   | "SUPPORTS"
@@ -157,8 +176,8 @@ export interface GraphEdge {
   source: string;
   target: string;
   relation: GraphRelation | string;
-  sourceRef: SourceRef | null;
-  evidenceText: string | null;
+  sourceRef?: SourceRef | null;
+  evidenceText?: string | null;
   confidence?: ConfidenceLevel | null;
   score?: number | null;
   metadata?: Metadata;
@@ -196,6 +215,8 @@ export interface Contradiction {
 }
 
 export interface SearchResult {
+  queryId?: string;
+  mode?: "rag" | "mock";
   parsedQuery: ParsedQuery;
   answer: AnswerSummary;
   evidence: EvidenceItem[];
