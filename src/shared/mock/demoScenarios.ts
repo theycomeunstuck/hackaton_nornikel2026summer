@@ -3,6 +3,7 @@ import sampleDesalination from "./raw/sampleDesalination.json";
 import samplePgm from "./raw/samplePgm.json";
 import { normalizeSearchResult } from "../api/searchResultAdapter";
 import type { DemoScenario, SearchResult } from "../types/search";
+import { applyCuratedScenarioSummary } from "./curatedScenarioSummaries";
 
 type DemoScenarioRegistryItem = DemoScenario & {
   query: string;
@@ -20,7 +21,7 @@ export const demoScenarios: DemoScenarioRegistryItem[] = [
       "Выбрать технологию обессоливания воды по сульфатам, хлоридам, Ca, Mg, Na и сухому остатку.",
     searchResultId: "desalination",
     tags: ["обессоливание", "сульфаты", "хлориды", "сухой остаток"],
-    result: normalizeSearchResult(sampleDesalination),
+    result: applyCuratedScenarioSummary(normalizeSearchResult(sampleDesalination)),
   },
   {
     id: "catholyte",
@@ -32,7 +33,7 @@ export const demoScenarios: DemoScenarioRegistryItem[] = [
       "Определить параметры циркуляции католита при электроэкстракции никеля и проверить противоречия.",
     searchResultId: "catholyte",
     tags: ["никель", "католит", "электроэкстракция", "скорость потока"],
-    result: normalizeSearchResult(sampleCatholyte),
+    result: applyCuratedScenarioSummary(normalizeSearchResult(sampleCatholyte)),
   },
   {
     id: "pgm",
@@ -44,6 +45,6 @@ export const demoScenarios: DemoScenarioRegistryItem[] = [
       "Проанализировать распределение Au, Ag и МПГ между медно-никелевым штейном и шлаком.",
     searchResultId: "pgm",
     tags: ["Au", "Ag", "МПГ", "штейн", "шлак"],
-    result: normalizeSearchResult(samplePgm),
+    result: applyCuratedScenarioSummary(normalizeSearchResult(samplePgm)),
   },
 ];
