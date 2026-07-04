@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { searchEvidenceByScenario } from "../../shared/api/searchApi";
 import { demoScenarios } from "../../shared/mock/demoScenarios";
 import type { DemoScenarioId, SearchResult } from "../../shared/types/search";
+import { CollapsibleSection } from "../../shared/ui/CollapsibleSection";
 import { KnowledgeGraph } from "../../widgets/graph/KnowledgeGraph";
 import { AnswerSummaryCard } from "../../widgets/result/AnswerSummaryCard";
 import { ContradictionsPanel } from "../../widgets/result/ContradictionsPanel";
@@ -16,18 +17,6 @@ import { SearchPanel } from "../../widgets/search/SearchPanel";
 const defaultScenarioId: DemoScenarioId = "desalination";
 const defaultScenario = demoScenarios.find((scenario) => scenario.id === defaultScenarioId);
 const defaultQuestion = defaultScenario?.query ?? defaultScenario?.defaultQuery ?? "";
-
-function SectionHeading({ title, description }: { title: string; description: string }) {
-  return (
-    <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ice-600">
-        Evidence workspace
-      </p>
-      <h2 className="mt-2 text-xl font-semibold text-slate-950">{title}</h2>
-      <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">{description}</p>
-    </div>
-  );
-}
 
 export function SearchPage() {
   const [activeScenarioId, setActiveScenarioId] = useState<DemoScenarioId>(defaultScenarioId);
@@ -146,72 +135,78 @@ export function SearchPage() {
       ) : null}
 
       {result ? (
-        <div className="space-y-8">
-          <section className="space-y-4">
-            <SectionHeading
-              title="Query understanding"
-              description="Как выбранный запрос разложен на намерение, материалы, процессы, условия и временной контекст."
-            />
-            <div className="grid grid-cols-[minmax(420px,0.9fr)_minmax(0,1fr)] gap-6">
-              <ParsedQueryCard parsedQuery={result.parsedQuery} />
-              <div className="space-y-4">
-                <SectionHeading
-                  title="Evidence summary"
-                  description="Короткий вывод по найденным фрагментам и уровень уверенности результата."
-                />
-                <AnswerSummaryCard answer={result.answer} />
-              </div>
-            </div>
-          </section>
+        <div className="space-y-4">
+          <CollapsibleSection
+            title="Query understanding"
+            eyebrow="Разбор запроса"
+            description="Как выбранный запрос разложен на намерение, материалы, процессы, условия и временной контекст."
+            defaultOpen={false}
+          >
+            <ParsedQueryCard parsedQuery={result.parsedQuery} />
+          </CollapsibleSection>
 
-          <section className="space-y-4">
-            <SectionHeading
-              title="Evidence table"
-              description="Главная рабочая таблица: фрагменты доказательств, условия, источники и оценка уверенности."
-            />
+          <CollapsibleSection
+            title="Evidence summary"
+            eyebrow="Краткий вывод"
+            description="Короткий вывод по найденным фрагментам и уровень уверенности результата."
+            defaultOpen={false}
+          >
+            <AnswerSummaryCard answer={result.answer} />
+          </CollapsibleSection>
+
+          <CollapsibleSection
+            title="Evidence table"
+            eyebrow="Фрагменты доказательств"
+            description="Главная рабочая таблица: фрагменты доказательств, условия, источники и оценка уверенности."
+            defaultOpen={false}
+          >
             <EvidenceTable evidence={result.evidence} />
-          </section>
+          </CollapsibleSection>
 
-          <section className="space-y-4">
-            <SectionHeading
-              title="Knowledge graph"
-              description="Схема связей между узлами результата: материалами, процессами, параметрами, источниками и другими объектами."
-            />
+          <CollapsibleSection
+            title="Knowledge graph"
+            eyebrow="Граф связей"
+            description="Схема связей между узлами результата: материалами, процессами, параметрами, источниками и другими объектами."
+            defaultOpen={false}
+          >
             <KnowledgeGraph graph={result.graph} mode="compact" title="Knowledge graph" />
-          </section>
+          </CollapsibleSection>
 
-          <section className="space-y-4">
-            <SectionHeading
-              title="Sources"
-              description="Компактный список документов и фрагментов, на которые опирается текущий результат."
-            />
+          <CollapsibleSection
+            title="Sources"
+            eyebrow="Источники"
+            description="Компактный список документов и фрагментов, на которые опирается текущий результат."
+            defaultOpen={false}
+          >
             <SourcesPanel sources={result.evidence.map((item) => item.sourceRef)} />
-          </section>
+          </CollapsibleSection>
 
-          <section className="grid grid-cols-[minmax(0,1fr)_minmax(360px,0.72fr)] gap-6">
-            <div className="space-y-4">
-              <SectionHeading
-                title="Contradictions"
-                description="Конфликтующие выводы или расхождения, которые требуют экспертной проверки."
-              />
-              <ContradictionsPanel contradictions={result.contradictions} />
-            </div>
-            <div className="space-y-4">
-              <SectionHeading
-                title="Knowledge gaps"
-                description="Недостающие данные и слабые места доказательной базы."
-              />
-              <GapsPanel gaps={result.gaps} />
-            </div>
-          </section>
+          <CollapsibleSection
+            title="Contradictions"
+            eyebrow="Противоречия"
+            description="Конфликтующие выводы или расхождения, которые требуют экспертной проверки."
+            defaultOpen={false}
+          >
+            <ContradictionsPanel contradictions={result.contradictions} />
+          </CollapsibleSection>
 
-          <section className="space-y-4">
-            <SectionHeading
-              title="Export"
-              description="Сохранение текущего результата анализа в отчёт для дальнейшей проверки и обсуждения."
-            />
+          <CollapsibleSection
+            title="Knowledge gaps"
+            eyebrow="Пробелы"
+            description="Недостающие данные и слабые места доказательной базы."
+            defaultOpen={false}
+          >
+            <GapsPanel gaps={result.gaps} />
+          </CollapsibleSection>
+
+          <CollapsibleSection
+            title="Export"
+            eyebrow="Отчёт"
+            description="Сохранение текущего результата анализа в отчёт для дальнейшей проверки и обсуждения."
+            defaultOpen={false}
+          >
             <ExportPanel result={result} scenarioId={activeScenarioId} />
-          </section>
+          </CollapsibleSection>
         </div>
       ) : null}
     </div>
