@@ -30,6 +30,20 @@ export type AppStatsResponse = {
   isMock: boolean;
 };
 
+export type DashboardCard = {
+  label: string;
+  value: string | number;
+};
+
+export type DashboardResponse = {
+  mode?: "rag" | "mock" | string | null;
+  cards: DashboardCard[];
+  indexStats?: Record<string, unknown> | null;
+  domainsCoverage?: Record<string, unknown>[] | null;
+  priorityGaps?: Record<string, unknown>[] | null;
+  recentClaims?: Record<string, unknown>[] | null;
+};
+
 export type QueryEvidenceOptions = {
   scenarioId?: string;
   filters?: QueryFilters;
@@ -223,6 +237,10 @@ export async function getScenarios(): Promise<UiDemoScenarioWithQuery[]> {
   } catch {
     return getFallbackScenarios();
   }
+}
+
+export async function getDashboard(): Promise<DashboardResponse> {
+  return requestJson<DashboardResponse>("/api/dashboard");
 }
 
 export async function queryEvidence(

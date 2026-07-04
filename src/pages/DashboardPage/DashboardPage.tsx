@@ -1,9 +1,10 @@
-import type { ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import type { EvidenceClaim } from "../../entities/claim/types";
 import type { Contradiction } from "../../entities/contradiction/types";
 import type { KnowledgeGap } from "../../entities/gap/types";
 import type { SourceType } from "../../entities/source/types";
+import { getDashboard, type DashboardResponse } from "../../shared/api/appApi";
 import {
   buildDashboardStats,
   type DashboardMetric,
@@ -60,6 +61,37 @@ const primaryMetrics: DashboardMetric[] = [
     tone: questionsForReview > 0 ? "amber" : "green",
   },
 ];
+
+function getDashboardModeLabel(mode: DashboardResponse["mode"]): string {
+  if (mode === "rag") {
+    return "Режим данных: RAG · real index";
+  }
+
+  if (mode === "mock") {
+    return "Режим данных: Demo · mock fallback";
+  }
+
+  return mode ? `Режим данных: ${mode}` : "Режим данных: локальная сводка";
+}
+
+function toDashboardMetrics(response: DashboardResponse | null): DashboardMetric[] {
+  if (!response || response.cards.length === 0) {
+    return primaryMetrics;
+  }
+
+  return response.cards.slice(0, 4).map((card, index) => {
+    const fallbackMetric = primaryMetrics[index];
+
+    return {
+      label: card.label,
+      value: String(card.value),
+      description:
+        fallbackMetric?.description ??
+        "Показатель получен из backend-сводки Evidence Engine.",
+      tone: fallbackMetric?.tone ?? "cyan",
+    };
+  });
+}
 
 function formatList(items: string[], limit = 2): string {
   if (items.length === 0) {
@@ -178,8 +210,15 @@ function HeaderAside() {
 }
 
 export function DashboardPage() {
+  const [dashboardResponse, setDashboardResponse] = useState<DashboardResponse | null>(null);
+  const [isDashboardLoading, setIsDashboardLoading] = useState(true);
+  const [dashboardError, setDashboardError] = useState<string | null>(null);
   const firstGap = dashboardStats.highPriorityGaps[0];
   const firstContradiction = dashboardStats.possibleContradictions[0];
+  const visibleMetrics = useMemo(
+    () => toDashboardMetrics(dashboardResponse),
+    [dashboardResponse],
+  );
   const attentionItems = [
     firstGap
       ? {
@@ -206,6 +245,38 @@ export function DashboardPage() {
       : null,
   ].filter((item): item is NonNullable<typeof item> => item !== null);
 
+  useEffect(() => {
+    let isActive = true;
+
+    setIsDashboardLoading(true);
+    getDashboard()
+      .then((response) => {
+        if (!isActive) {
+          return;
+        }
+
+        setDashboardResponse(response);
+        setDashboardError(null);
+      })
+      .catch(() => {
+        if (!isActive) {
+          return;
+        }
+
+        setDashboardResponse(null);
+        setDashboardError("Backend-сводка недоступна, показаны локальные данные.");
+      })
+      .finally(() => {
+        if (isActive) {
+          setIsDashboardLoading(false);
+        }
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
   return (
     <ContentContainer>
       <EvidencePageHeader
@@ -215,8 +286,25 @@ export function DashboardPage() {
         aside={<HeaderAside />}
       />
 
+      <div className="rounded-xl border border-ice-100 bg-white/70 px-4 py-3 text-sm text-slate-600 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <span className="font-semibold text-slate-800">
+            {getDashboardModeLabel(dashboardResponse?.mode)}
+          </span>
+          {isDashboardLoading ? (
+            <span className="text-ice-700">Загрузка backend-сводки...</span>
+          ) : dashboardError ? (
+            <span className="text-amber-700">{dashboardError}</span>
+          ) : dashboardResponse?.cards.length === 0 ? (
+            <span className="text-amber-700">Backend вернул пустую сводку.</span>
+          ) : (
+            <span className="text-emerald-700">Сводка обновлена из /api/dashboard.</span>
+          )}
+        </div>
+      </div>
+
       <section className="grid grid-cols-4 gap-4">
-        {primaryMetrics.map((metric) => (
+        {visibleMetrics.map((metric) => (
           <MetricCard
             key={metric.label}
             label={metric.label}
