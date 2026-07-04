@@ -5,6 +5,7 @@ import type { DemoScenarioId, SearchResult } from "../../shared/types/search";
 import { AnswerSummaryCard } from "../../widgets/result/AnswerSummaryCard";
 import { EvidenceTable } from "../../widgets/result/EvidenceTable";
 import { ParsedQueryCard } from "../../widgets/result/ParsedQueryCard";
+import { SourcesPanel } from "../../widgets/result/SourcesPanel";
 import { DemoScenarioButtons } from "../../widgets/search/DemoScenarioButtons";
 
 const defaultScenarioId: DemoScenarioId = "desalination";
@@ -142,6 +143,7 @@ export function SearchPage() {
             <ParsedQueryCard parsedQuery={result.parsedQuery} />
           </div>
           <EvidenceTable evidence={result.evidence} />
+          <SourcesPanel sources={result.evidence.map((item) => item.sourceRef)} />
         </div>
       ) : null}
     </div>
