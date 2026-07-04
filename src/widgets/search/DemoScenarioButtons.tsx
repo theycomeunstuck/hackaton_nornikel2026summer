@@ -46,18 +46,18 @@ export function DemoScenarioButtons({
   };
 
   return (
-    <section className="rounded-xl border border-white/75 bg-white/66 p-4 shadow-glass backdrop-blur-2xl">
+    <section className="rounded-xl border border-white/75 bg-white/58 p-4 shadow-glass backdrop-blur-2xl">
       <div className="flex items-end justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ice-600">
-            Сценарии анализа
+            Примеры запросов
           </p>
           <h3 className="mt-1 text-base font-semibold text-slate-950">
-            Выберите предметную область
+            Заполнить поле вопроса подготовленным примером
           </h3>
         </div>
         <span className="rounded-full border border-ice-100 bg-ice-50 px-3 py-1 text-xs font-semibold text-ice-700">
-          {scenarios.length} сценария
+          {scenarios.length} примера
         </span>
       </div>
 

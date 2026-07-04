@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { searchEvidenceByScenario } from "../../shared/api/searchApi";
 import { demoScenarios } from "../../shared/mock/demoScenarios";
 import type { DemoScenarioId, SearchResult } from "../../shared/types/search";
@@ -11,8 +11,11 @@ import { GapsPanel } from "../../widgets/result/GapsPanel";
 import { ParsedQueryCard } from "../../widgets/result/ParsedQueryCard";
 import { SourcesPanel } from "../../widgets/result/SourcesPanel";
 import { DemoScenarioButtons } from "../../widgets/search/DemoScenarioButtons";
+import { SearchPanel } from "../../widgets/search/SearchPanel";
 
 const defaultScenarioId: DemoScenarioId = "desalination";
+const defaultScenario = demoScenarios.find((scenario) => scenario.id === defaultScenarioId);
+const defaultQuestion = defaultScenario?.query ?? defaultScenario?.defaultQuery ?? "";
 
 function SectionHeading({ title, description }: { title: string; description: string }) {
   return (
@@ -28,6 +31,7 @@ function SectionHeading({ title, description }: { title: string; description: st
 
 export function SearchPage() {
   const [activeScenarioId, setActiveScenarioId] = useState<DemoScenarioId>(defaultScenarioId);
+  const [question, setQuestion] = useState(defaultQuestion);
   const [result, setResult] = useState<SearchResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,41 +41,34 @@ export function SearchPage() {
     [activeScenarioId],
   );
 
-  useEffect(() => {
-    let isCurrentRequest = true;
+  const handleScenarioSelect = (scenarioId: DemoScenarioId) => {
+    const nextScenario = demoScenarios.find((scenario) => scenario.id === scenarioId);
 
+    setActiveScenarioId(scenarioId);
+    setQuestion(nextScenario?.query ?? nextScenario?.defaultQuery ?? "");
+    setResult(null);
+    setError(null);
+  };
+
+  const handleSearch = () => {
     setIsLoading(true);
     setError(null);
 
     searchEvidenceByScenario(activeScenarioId)
       .then((nextResult) => {
-        if (isCurrentRequest) {
-          setResult(nextResult);
-        }
+        setResult(nextResult);
       })
       .catch((caughtError: unknown) => {
-        if (isCurrentRequest) {
-          const message =
-            caughtError instanceof Error
-              ? caughtError.message
-              : "Не удалось загрузить сценарий анализа.";
-          setResult(null);
-          setError(message);
-        }
+        const message =
+          caughtError instanceof Error
+            ? caughtError.message
+            : "Не удалось загрузить сценарий анализа.";
+        setResult(null);
+        setError(message);
       })
       .finally(() => {
-        if (isCurrentRequest) {
-          setIsLoading(false);
-        }
+        setIsLoading(false);
       });
-
-    return () => {
-      isCurrentRequest = false;
-    };
-  }, [activeScenarioId]);
-
-  const handleScenarioSelect = (scenarioId: DemoScenarioId) => {
-    setActiveScenarioId(scenarioId);
   };
 
   return (
@@ -86,20 +83,21 @@ export function SearchPage() {
               Проверка научно-технических доказательств
             </h1>
             <p className="mt-3 max-w-4xl text-sm leading-6 text-slate-600">
-              Выберите сценарий анализа, посмотрите как система поняла запрос, затем проверьте
-              краткий вывод, таблицу доказательств, источники, противоречия и пробелы.
+              Введите вопрос, выберите пример при необходимости и запустите поиск доказательств.
+              Результат показывает разбор запроса, краткий вывод, таблицу фрагментов,
+              источники, граф связей, противоречия и пробелы.
             </p>
           </div>
 
           <div className="rounded-xl border border-ice-100 bg-ice-50/70 p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ice-600">
-              Текущий сценарий
+              Активный пример
             </p>
             <h2 className="mt-2 text-lg font-semibold text-slate-950">
               {activeScenario?.title ?? "Сценарий не выбран"}
             </h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              {activeScenario?.description ?? "Выберите один из доступных сценариев анализа."}
+              {activeScenario?.description ?? "Выберите один из доступных примеров анализа."}
             </p>
             <span
               className={`mt-4 inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] ${
@@ -110,11 +108,18 @@ export function SearchPage() {
                     : "border-slate-200 bg-white text-slate-500"
               }`}
             >
-              {isLoading ? "Загрузка" : result ? "Результат загружен" : "Нет результата"}
+              {isLoading ? "Загрузка" : result ? "Результат загружен" : "Готов к поиску"}
             </span>
           </div>
         </div>
       </section>
+
+      <SearchPanel
+        query={question}
+        onQueryChange={setQuestion}
+        onSearch={handleSearch}
+        disabled={isLoading || question.trim().length === 0}
+      />
 
       <DemoScenarioButtons
         scenarios={demoScenarios}
@@ -126,6 +131,17 @@ export function SearchPage() {
       {error ? (
         <section className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           {error}
+        </section>
+      ) : null}
+
+      {!result && !error ? (
+        <section className="rounded-xl border border-dashed border-ice-200 bg-ice-50/50 px-5 py-8 text-center">
+          <p className="text-sm font-semibold text-slate-800">
+            Введите вопрос и нажмите «Найти доказательства»
+          </p>
+          <p className="mt-2 text-sm text-slate-600">
+            Примеры ниже заполняют поле вопроса и выбирают подготовленный набор доказательств.
+          </p>
         </section>
       ) : null}
 
