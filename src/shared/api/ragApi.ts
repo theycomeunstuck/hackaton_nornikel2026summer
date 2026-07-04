@@ -29,7 +29,7 @@ type ImportMetaWithEnv = ImportMeta & {
   env?: Record<string, string | boolean | undefined>;
 };
 
-const fallbackBaseUrl = "http://localhost:8000";
+const fallbackBaseUrl = "http://127.0.0.1:8000";
 
 const scenarioSamples: Record<DemoScenario, SearchResult> = {
   desalination: sampleDesalination as unknown as SearchResult,
@@ -38,7 +38,11 @@ const scenarioSamples: Record<DemoScenario, SearchResult> = {
 };
 
 function getBaseUrl(): string {
-  const envBaseUrl = (import.meta as ImportMetaWithEnv).env?.VITE_RAG_BASE_URL;
+  const env = (import.meta as ImportMetaWithEnv).env;
+  const envBaseUrl =
+    typeof env?.VITE_API_BASE_URL === "string" && env.VITE_API_BASE_URL.trim().length > 0
+      ? env.VITE_API_BASE_URL
+      : env?.VITE_RAG_BASE_URL;
   const baseUrl =
     typeof envBaseUrl === "string" && envBaseUrl.trim().length > 0
       ? envBaseUrl.trim()
