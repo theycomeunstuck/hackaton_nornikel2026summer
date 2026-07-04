@@ -33,6 +33,10 @@ function toRagDemoScenario(scenarioId: DemoScenarioId): RagDemoScenario {
   return "catholyte";
 }
 
+function getErrorMessage(caughtError: unknown, fallback: string): string {
+  return caughtError instanceof Error ? caughtError.message : fallback;
+}
+
 export function SearchPage() {
   const [activeScenarioId, setActiveScenarioId] = useState<DemoScenarioId>(defaultScenarioId);
   const [question, setQuestion] = useState(defaultQuestion);
@@ -56,12 +60,10 @@ export function SearchPage() {
         setResult(nextResult);
       })
       .catch((caughtError: unknown) => {
-        const message =
-          caughtError instanceof Error
-            ? caughtError.message
-            : "Не удалось загрузить выбранный сценарий анализа.";
         setResult(null);
-        setError(message);
+        setError(
+          getErrorMessage(caughtError, "Не удалось загрузить выбранный сценарий анализа."),
+        );
       })
       .finally(() => {
         setIsLoading(false);
@@ -78,20 +80,22 @@ export function SearchPage() {
   };
 
   const handleSearch = () => {
+    const trimmedQuestion = question.trim();
+
+    if (trimmedQuestion.length === 0) {
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
-    searchEvidence(question.trim(), 15)
+    searchEvidence(trimmedQuestion, 15)
       .then((nextResult) => {
         setResult(nextResult);
       })
       .catch((caughtError: unknown) => {
-        const message =
-          caughtError instanceof Error
-            ? caughtError.message
-            : "Не удалось выполнить поиск доказательств.";
         setResult(null);
-        setError(message);
+        setError(getErrorMessage(caughtError, "Не удалось выполнить поиск доказательств."));
       })
       .finally(() => {
         setIsLoading(false);
@@ -103,7 +107,7 @@ export function SearchPage() {
       <EvidencePageHeader
         eyebrow="Поиск доказательств"
         title="Проверка научно-технических доказательств"
-        description="Введите вопрос, выберите пример при необходимости и запустите поиск доказательств. Результат показывает разбор запроса, краткий вывод, таблицу фрагментов, источники, граф связей, противоречия и пробелы."
+        description="Введите вопрос или выберите подготовленный пример. Результат показывает разбор запроса, краткий вывод, фрагменты доказательств, источники, граф связей, противоречия и пробелы."
         aside={
           <div className="rounded-xl border border-ice-100 bg-ice-50/70 p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ice-600">
@@ -113,7 +117,8 @@ export function SearchPage() {
               {activeScenario?.title ?? "Сценарий не выбран"}
             </h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              {activeScenario?.description ?? "Выберите один из доступных примеров анализа."}
+              {activeScenario?.description ??
+                "Выберите один из доступных примеров анализа или задайте собственный вопрос."}
             </p>
             <span
               className={`mt-4 inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] ${
@@ -144,19 +149,33 @@ export function SearchPage() {
         disabled={isLoading}
       />
 
+      {isLoading ? (
+        <section className="rounded-xl border border-ice-200 bg-white/76 px-5 py-6 shadow-glass backdrop-blur-2xl">
+          <div className="flex items-center gap-4">
+            <span className="h-3 w-3 animate-pulse rounded-full bg-ice-500 shadow-[0_0_20px_rgba(14,165,233,0.7)]" />
+            <div>
+              <p className="text-sm font-semibold text-slate-900">Идёт поиск доказательств</p>
+              <p className="mt-1 text-sm text-slate-600">
+                Система подбирает фрагменты, источники, условия и связи для текущего запроса.
+              </p>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       {error ? (
         <section className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           {error}
         </section>
       ) : null}
 
-      {!uiResult && !error ? (
+      {!uiResult && !error && !isLoading ? (
         <section className="rounded-xl border border-dashed border-ice-200 bg-ice-50/50 px-5 py-8 text-center">
           <p className="text-sm font-semibold text-slate-800">
-            Введите вопрос и нажмите «Найти доказательства»
+            Начните с вопроса или выберите подготовленный пример
           </p>
           <p className="mt-2 text-sm text-slate-600">
-            Примеры заполняют поле вопроса и выбирают подготовленный набор доказательств.
+            Введите научно-технический запрос и нажмите «Найти доказательства» либо выберите один из трёх demo-сценариев. В демонстрационном режиме результат берётся из локальных RAG samples.
           </p>
         </section>
       ) : null}
@@ -164,28 +183,28 @@ export function SearchPage() {
       {uiResult ? (
         <div className="space-y-4">
           <CollapsibleSection
-            title="Как разобран запрос"
+            title="Краткий вывод"
+            eyebrow="Резюме доказательств"
+            description="Короткий вывод по найденным фрагментам, уровень уверенности и ограничения результата."
+            defaultOpen
+          >
+            <AnswerSummaryCard answer={uiResult.answer} />
+          </CollapsibleSection>
+
+          <CollapsibleSection
+            title="Понимание запроса"
             eyebrow="Разбор запроса"
-            description="Как выбранный запрос разложен на намерение, материалы, процессы, условия и временной контекст."
+            description="Как запрос разложен на намерение, материалы, процессы, свойства, условия и временной контекст."
             defaultOpen={false}
           >
             <ParsedQueryCard parsedQuery={uiResult.parsedQuery} />
           </CollapsibleSection>
 
           <CollapsibleSection
-            title="Краткий вывод"
-            eyebrow="Резюме доказательств"
-            description="Короткий вывод по найденным фрагментам и уровень уверенности результата."
-            defaultOpen={false}
-          >
-            <AnswerSummaryCard answer={uiResult.answer} />
-          </CollapsibleSection>
-
-          <CollapsibleSection
             title="Таблица доказательств"
-            eyebrow="Фрагменты доказательств"
-            description="Главная рабочая таблица: фрагменты доказательств, условия, источники и оценка уверенности."
-            defaultOpen={false}
+            eyebrow="Фрагменты и источники"
+            description="Основная рабочая таблица: фрагменты доказательств, источники, страницы, условия и confidence."
+            defaultOpen
           >
             <EvidenceTable evidence={uiResult.evidence} />
           </CollapsibleSection>
@@ -202,19 +221,10 @@ export function SearchPage() {
           <CollapsibleSection
             title="Источники"
             eyebrow="Документы и фрагменты"
-            description="Компактный список документов и фрагментов, на которые опирается текущий результат."
-            defaultOpen={false}
+            description="Список документов и chunk references, на которые опирается текущий результат."
+            defaultOpen
           >
             <SourcesPanel sources={sourceRefs} />
-          </CollapsibleSection>
-
-          <CollapsibleSection
-            title="Противоречия"
-            eyebrow="Экспертная проверка"
-            description="Конфликтующие выводы или расхождения, которые требуют экспертной проверки."
-            defaultOpen={false}
-          >
-            <ContradictionsPanel contradictions={uiResult.contradictions} />
           </CollapsibleSection>
 
           <CollapsibleSection
@@ -224,6 +234,15 @@ export function SearchPage() {
             defaultOpen={false}
           >
             <GapsPanel gaps={uiResult.gaps} />
+          </CollapsibleSection>
+
+          <CollapsibleSection
+            title="Противоречия"
+            eyebrow="Экспертная проверка"
+            description="Конфликтующие выводы или расхождения, которые требуют экспертной проверки."
+            defaultOpen={false}
+          >
+            <ContradictionsPanel contradictions={uiResult.contradictions} />
           </CollapsibleSection>
 
           <CollapsibleSection
