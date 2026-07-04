@@ -54,7 +54,7 @@ export function ExportPanel({ result, scenarioId }: ExportPanelProps) {
           disabled={isDisabled}
           className="shrink-0 rounded-lg border border-ice-300 bg-ice-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-ice-600 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400"
         >
-          Export Markdown
+          Скачать Markdown
         </button>
       </div>
     </SectionCard>

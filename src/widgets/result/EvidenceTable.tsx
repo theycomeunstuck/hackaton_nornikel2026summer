@@ -98,14 +98,14 @@ export function EvidenceTable({ evidence }: EvidenceTableProps) {
             <table className="min-w-[1180px] w-full table-fixed border-collapse text-left text-sm">
               <thead className="bg-graphite-900 text-xs uppercase tracking-[0.12em] text-slate-200">
                 <tr>
-                  <th className="w-[31%] px-4 py-3">Evidence fragment</th>
-                  <th className="w-[20%] px-4 py-3">Conditions</th>
-                  <th className="w-[17%] px-4 py-3">Source</th>
-                  <th className="w-[6%] px-4 py-3">Page</th>
-                  <th className="w-[11%] px-4 py-3">Confidence</th>
-                  <th className="w-[6%] px-4 py-3">Year</th>
-                  <th className="w-[9%] px-4 py-3">Geography</th>
-                  <th className="w-[7%] px-4 py-3">Score</th>
+                  <th className="w-[31%] px-4 py-3">Фрагмент доказательства</th>
+                  <th className="w-[20%] px-4 py-3">Условия</th>
+                  <th className="w-[17%] px-4 py-3">Источник</th>
+                  <th className="w-[6%] px-4 py-3">Стр.</th>
+                  <th className="w-[11%] px-4 py-3">Достоверность</th>
+                  <th className="w-[6%] px-4 py-3">Год</th>
+                  <th className="w-[9%] px-4 py-3">География</th>
+                  <th className="w-[7%] px-4 py-3">Оценка</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
