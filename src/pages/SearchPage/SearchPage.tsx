@@ -1,7 +1,12 @@
 import { useMemo, useState } from "react";
-import { searchEvidenceByScenario } from "../../shared/api/searchApi";
+import { getDemoScenario } from "../../shared/api/ragApi";
+import { adaptRagSearchResult } from "../../shared/api/ragResultAdapter";
 import { demoScenarios } from "../../shared/mock/demoScenarios";
-import type { DemoScenarioId, SearchResult } from "../../shared/types/search";
+import type {
+  DemoScenario as RagDemoScenario,
+  SearchResult as RagSearchResult,
+} from "../../shared/types/rag";
+import type { DemoScenarioId } from "../../shared/types/search";
 import { CollapsibleSection } from "../../shared/ui/CollapsibleSection";
 import { ContentContainer } from "../../shared/ui/ContentContainer";
 import { EvidencePageHeader } from "../../shared/ui/EvidencePageHeader";
@@ -17,13 +22,23 @@ import { DemoScenarioButtons } from "../../widgets/search/DemoScenarioButtons";
 import { SearchPanel } from "../../widgets/search/SearchPanel";
 
 const defaultScenarioId: DemoScenarioId = "desalination";
+const defaultRagScenario: RagDemoScenario = "desalination";
 const defaultScenario = demoScenarios.find((scenario) => scenario.id === defaultScenarioId);
 const defaultQuestion = defaultScenario?.query ?? defaultScenario?.defaultQuery ?? "";
 
+function toRagDemoScenario(scenarioId: DemoScenarioId): RagDemoScenario {
+  if (scenarioId === "desalination" || scenarioId === "catholyte" || scenarioId === "pgm") {
+    return scenarioId;
+  }
+
+  return "catholyte";
+}
+
 export function SearchPage() {
   const [activeScenarioId, setActiveScenarioId] = useState<DemoScenarioId>(defaultScenarioId);
+  const [selectedScenario, setSelectedScenario] = useState<RagDemoScenario>(defaultRagScenario);
   const [question, setQuestion] = useState(defaultQuestion);
-  const [result, setResult] = useState<SearchResult | null>(null);
+  const [result, setResult] = useState<RagSearchResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,21 +46,13 @@ export function SearchPage() {
     () => demoScenarios.find((scenario) => scenario.id === activeScenarioId),
     [activeScenarioId],
   );
+  const uiResult = useMemo(() => (result ? adaptRagSearchResult(result) : null), [result]);
 
-  const handleScenarioSelect = (scenarioId: DemoScenarioId) => {
-    const nextScenario = demoScenarios.find((scenario) => scenario.id === scenarioId);
-
-    setActiveScenarioId(scenarioId);
-    setQuestion(nextScenario?.query ?? nextScenario?.defaultQuery ?? "");
-    setResult(null);
-    setError(null);
-  };
-
-  const handleSearch = () => {
+  const loadScenario = (scenario: RagDemoScenario) => {
     setIsLoading(true);
     setError(null);
 
-    searchEvidenceByScenario(activeScenarioId)
+    getDemoScenario(scenario)
       .then((nextResult) => {
         setResult(nextResult);
       })
@@ -60,6 +67,20 @@ export function SearchPage() {
       .finally(() => {
         setIsLoading(false);
       });
+  };
+
+  const handleScenarioSelect = (scenarioId: DemoScenarioId) => {
+    const nextScenario = demoScenarios.find((scenario) => scenario.id === scenarioId);
+    const nextRagScenario = toRagDemoScenario(scenarioId);
+
+    setActiveScenarioId(scenarioId);
+    setSelectedScenario(nextRagScenario);
+    setQuestion(nextScenario?.query ?? nextScenario?.defaultQuery ?? "");
+    loadScenario(nextRagScenario);
+  };
+
+  const handleSearch = () => {
+    loadScenario(selectedScenario);
   };
 
   return (
@@ -83,12 +104,12 @@ export function SearchPage() {
               className={`mt-4 inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] ${
                 isLoading
                   ? "border-amber-200 bg-amber-50 text-amber-700"
-                  : result
+                  : uiResult
                     ? "border-emerald-200 bg-emerald-50 text-emerald-700"
                     : "border-slate-200 bg-white text-slate-500"
               }`}
             >
-              {isLoading ? "Загрузка" : result ? "Результат загружен" : "Готов к поиску"}
+              {isLoading ? "Загрузка" : uiResult ? "Результат загружен" : "Готов к поиску"}
             </span>
           </div>
         }
@@ -114,7 +135,7 @@ export function SearchPage() {
         </section>
       ) : null}
 
-      {!result && !error ? (
+      {!uiResult && !error ? (
         <section className="rounded-xl border border-dashed border-ice-200 bg-ice-50/50 px-5 py-8 text-center">
           <p className="text-sm font-semibold text-slate-800">
             Введите вопрос и нажмите «Найти доказательства»
@@ -125,7 +146,7 @@ export function SearchPage() {
         </section>
       ) : null}
 
-      {result ? (
+      {uiResult ? (
         <div className="space-y-4">
           <CollapsibleSection
             title="Как разобран запрос"
@@ -133,7 +154,7 @@ export function SearchPage() {
             description="Как выбранный запрос разложен на намерение, материалы, процессы, условия и временной контекст."
             defaultOpen={false}
           >
-            <ParsedQueryCard parsedQuery={result.parsedQuery} />
+            <ParsedQueryCard parsedQuery={uiResult.parsedQuery} />
           </CollapsibleSection>
 
           <CollapsibleSection
@@ -142,7 +163,7 @@ export function SearchPage() {
             description="Короткий вывод по найденным фрагментам и уровень уверенности результата."
             defaultOpen={false}
           >
-            <AnswerSummaryCard answer={result.answer} />
+            <AnswerSummaryCard answer={uiResult.answer} />
           </CollapsibleSection>
 
           <CollapsibleSection
@@ -151,7 +172,7 @@ export function SearchPage() {
             description="Главная рабочая таблица: фрагменты доказательств, условия, источники и оценка уверенности."
             defaultOpen={false}
           >
-            <EvidenceTable evidence={result.evidence} />
+            <EvidenceTable evidence={uiResult.evidence} />
           </CollapsibleSection>
 
           <CollapsibleSection
@@ -160,7 +181,7 @@ export function SearchPage() {
             description="Схема связей между материалами, процессами, параметрами, источниками и другими объектами результата."
             defaultOpen={false}
           >
-            <KnowledgeGraph graph={result.graph} mode="compact" title="Граф связей" />
+            <KnowledgeGraph graph={uiResult.graph} mode="compact" title="Граф связей" />
           </CollapsibleSection>
 
           <CollapsibleSection
@@ -169,7 +190,7 @@ export function SearchPage() {
             description="Компактный список документов и фрагментов, на которые опирается текущий результат."
             defaultOpen={false}
           >
-            <SourcesPanel sources={result.evidence.map((item) => item.sourceRef)} />
+            <SourcesPanel sources={uiResult.evidence.map((item) => item.sourceRef)} />
           </CollapsibleSection>
 
           <CollapsibleSection
@@ -178,7 +199,7 @@ export function SearchPage() {
             description="Конфликтующие выводы или расхождения, которые требуют экспертной проверки."
             defaultOpen={false}
           >
-            <ContradictionsPanel contradictions={result.contradictions} />
+            <ContradictionsPanel contradictions={uiResult.contradictions} />
           </CollapsibleSection>
 
           <CollapsibleSection
@@ -187,7 +208,7 @@ export function SearchPage() {
             description="Недостающие данные и слабые места доказательной базы."
             defaultOpen={false}
           >
-            <GapsPanel gaps={result.gaps} />
+            <GapsPanel gaps={uiResult.gaps} />
           </CollapsibleSection>
 
           <CollapsibleSection
@@ -196,7 +217,7 @@ export function SearchPage() {
             description="Сохранение текущего результата анализа в отчёт для дальнейшей проверки и обсуждения."
             defaultOpen={false}
           >
-            <ExportPanel result={result} scenarioId={activeScenarioId} />
+            <ExportPanel result={uiResult} scenarioId={activeScenarioId} />
           </CollapsibleSection>
         </div>
       ) : null}

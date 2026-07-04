@@ -8,6 +8,7 @@ type EvidenceTableProps = {
 
 type EvidenceItemWithScore = EvidenceItem & {
   score?: number;
+  numericStatus?: string;
 };
 
 const operatorLabel: Record<Condition["operator"], string> = {
@@ -56,6 +57,14 @@ function formatScore(item: EvidenceItem): string {
   }
 
   return score.toFixed(4);
+}
+
+function getNumericStatus(item: EvidenceItem): string | undefined {
+  const numericStatus = (item as EvidenceItemWithScore).numericStatus;
+
+  return typeof numericStatus === "string" && numericStatus.length > 0
+    ? numericStatus
+    : undefined;
 }
 
 function ConditionsCell({ conditions }: { conditions: Condition[] }) {
@@ -135,7 +144,16 @@ export function EvidenceTable({ evidence }: EvidenceTableProps) {
                     <td className="px-4 py-4 text-slate-600">
                       {item.geography ?? item.sourceRef.geography ?? "—"}
                     </td>
-                    <td className="px-4 py-4 font-mono text-xs text-slate-600">{formatScore(item)}</td>
+                    <td className="px-4 py-4">
+                      <span className="block font-mono text-xs text-slate-600">
+                        {formatScore(item)}
+                      </span>
+                      {getNumericStatus(item) ? (
+                        <span className="mt-1 inline-flex rounded-full border border-ice-100 bg-ice-50 px-2 py-0.5 text-[11px] font-semibold text-ice-700">
+                          {getNumericStatus(item)}
+                        </span>
+                      ) : null}
+                    </td>
                   </tr>
                 ))}
               </tbody>
