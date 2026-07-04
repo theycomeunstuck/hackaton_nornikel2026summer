@@ -25,7 +25,7 @@ export const demoScenarios: DemoScenario[] = [
     id: "pgm-matte-slag-distribution",
     title: "Au / Ag / МПГ между штейном и шлаком",
     description:
-      "Evidence review по распределению драгоценных металлов между медным/никелевым штейном и шлаком за последние 5 лет.",
+      "Обзор данных по распределению драгоценных металлов между медным/никелевым штейном и шлаком за последние 5 лет.",
     defaultQuery:
       "Что известно за последние 5 лет о распределении Au, Ag и МПГ между медным и никелевым штейном и шлаком?",
     searchResultId: "result-pgm-matte-slag-distribution",

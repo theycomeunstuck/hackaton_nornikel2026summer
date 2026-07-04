@@ -52,10 +52,28 @@ const nodeTypeLabel: Record<string, string> = {
   equipment: "оборудование",
   parameter: "параметр",
   condition: "условие",
-  claim: "фрагмент",
+  claim: "утверждение",
   source: "источник",
   effect: "эффект",
   technology: "технология",
+};
+
+const relationLabel: Record<string, string> = {
+  supports: "подтверждает",
+  support: "подтверждает",
+  contains: "содержит",
+  has_parameter: "параметр",
+  measured_in: "измеряется",
+  influences: "влияет",
+  increases: "усиливает",
+  improves: "улучшает",
+  reduces: "снижает",
+  contradicts: "конфликт",
+  conflicts: "конфликт",
+  uses: "использует",
+  selected_for: "выбрано для",
+  requires: "требует",
+  derived_from: "источник",
 };
 
 const nodeStyleByType: Record<string, NodeVisualStyle> = {
@@ -126,16 +144,20 @@ function getNodePosition(index: number, mode: KnowledgeGraphMode): { x: number; 
   };
 }
 
+function getNormalizedRelation(relation: string): string {
+  return relation.trim().toLowerCase();
+}
+
 function getNodeTypeLabel(type: string): string {
   return nodeTypeLabel[type] ?? "другое";
 }
 
-function getNodeVisualStyle(node: KnowledgeGraphNode): NodeVisualStyle {
-  return nodeStyleByType[node.type] ?? nodeStyleByType.other;
+function getRelationLabel(relation: string): string {
+  return relationLabel[getNormalizedRelation(relation)] ?? "связано";
 }
 
-function getNormalizedRelation(relation: string): string {
-  return relation.trim().toLowerCase();
+function getNodeVisualStyle(node: KnowledgeGraphNode): NodeVisualStyle {
+  return nodeStyleByType[node.type] ?? nodeStyleByType.other;
 }
 
 function getEdgeVisualStyle(edge: KnowledgeGraphEdge): EdgeVisualStyle {
@@ -162,7 +184,7 @@ function getEdgeVisualStyle(edge: KnowledgeGraphEdge): EdgeVisualStyle {
     return { color: "#f43f5e", width: 2.85, opacity: 0.92 };
   }
 
-  if (relation === "uses" || relation === "selected_for") {
+  if (relation === "uses" || relation === "selected_for" || relation === "requires") {
     return { color: "#14b8a6", width: edge.confidence === "high" ? 2.55 : 2.1, opacity: 0.84 };
   }
 
@@ -216,7 +238,7 @@ function createFlowEdges(graph: KnowledgeGraphModel): FlowEdge[] {
       id: edge.id,
       source: edge.source,
       target: edge.target,
-      label: edge.relation,
+      label: getRelationLabel(edge.label ?? edge.relation),
       data: {
         relation: edge.relation,
       },

@@ -2,6 +2,9 @@ import { useMemo, useState } from "react";
 import { demoScenarios } from "../../shared/mock/demoScenarios.mock";
 import { mockSearchResults } from "../../shared/mock/searchResults.mock";
 import type { DemoScenario, SearchResult } from "../../shared/types/search";
+import { ContentContainer } from "../../shared/ui/ContentContainer";
+import { EvidencePageHeader } from "../../shared/ui/EvidencePageHeader";
+import { MetricCard } from "../../shared/ui/MetricCard";
 import { KnowledgeGraph } from "../../widgets/graph/KnowledgeGraph";
 import { DemoScenarioButtons } from "../../widgets/search/DemoScenarioButtons";
 
@@ -13,8 +16,28 @@ function getResultByScenario(scenario: DemoScenario): SearchResult {
   );
 }
 
+function GraphHeaderAside({ title }: { title: string }) {
+  return (
+    <div className="rounded-xl border border-ice-100 bg-ice-50/75 p-5">
+      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ice-600">
+        Активный граф
+      </p>
+      <h2 className="mt-3 text-xl font-semibold leading-7 text-slate-950">{title}</h2>
+      <p className="mt-3 text-sm leading-6 text-slate-600">
+        Узлы показывают материалы, процессы, параметры, источники и проверяемые утверждения.
+        Цветные связи помогают быстро отличить подтверждение, влияние, конфликт и техническую
+        зависимость.
+      </p>
+    </div>
+  );
+}
+
 export function GraphPage() {
   const [selectedResult, setSelectedResult] = useState<SearchResult>(initialResult);
+
+  const selectedScenario =
+    demoScenarios.find((scenario) => scenario.searchResultId === selectedResult.id) ??
+    demoScenarios[0];
 
   const graphStats = useMemo(
     () => ({
@@ -28,10 +51,7 @@ export function GraphPage() {
           (sum, contradiction) => sum + contradiction.claimIds.length,
           0,
         ) +
-        selectedResult.gaps.reduce(
-          (sum, gap) => sum + gap.relatedSourceRefs.length,
-          0,
-        ),
+        selectedResult.gaps.reduce((sum, gap) => sum + gap.relatedSourceRefs.length, 0),
       sources: selectedResult.sources.length,
       claims: selectedResult.evidence.length,
     }),
@@ -43,55 +63,44 @@ export function GraphPage() {
   };
 
   return (
-    <div className="mx-auto max-w-[1680px] space-y-6">
-      <section className="rounded border border-white/75 bg-white/72 p-6 shadow-glass backdrop-blur-2xl">
-        <div className="grid grid-cols-[minmax(0,1fr)_520px] gap-8">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-ice-600">
-              Граф знаний
-            </p>
-            <h2 className="mt-3 text-3xl font-semibold text-slate-950">
-              Граф доказательных связей
-            </h2>
-            <p className="mt-3 max-w-4xl text-sm leading-6 text-slate-600">
-              Граф показывает, как утверждения связаны с материалами, процессами,
-              технологиями, условиями, эффектами и источниками. Узлы противоречий
-              и пробелов выделены отдельно, чтобы эксперт сразу видел слабые зоны
-              доказательной базы.
-            </p>
-          </div>
-          <div className="grid grid-cols-4 gap-3">
-            <div className="rounded border border-ice-100 bg-ice-50 px-4 py-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ice-600">
-                Узлы
-              </p>
-              <p className="mt-2 text-2xl font-semibold text-slate-950">{graphStats.nodes}</p>
-            </div>
-            <div className="rounded border border-emerald-100 bg-emerald-50 px-4 py-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-700">
-                Связи
-              </p>
-              <p className="mt-2 text-2xl font-semibold text-slate-950">{graphStats.edges}</p>
-            </div>
-            <div className="rounded border border-amber-100 bg-amber-50 px-4 py-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-amber-700">
-                Утверждения
-              </p>
-              <p className="mt-2 text-2xl font-semibold text-slate-950">{graphStats.claims}</p>
-            </div>
-            <div className="rounded border border-violet-100 bg-violet-50 px-4 py-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-violet-700">
-                Источники
-              </p>
-              <p className="mt-2 text-2xl font-semibold text-slate-950">{graphStats.sources}</p>
-            </div>
-          </div>
-        </div>
+    <ContentContainer>
+      <EvidencePageHeader
+        eyebrow="Граф знаний"
+        title="Граф доказательных связей"
+        description="Страница показывает, как утверждения связаны с материалами, процессами, технологиями, условиями, эффектами и источниками. Отдельные типы связей подсвечены цветом, чтобы специалист быстрее видел подтверждения, влияния, конфликты и слабые зоны доказательной базы."
+        aside={<GraphHeaderAside title={selectedScenario.title} />}
+      />
+
+      <section className="grid grid-cols-4 gap-4">
+        <MetricCard
+          label="Узлы"
+          value={String(graphStats.nodes)}
+          description="Объекты графа: материалы, процессы, параметры, источники и выводы."
+          tone="cyan"
+        />
+        <MetricCard
+          label="Связи"
+          value={String(graphStats.edges)}
+          description="Отношения между узлами, включая подтверждения и конфликты."
+          tone="green"
+        />
+        <MetricCard
+          label="Утверждения"
+          value={String(graphStats.claims)}
+          description="Проверяемые фрагменты доказательной базы в выбранном направлении."
+          tone="amber"
+        />
+        <MetricCard
+          label="Источники"
+          value={String(graphStats.sources)}
+          description="Документы и публикации, связанные с текущим графом."
+          tone="violet"
+        />
       </section>
 
       <DemoScenarioButtons
         scenarios={demoScenarios}
-        selectedScenarioId={selectedResult.scenarioId}
+        selectedScenarioId={selectedScenario.id}
         onSelect={handleScenarioSelect}
       />
 
@@ -100,8 +109,8 @@ export function GraphPage() {
         contradictions={selectedResult.contradictions}
         gaps={selectedResult.gaps}
         mode="full"
-        title={selectedResult.title}
+        title={`Граф: ${selectedScenario.title}`}
       />
-    </div>
+    </ContentContainer>
   );
 }

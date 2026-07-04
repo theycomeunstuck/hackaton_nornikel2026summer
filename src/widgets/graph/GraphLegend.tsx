@@ -16,10 +16,10 @@ const nodeLegendItems: LegendItem[] = [
 
 const edgeLegendItems: LegendItem[] = [
   { type: "supports", label: "Подтверждает", dotClassName: "border-green-400 bg-green-400" },
-  { type: "contains", label: "Параметр/содержит", dotClassName: "border-sky-400 bg-sky-400" },
+  { type: "contains", label: "Содержит / параметр", dotClassName: "border-sky-400 bg-sky-400" },
   { type: "influences", label: "Влияет", dotClassName: "border-orange-400 bg-orange-400" },
-  { type: "contradicts", label: "Противоречит", dotClassName: "border-rose-400 bg-rose-400" },
-  { type: "uses", label: "Использует", dotClassName: "border-teal-400 bg-teal-400" },
+  { type: "contradicts", label: "Конфликт", dotClassName: "border-rose-400 bg-rose-400" },
+  { type: "uses", label: "Использует / требует", dotClassName: "border-teal-400 bg-teal-400" },
 ];
 
 function LegendGroup({ title, items }: { title: string; items: LegendItem[] }) {

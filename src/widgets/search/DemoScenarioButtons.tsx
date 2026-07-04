@@ -53,7 +53,7 @@ export function DemoScenarioButtons({
             Примеры запросов
           </p>
           <h3 className="mt-1 text-base font-semibold text-slate-950">
-            Заполнить поле вопроса подготовленным примером
+            Выбрать подготовленное направление анализа
           </h3>
         </div>
         <span className="rounded-full border border-ice-100 bg-ice-50 px-3 py-1 text-xs font-semibold text-ice-700">
