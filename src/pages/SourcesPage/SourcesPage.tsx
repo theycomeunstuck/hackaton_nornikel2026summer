@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import type { ConfidenceLevel } from "../../entities/source/types";
 import {
   buildSourceStats,
@@ -66,14 +66,22 @@ function DistributionBars({ items }: { items: Array<{ label: string; count: numb
 }
 
 function SourceCard({ item }: { item: SourceListItem }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const detailsId = useId();
   const languageLabel =
     item.language === "en" ? "английский" : item.language === "ru" ? "русский" : "не указан";
   const geographyLabel = item.geography === "unknown" ? "не указана" : item.geography;
 
   return (
-    <details className="rounded-xl border border-slate-200 bg-white/86 p-4 shadow-sm">
-      <summary className="cursor-pointer list-none">
-        <div className="grid grid-cols-[minmax(0,1fr)_140px_110px_120px] items-start gap-4">
+    <article className="rounded-xl border border-slate-200 bg-white/86 shadow-sm motion-ui-transition hover:border-ice-100 hover:shadow-glass">
+      <button
+        type="button"
+        onClick={() => setIsOpen((currentValue) => !currentValue)}
+        aria-expanded={isOpen}
+        aria-controls={detailsId}
+        className="block w-full rounded-xl p-4 text-left outline-none motion-ui-transition hover:bg-ice-50/30 focus-visible:ring-4 focus-visible:ring-ice-100"
+      >
+        <div className="grid grid-cols-[minmax(0,1fr)_140px_110px_120px_120px] items-start gap-4">
           <div>
             <h3 className="text-base font-semibold leading-6 text-slate-950">{item.source.title}</h3>
             <p className="mt-2 text-sm leading-6 text-slate-600">{item.excerpt}</p>
@@ -96,53 +104,77 @@ function SourceCard({ item }: { item: SourceListItem }) {
           <div className="flex justify-end">
             <ConfidenceBadge confidence={item.source.reliability} />
           </div>
-        </div>
-      </summary>
-
-      <div className="mt-4 border-t border-slate-200 pt-4">
-        <div className="grid grid-cols-4 gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Авторы</p>
-            <p className="mt-2 text-sm leading-6 text-slate-700">{item.source.authors.join(", ")}</p>
-          </div>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Язык</p>
-            <p className="mt-2 text-sm leading-6 text-slate-700">{languageLabel}</p>
-          </div>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">География</p>
-            <p className="mt-2 text-sm leading-6 text-slate-700">{geographyLabel}</p>
-          </div>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Связанные утверждения</p>
-            <p className="mt-2 text-sm leading-6 text-slate-700">{item.relatedClaimsCount}</p>
+          <div className="flex justify-end">
+            <span className="inline-flex items-center gap-2 rounded-full border border-ice-100 bg-ice-50 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-ice-700">
+              {isOpen ? "Свернуть" : "Подробнее"}
+              <span
+                className="motion-chevron block h-2 w-2 border-b-2 border-r-2 border-current"
+                style={{ transform: isOpen ? "rotate(-135deg)" : "rotate(45deg)" }}
+                aria-hidden="true"
+              />
+            </span>
           </div>
         </div>
+      </button>
 
-        <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-            Связанные утверждения и ссылки
-          </p>
-          <div className="mt-3 space-y-3">
-            {item.references.length > 0 ? (
-              item.references.map((reference) => (
-                <div key={reference.chunkId} className="rounded-xl border border-white bg-white p-3">
-                  <div className="flex items-start justify-between gap-4">
-                    <p className="text-sm leading-6 text-slate-700">{reference.claimText}</p>
-                    <ConfidenceBadge confidence={reference.confidence} />
-                  </div>
-                  <p className="mt-2 text-xs text-slate-500">
-                    стр. {reference.page} / {reference.chunkId} / {reference.year}
-                  </p>
-                </div>
-              ))
-            ) : (
-              <p className="text-sm text-slate-500">Связанные утверждения не найдены.</p>
-            )}
+      <div
+        id={detailsId}
+        className={`motion-collapsible-grid ${isOpen ? "motion-collapsible-grid-open" : ""}`}
+      >
+        <div className="motion-collapsible-inner">
+          <div
+            className={`border-t border-slate-200 px-4 py-4 motion-ui-transition ${
+              isOpen
+                ? "visible translate-y-0 opacity-100"
+                : "invisible -translate-y-1 opacity-0 pointer-events-none"
+            }`}
+            aria-hidden={!isOpen}
+          >
+            <div className="grid grid-cols-4 gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Авторы</p>
+                <p className="mt-2 text-sm leading-6 text-slate-700">{item.source.authors.join(", ")}</p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Язык</p>
+                <p className="mt-2 text-sm leading-6 text-slate-700">{languageLabel}</p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">География</p>
+                <p className="mt-2 text-sm leading-6 text-slate-700">{geographyLabel}</p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Связанные утверждения</p>
+                <p className="mt-2 text-sm leading-6 text-slate-700">{item.relatedClaimsCount}</p>
+              </div>
+            </div>
+
+            <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+                Связанные утверждения и ссылки
+              </p>
+              <div className="mt-3 space-y-3">
+                {item.references.length > 0 ? (
+                  item.references.map((reference) => (
+                    <div key={reference.chunkId} className="rounded-xl border border-white bg-white p-3">
+                      <div className="flex items-start justify-between gap-4">
+                        <p className="text-sm leading-6 text-slate-700">{reference.claimText}</p>
+                        <ConfidenceBadge confidence={reference.confidence} />
+                      </div>
+                      <p className="mt-2 text-xs text-slate-500">
+                        стр. {reference.page} / {reference.chunkId} / {reference.year}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-slate-500">Связанные утверждения не найдены.</p>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </details>
+    </article>
   );
 }
 
