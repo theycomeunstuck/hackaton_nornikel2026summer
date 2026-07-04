@@ -10,6 +10,7 @@ import {
 import "@xyflow/react/dist/style.css";
 import type { KnowledgeGraph as KnowledgeGraphModel } from "../../shared/types/search";
 import { SectionCard } from "../../shared/ui/SectionCard";
+import { GraphLegend } from "./GraphLegend";
 
 type KnowledgeGraphMode = "compact" | "full";
 
@@ -128,23 +129,26 @@ export function KnowledgeGraph({ graph, mode = "compact", title = "Граф св
           </p>
         </div>
       ) : (
-        <div className={`${heightClassName} overflow-hidden rounded-xl border border-slate-200 bg-slate-950`}>
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            fitView
-            fitViewOptions={{ padding: 0.18 }}
-            nodesDraggable={false}
-            nodesConnectable={false}
-            elementsSelectable={false}
-          >
-            <Background
-              variant={BackgroundVariant.Dots}
-              gap={22}
-              size={1}
-              color="rgba(148, 163, 184, 0.34)"
-            />
-          </ReactFlow>
+        <div className="space-y-3">
+          <div className={`${heightClassName} overflow-hidden rounded-xl border border-slate-200 bg-slate-950`}>
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              fitView
+              fitViewOptions={{ padding: 0.18 }}
+              nodesDraggable={false}
+              nodesConnectable={false}
+              elementsSelectable={false}
+            >
+              <Background
+                variant={BackgroundVariant.Dots}
+                gap={22}
+                size={1}
+                color="rgba(148, 163, 184, 0.34)"
+              />
+            </ReactFlow>
+          </div>
+          <GraphLegend />
         </div>
       )}
     </SectionCard>
