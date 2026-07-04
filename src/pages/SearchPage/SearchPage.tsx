@@ -39,6 +39,7 @@ export function SearchPage() {
   const [activeScenarioId, setActiveScenarioId] = useState<DemoScenarioId>(defaultScenarioId);
   const [question, setQuestion] = useState(defaultQuestion);
   const [result, setResult] = useState<RagSearchResult | null>(null);
+  const [lastQueryText, setLastQueryText] = useState(defaultQuestion);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -88,6 +89,7 @@ export function SearchPage() {
     searchEvidence(trimmedQuery, scenarioId ? { scenarioId: String(scenarioId) } : undefined)
       .then((nextResult) => {
         setResult(nextResult);
+        setLastQueryText(trimmedQuery);
       })
       .catch((caughtError: unknown) => {
         setResult(null);
@@ -260,7 +262,11 @@ export function SearchPage() {
             description="Сохранение текущего результата анализа в отчёт для дальнейшей проверки и обсуждения."
             defaultOpen={false}
           >
-            <ExportPanel result={uiResult} scenarioId={activeScenarioId} />
+            <ExportPanel
+              result={uiResult}
+              scenarioId={activeScenarioId}
+              lastQueryText={lastQueryText}
+            />
           </CollapsibleSection>
         </div>
       ) : null}

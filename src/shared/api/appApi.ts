@@ -66,6 +66,26 @@ export type SourceListParams = {
   year_to?: number;
 };
 
+export type ExportReportFormat = "markdown" | "json" | "pdf";
+
+export type ExportReportRequest = {
+  title: string;
+  format: ExportReportFormat;
+  queryId?: string;
+  includeGraph?: boolean;
+  includeSources?: boolean;
+  includeContradictions?: boolean;
+  includeGaps?: boolean;
+};
+
+export type ExportReportResponse = {
+  reportId: string;
+  format: ExportReportFormat;
+  downloadUrl?: string;
+  status?: string;
+  message?: string;
+};
+
 export type QueryEvidenceOptions = {
   scenarioId?: string;
   filters?: QueryFilters;
@@ -334,6 +354,27 @@ export async function getGaps(): Promise<KnowledgeGap[]> {
   } catch {
     return Object.values(scenarioSamples).flatMap((sample) => sample.gaps);
   }
+}
+
+export async function exportReport(
+  request: ExportReportRequest,
+): Promise<ExportReportResponse> {
+  return requestJson<ExportReportResponse>("/api/reports/export", {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
+}
+
+export function getApiDownloadUrl(downloadUrl: string): string {
+  if (/^https?:\/\//i.test(downloadUrl)) {
+    return downloadUrl;
+  }
+
+  return `${getBaseUrl()}${downloadUrl.startsWith("/") ? downloadUrl : `/${downloadUrl}`}`;
+}
+
+export function openReport(downloadUrl: string): void {
+  window.open(getApiDownloadUrl(downloadUrl), "_blank", "noopener,noreferrer");
 }
 
 export async function queryEvidence(
