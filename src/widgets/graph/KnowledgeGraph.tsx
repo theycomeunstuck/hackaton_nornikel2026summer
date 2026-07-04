@@ -64,18 +64,24 @@ function createFlowNodes(graph: KnowledgeGraphModel, mode: KnowledgeGraphMode): 
     },
     style: {
       width: mode === "compact" ? 190 : 220,
+      height: mode === "compact" ? 76 : 86,
       minHeight: mode === "compact" ? 64 : 72,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
       borderRadius: 14,
       border: "1px solid rgba(14, 165, 233, 0.36)",
       background: "#ffffff",
       color: "#0f172a",
       boxShadow: "0 14px 32px rgba(15, 23, 42, 0.12)",
-      fontSize: mode === "compact" ? 11 : 12,
+      fontSize: mode === "compact" ? 12 : 13,
       fontWeight: 700,
-      lineHeight: 1.35,
+      lineHeight: 1.3,
       whiteSpace: "pre-line",
       textAlign: "center",
-      padding: "10px 12px",
+      overflowWrap: "break-word",
+      wordBreak: "normal",
+      padding: "12px 14px",
     },
   }));
 }
@@ -139,6 +145,7 @@ export function KnowledgeGraph({ graph, mode = "compact", title = "Граф св
               nodesDraggable={false}
               nodesConnectable={false}
               elementsSelectable={false}
+              proOptions={{ hideAttribution: true }}
             >
               <Background
                 variant={BackgroundVariant.Dots}
