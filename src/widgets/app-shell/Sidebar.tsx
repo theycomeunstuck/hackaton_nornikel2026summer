@@ -41,7 +41,7 @@ export function Sidebar({ isCollapsed, onToggleCollapsed }: SidebarProps) {
 
   return (
     <aside
-      className={`sticky top-0 flex h-screen shrink-0 flex-col overflow-hidden border-r border-ice-300/10 bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.18),transparent_30%),linear-gradient(180deg,#06111f_0%,#0b1220_44%,#050811_100%)] py-6 text-white shadow-[18px_0_48px_rgba(2,6,23,0.22)] transition-[width,padding] duration-300 ease-out ${
+      className={`fixed left-0 top-0 z-40 flex h-screen shrink-0 flex-col overflow-hidden border-r border-ice-300/10 bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.18),transparent_30%),linear-gradient(180deg,#06111f_0%,#0b1220_44%,#050811_100%)] py-6 text-white shadow-[18px_0_48px_rgba(2,6,23,0.22)] transition-[width,padding] duration-300 ease-out ${
         isCollapsed ? "w-[72px] px-3" : "w-72 px-5"
       }`}
     >
