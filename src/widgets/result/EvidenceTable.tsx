@@ -178,12 +178,20 @@ function EvidenceDetailsModal({
             </div>
           </div>
 
-          <div className="mt-4 grid gap-3 rounded-xl border border-ice-100 bg-ice-50/70 p-4 md:grid-cols-5">
+          <div className="mt-4 grid gap-3 rounded-xl border border-ice-100 bg-ice-50/70 p-4 md:grid-cols-6">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ice-600">
                 Источник
               </p>
               <p className="mt-2 text-sm font-semibold text-slate-900">{formatSourceName(item)}</p>
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ice-600">
+                Document ID
+              </p>
+              <p className="mt-2 break-all text-sm font-semibold text-slate-900">
+                {item.sourceRef.documentId ?? "—"}
+              </p>
             </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ice-600">
@@ -293,6 +301,11 @@ export function EvidenceTable({ evidence }: EvidenceTableProps) {
                         {item.sourceRef.chunkId ? (
                           <span className="mt-1 block text-xs text-slate-500">
                             {item.sourceRef.chunkId}
+                          </span>
+                        ) : null}
+                        {item.sourceRef.documentId ? (
+                          <span className="mt-1 block break-all text-xs text-slate-400">
+                            {item.sourceRef.documentId}
                           </span>
                         ) : null}
                       </td>

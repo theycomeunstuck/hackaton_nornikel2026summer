@@ -392,6 +392,14 @@ function GraphItemDetails({ selectedItem }: { selectedItem: SelectedGraphItem | 
             {formatOptionalValue(sourceRef?.page)} / {formatOptionalValue(sourceRef?.chunkId)}
           </dd>
         </div>
+        <div>
+          <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+            Document ID
+          </dt>
+          <dd className="mt-1 break-all text-slate-700">
+            {formatOptionalValue(sourceRef?.documentId)}
+          </dd>
+        </div>
         {edge.evidenceText ? (
           <div className="md:col-span-2">
             <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
