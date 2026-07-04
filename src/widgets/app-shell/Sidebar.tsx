@@ -41,14 +41,14 @@ export function Sidebar({ isCollapsed, onToggleCollapsed }: SidebarProps) {
 
   return (
     <aside
-      className={`fixed left-0 top-0 z-40 flex h-screen shrink-0 flex-col overflow-hidden border-r border-ice-300/10 bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.18),transparent_30%),linear-gradient(180deg,#06111f_0%,#0b1220_44%,#050811_100%)] py-6 text-white shadow-[18px_0_48px_rgba(2,6,23,0.22)] transition-[width,padding] duration-300 ease-out ${
+      className={`motion-sidebar-shell fixed left-0 top-0 z-40 flex h-screen shrink-0 flex-col overflow-hidden border-r border-ice-300/10 bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.18),transparent_30%),linear-gradient(180deg,#06111f_0%,#0b1220_44%,#050811_100%)] py-6 text-white shadow-[18px_0_48px_rgba(2,6,23,0.22)] ${
         isCollapsed ? "w-[72px] px-3" : "w-72 px-5"
       }`}
     >
       <div className="relative border-b border-white/10 pb-6">
         <div className="pointer-events-none absolute -left-8 -top-10 h-28 w-28 rounded-full bg-ice-500/12 blur-2xl" />
         <div
-          className={`relative flex gap-3 transition-all duration-300 ${
+          className={`motion-sidebar-reveal relative flex gap-3 ${
             isCollapsed ? "flex-col items-center" : "items-center justify-between"
           }`}
         >
@@ -66,7 +66,7 @@ export function Sidebar({ isCollapsed, onToggleCollapsed }: SidebarProps) {
           </button>
         </div>
         <div
-          className={`transition-all duration-200 ${
+          className={`motion-sidebar-reveal ${
             isCollapsed ? "pointer-events-none mt-0 max-h-0 opacity-0" : "mt-4 max-h-32 opacity-100"
           }`}
         >
@@ -92,8 +92,10 @@ export function Sidebar({ isCollapsed, onToggleCollapsed }: SidebarProps) {
               {item.marker}
             </span>
             <span
-              className={`min-w-0 whitespace-nowrap text-[13px] transition-all duration-200 ${
-                isCollapsed ? "w-0 translate-x-2 overflow-hidden opacity-0" : "ml-3 w-auto opacity-100"
+              className={`motion-sidebar-reveal min-w-0 whitespace-nowrap text-[13px] ${
+                isCollapsed
+                  ? "max-w-0 translate-x-2 overflow-hidden opacity-0"
+                  : "ml-3 max-w-[180px] overflow-hidden opacity-100"
               }`}
             >
               {item.label}
@@ -104,13 +106,13 @@ export function Sidebar({ isCollapsed, onToggleCollapsed }: SidebarProps) {
 
       <div className="border-t border-white/10 pt-4">
         <p
-          className={`px-3 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 transition-all duration-200 ${
-            isCollapsed ? "h-0 overflow-hidden opacity-0" : "opacity-100"
+          className={`motion-sidebar-reveal px-3 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 ${
+            isCollapsed ? "max-h-0 overflow-hidden opacity-0" : "max-h-8 opacity-100"
           }`}
         >
           Дополнительно
         </p>
-        <div className={`${isCollapsed ? "mt-0" : "mt-3"} flex flex-col gap-2 transition-all duration-200`}>
+        <div className={`${isCollapsed ? "mt-0" : "mt-3"} motion-sidebar-reveal flex flex-col gap-2`}>
           {secondaryItems.map((item) => (
             <NavLink
               key={item.path}
@@ -123,8 +125,10 @@ export function Sidebar({ isCollapsed, onToggleCollapsed }: SidebarProps) {
                 {item.marker}
               </span>
               <span
-                className={`min-w-0 whitespace-nowrap text-[13px] transition-all duration-200 ${
-                  isCollapsed ? "w-0 translate-x-2 overflow-hidden opacity-0" : "ml-3 w-auto opacity-100"
+                className={`motion-sidebar-reveal min-w-0 whitespace-nowrap text-[13px] ${
+                  isCollapsed
+                    ? "max-w-0 translate-x-2 overflow-hidden opacity-0"
+                    : "ml-3 max-w-[180px] overflow-hidden opacity-100"
                 }`}
               >
                 {item.label}

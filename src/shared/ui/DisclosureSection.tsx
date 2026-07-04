@@ -63,7 +63,7 @@ export function DisclosureSection({
       >
         <div className="motion-collapsible-inner">
           <div
-            className={`border-t border-slate-200/80 p-5 pt-4 motion-ui-transition ${
+            className={`border-t border-slate-200/80 p-5 pt-4 motion-reveal-transition ${
               isOpen
                 ? "visible translate-y-0 opacity-100"
                 : "-translate-y-1 opacity-0 pointer-events-none"

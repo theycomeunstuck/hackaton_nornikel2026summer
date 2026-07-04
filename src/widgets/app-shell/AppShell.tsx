@@ -27,7 +27,7 @@ export function AppShell() {
         onToggleCollapsed={() => setIsSidebarCollapsed((current) => !current)}
       />
       <div
-        className={`flex min-w-0 flex-1 flex-col transition-[padding] duration-300 ease-out ${
+        className={`motion-sidebar-layout flex min-w-0 flex-1 flex-col ${
           isSidebarCollapsed ? "pl-[72px]" : "pl-72"
         }`}
       >
