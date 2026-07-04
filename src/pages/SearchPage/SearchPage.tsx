@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { getDemoScenario } from "../../shared/api/ragApi";
+import { getDemoScenario, searchEvidence } from "../../shared/api/ragApi";
 import { adaptRagSearchResult } from "../../shared/api/ragResultAdapter";
 import { demoScenarios } from "../../shared/mock/demoScenarios";
 import type {
@@ -22,7 +22,6 @@ import { DemoScenarioButtons } from "../../widgets/search/DemoScenarioButtons";
 import { SearchPanel } from "../../widgets/search/SearchPanel";
 
 const defaultScenarioId: DemoScenarioId = "desalination";
-const defaultRagScenario: RagDemoScenario = "desalination";
 const defaultScenario = demoScenarios.find((scenario) => scenario.id === defaultScenarioId);
 const defaultQuestion = defaultScenario?.query ?? defaultScenario?.defaultQuery ?? "";
 
@@ -36,7 +35,6 @@ function toRagDemoScenario(scenarioId: DemoScenarioId): RagDemoScenario {
 
 export function SearchPage() {
   const [activeScenarioId, setActiveScenarioId] = useState<DemoScenarioId>(defaultScenarioId);
-  const [selectedScenario, setSelectedScenario] = useState<RagDemoScenario>(defaultRagScenario);
   const [question, setQuestion] = useState(defaultQuestion);
   const [result, setResult] = useState<RagSearchResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -74,13 +72,29 @@ export function SearchPage() {
     const nextRagScenario = toRagDemoScenario(scenarioId);
 
     setActiveScenarioId(scenarioId);
-    setSelectedScenario(nextRagScenario);
     setQuestion(nextScenario?.query ?? nextScenario?.defaultQuery ?? "");
     loadScenario(nextRagScenario);
   };
 
   const handleSearch = () => {
-    loadScenario(selectedScenario);
+    setIsLoading(true);
+    setError(null);
+
+    searchEvidence(question.trim(), 15)
+      .then((nextResult) => {
+        setResult(nextResult);
+      })
+      .catch((caughtError: unknown) => {
+        const message =
+          caughtError instanceof Error
+            ? caughtError.message
+            : "Не удалось выполнить поиск доказательств.";
+        setResult(null);
+        setError(message);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   };
 
   return (

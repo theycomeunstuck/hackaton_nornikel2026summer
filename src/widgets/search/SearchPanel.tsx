@@ -7,7 +7,13 @@ type SearchPanelProps = {
 
 export function SearchPanel({ query, onQueryChange, onSearch, disabled = false }: SearchPanelProps) {
   return (
-    <section className="rounded-2xl border border-white/75 bg-white/76 p-6 shadow-glass backdrop-blur-2xl">
+    <form
+      className="rounded-2xl border border-white/75 bg-white/76 p-6 shadow-glass backdrop-blur-2xl"
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSearch();
+      }}
+    >
       <div className="grid grid-cols-[minmax(0,1fr)_280px] gap-6">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-ice-600">
@@ -35,14 +41,13 @@ export function SearchPanel({ query, onQueryChange, onSearch, disabled = false }
           placeholder="Например: подобрать технологию обессоливания воды по сульфатам, хлоридам, Ca, Mg, Na и сухому остатку..."
         />
         <button
-          type="button"
-          onClick={onSearch}
+          type="submit"
           disabled={disabled}
           className="rounded-xl bg-graphite-900 px-5 py-4 text-sm font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-graphite-800 focus:outline-none focus:ring-4 focus:ring-ice-100 disabled:cursor-not-allowed disabled:bg-slate-300"
         >
           Найти доказательства
         </button>
       </div>
-    </section>
+    </form>
   );
 }
