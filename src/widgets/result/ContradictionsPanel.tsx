@@ -1,5 +1,4 @@
-import type { Contradiction } from "../../entities/contradiction/types";
-import { ConfidenceBadge } from "../../shared/ui/ConfidenceBadge";
+import type { Contradiction, SourceRef } from "../../shared/types/search";
 import { SectionCard } from "../../shared/ui/SectionCard";
 
 type ContradictionsPanelProps = {
@@ -18,50 +17,86 @@ const severityLabel: Record<Contradiction["severity"], string> = {
   critical: "критичная",
 };
 
+const statusLabel: Record<NonNullable<Contradiction["status"]>, string> = {
+  possible: "возможное",
+  confirmed: "подтверждённое",
+  resolved: "разрешено",
+};
+
+function formatStatus(contradiction: Contradiction): string {
+  return contradiction.status ? statusLabel[contradiction.status] : severityLabel[contradiction.severity];
+}
+
+function SourceReferenceCard({ source, label }: { source?: SourceRef; label: string }) {
+  if (!source) {
+    return (
+      <div className="rounded-lg border border-slate-200 bg-white/72 px-3 py-3 text-sm text-slate-500">
+        {label}: источник не указан
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-lg border border-white/80 bg-white/86 px-3 py-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+        {label}
+      </p>
+      <p className="mt-1 line-clamp-2 text-sm font-semibold leading-5 text-slate-900">
+        {source.sourceName ?? source.documentTitle}
+      </p>
+      <p className="mt-2 text-xs text-slate-500">
+        стр. {source.page} · {source.chunkId}
+      </p>
+    </div>
+  );
+}
+
 export function ContradictionsPanel({ contradictions }: ContradictionsPanelProps) {
   return (
-    <SectionCard title="Возможные противоречия" eyebrow="Конфликты доказательств">
-      {contradictions.length > 0 ? (
-        <div className="space-y-3">
-          {contradictions.map((contradiction) => (
-            <article key={contradiction.id} className="rounded border border-orange-200 bg-orange-50/60 p-4">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h3 className="text-sm font-semibold text-slate-950">{contradiction.title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-slate-700">{contradiction.description}</p>
-                </div>
-                <div className="flex shrink-0 flex-col items-end gap-2">
-                  <span className={`rounded border px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.12em] ${severityClassName[contradiction.severity]}`}>
-                    {severityLabel[contradiction.severity]}
-                  </span>
-                  <ConfidenceBadge confidence={contradiction.confidence} />
-                </div>
-              </div>
-
-              <div className="mt-3 grid grid-cols-2 gap-3">
-                {contradiction.sourceRefs.slice(0, 2).map((sourceRef, index) => (
-                  <div key={sourceRef.chunkId} className="rounded border border-white/80 bg-white/80 p-3">
-                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-                      Источник {index === 0 ? "A" : "B"}
-                    </p>
-                    <p className="mt-1 text-sm font-medium leading-5 text-slate-800">
-                      {sourceRef.documentTitle}
-                    </p>
-                    <p className="mt-1 text-xs text-slate-500">стр. {sourceRef.page} / {sourceRef.chunkId}</p>
-                  </div>
-                ))}
-              </div>
-
-              <p className="mt-3 text-sm leading-6 text-slate-700">
-                <span className="font-semibold">Рекомендация: </span>
-                {contradiction.resolutionHint}
-              </p>
-            </article>
-          ))}
+    <SectionCard title="Противоречия" eyebrow="Точки экспертной проверки">
+      {contradictions.length === 0 ? (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-8 text-center">
+          <p className="text-sm font-semibold text-emerald-800">Явные противоречия не найдены</p>
+          <p className="mt-2 text-sm text-emerald-700">
+            В выбранном результате нет конфликтующих выводов между источниками.
+          </p>
         </div>
       ) : (
-        <div className="rounded border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
-          В выбранном результате явных противоречий не найдено.
+        <div className="space-y-3">
+          {contradictions.map((contradiction) => {
+            const sourceA = contradiction.sourceRefs[0];
+            const sourceB = contradiction.sourceRefs[1];
+
+            return (
+              <article
+                key={contradiction.id}
+                className="rounded-xl border border-orange-200 bg-gradient-to-br from-orange-50 to-white p-4 shadow-sm"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-semibold leading-6 text-slate-950">
+                      {contradiction.title}
+                    </h3>
+                    <p className="mt-2 text-sm leading-6 text-slate-700">
+                      {contradiction.description}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 flex-col items-end gap-2">
+                    <span
+                      className={`rounded-full border px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.12em] ${severityClassName[contradiction.severity]}`}
+                    >
+                      {formatStatus(contradiction)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                  <SourceReferenceCard source={sourceA} label="Источник A" />
+                  <SourceReferenceCard source={sourceB} label="Источник B" />
+                </div>
+              </article>
+            );
+          })}
         </div>
       )}
     </SectionCard>
