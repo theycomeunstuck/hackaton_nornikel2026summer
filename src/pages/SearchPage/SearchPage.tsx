@@ -5,6 +5,7 @@ import type { DemoScenarioId, SearchResult } from "../../shared/types/search";
 import { AnswerSummaryCard } from "../../widgets/result/AnswerSummaryCard";
 import { ContradictionsPanel } from "../../widgets/result/ContradictionsPanel";
 import { EvidenceTable } from "../../widgets/result/EvidenceTable";
+import { GapsPanel } from "../../widgets/result/GapsPanel";
 import { ParsedQueryCard } from "../../widgets/result/ParsedQueryCard";
 import { SourcesPanel } from "../../widgets/result/SourcesPanel";
 import { DemoScenarioButtons } from "../../widgets/search/DemoScenarioButtons";
@@ -148,6 +149,7 @@ export function SearchPage() {
             <SourcesPanel sources={result.evidence.map((item) => item.sourceRef)} />
             <ContradictionsPanel contradictions={result.contradictions} />
           </div>
+          <GapsPanel gaps={result.gaps} />
         </div>
       ) : null}
     </div>
