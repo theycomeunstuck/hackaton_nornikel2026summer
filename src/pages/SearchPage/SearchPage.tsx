@@ -3,6 +3,8 @@ import { searchEvidenceByScenario } from "../../shared/api/searchApi";
 import { demoScenarios } from "../../shared/mock/demoScenarios";
 import type { DemoScenarioId, SearchResult } from "../../shared/types/search";
 import { CollapsibleSection } from "../../shared/ui/CollapsibleSection";
+import { ContentContainer } from "../../shared/ui/ContentContainer";
+import { EvidencePageHeader } from "../../shared/ui/EvidencePageHeader";
 import { KnowledgeGraph } from "../../widgets/graph/KnowledgeGraph";
 import { AnswerSummaryCard } from "../../widgets/result/AnswerSummaryCard";
 import { ContradictionsPanel } from "../../widgets/result/ContradictionsPanel";
@@ -61,23 +63,12 @@ export function SearchPage() {
   };
 
   return (
-    <div className="mx-auto max-w-[1680px] space-y-8">
-      <section className="rounded-2xl border border-white/75 bg-white/76 p-7 shadow-glass backdrop-blur-2xl">
-        <div className="grid grid-cols-[minmax(0,1fr)_360px] gap-8">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-ice-600">
-              Evidence search
-            </p>
-            <h1 className="mt-3 text-3xl font-semibold text-slate-950">
-              Проверка научно-технических доказательств
-            </h1>
-            <p className="mt-3 max-w-4xl text-sm leading-6 text-slate-600">
-              Введите вопрос, выберите пример при необходимости и запустите поиск доказательств.
-              Результат показывает разбор запроса, краткий вывод, таблицу фрагментов,
-              источники, граф связей, противоречия и пробелы.
-            </p>
-          </div>
-
+    <ContentContainer>
+      <EvidencePageHeader
+        eyebrow="Evidence search"
+        title="Проверка научно-технических доказательств"
+        description="Введите вопрос, выберите пример при необходимости и запустите поиск доказательств. Результат показывает разбор запроса, краткий вывод, таблицу фрагментов, источники, граф связей, противоречия и пробелы."
+        aside={
           <div className="rounded-xl border border-ice-100 bg-ice-50/70 p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ice-600">
               Активный пример
@@ -100,8 +91,8 @@ export function SearchPage() {
               {isLoading ? "Загрузка" : result ? "Результат загружен" : "Готов к поиску"}
             </span>
           </div>
-        </div>
-      </section>
+        }
+      />
 
       <SearchPanel
         query={question}
@@ -209,6 +200,6 @@ export function SearchPage() {
           </CollapsibleSection>
         </div>
       ) : null}
-    </div>
+    </ContentContainer>
   );
 }
