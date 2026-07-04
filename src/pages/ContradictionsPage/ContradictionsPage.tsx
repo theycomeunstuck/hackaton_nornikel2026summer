@@ -1,8 +1,16 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import type { Contradiction } from "../../entities/contradiction/types";
 import type { KnowledgeGap } from "../../entities/gap/types";
-import type { SourceType } from "../../entities/source/types";
+import type { ConfidenceLevel, SourceRef, SourceType } from "../../entities/source/types";
+import {
+  getContradictions,
+  getGaps,
+} from "../../shared/api/appApi";
+import type {
+  Contradiction as BackendContradiction,
+  KnowledgeGap as BackendKnowledgeGap,
+} from "../../shared/types/rag";
 import {
   buildContradictionStats,
   filterContradictionItems,
@@ -38,6 +46,177 @@ const severityOptions: FilterOption[] = [
   { value: "critical", label: "Критичная" },
 ];
 
+type DisplayContradictionStatus = "possible" | "needs_review" | "confirmed" | "resolved";
+
+type DisplayContradiction = Contradiction & {
+  status?: DisplayContradictionStatus;
+};
+
+function toSourceType(sourceType: string | null | undefined): SourceType {
+  if (
+    sourceType === "scientific_article" ||
+    sourceType === "internal_report" ||
+    sourceType === "patent" ||
+    sourceType === "experiment_protocol" ||
+    sourceType === "technical_standard" ||
+    sourceType === "reference_book"
+  ) {
+    return sourceType;
+  }
+
+  if (sourceType === "publication") {
+    return "scientific_article";
+  }
+
+  if (sourceType === "report") {
+    return "internal_report";
+  }
+
+  if (sourceType === "experiment") {
+    return "experiment_protocol";
+  }
+
+  if (sourceType === "standard") {
+    return "technical_standard";
+  }
+
+  return "reference_book";
+}
+
+function toConfidenceLevel(value: string | null | undefined): ConfidenceLevel {
+  if (value === "high" || value === "medium" || value === "low") {
+    return value;
+  }
+
+  return "medium";
+}
+
+function toSourceRef(source: BackendContradiction["sourceA"]): SourceRef {
+  return {
+    sourceId: source?.documentId ?? source?.sourceName ?? source?.chunkId ?? "backend-source",
+    documentTitle: source?.sourceName ?? source?.documentId ?? "Источник не указан",
+    sourceType: toSourceType(source?.sourceType),
+    year: source?.year ?? new Date().getFullYear(),
+    page: source?.page ?? 0,
+    chunkId: source?.chunkId ?? "chunk не указан",
+    section: source?.sectionTitle ?? undefined,
+  };
+}
+
+function toContradictionSeverity(
+  severity: BackendContradiction["severity"],
+): Contradiction["severity"] {
+  const normalizedSeverity = String(severity);
+
+  if (normalizedSeverity === "critical" || normalizedSeverity === "high") {
+    return "critical";
+  }
+
+  if (normalizedSeverity === "medium" || normalizedSeverity === "moderate") {
+    return "moderate";
+  }
+
+  return "minor";
+}
+
+function toGapSeverity(severity: BackendKnowledgeGap["severity"]): KnowledgeGap["severity"] {
+  const normalizedSeverity = String(severity);
+
+  if (normalizedSeverity === "critical" || normalizedSeverity === "high") {
+    return "high";
+  }
+
+  if (normalizedSeverity === "medium" || normalizedSeverity === "warning") {
+    return "medium";
+  }
+
+  return "low";
+}
+
+function toDisplayContradictionStatus(
+  status: BackendContradiction["status"],
+): DisplayContradictionStatus {
+  if (status === "confirmed" || status === "resolved" || status === "possible") {
+    return status;
+  }
+
+  return "needs_review";
+}
+
+function getContradictionStatusLabel(status: DisplayContradictionStatus | undefined): string {
+  if (status === "possible") {
+    return "Возможное противоречие";
+  }
+
+  if (status === "confirmed") {
+    return "Подтверждено";
+  }
+
+  if (status === "resolved") {
+    return "Разрешено";
+  }
+
+  return "Требует экспертной проверки";
+}
+
+function getContradictionStatusTone(status: DisplayContradictionStatus | undefined): StatusTone {
+  if (status === "confirmed") {
+    return "danger";
+  }
+
+  if (status === "possible" || status === "needs_review") {
+    return "warning";
+  }
+
+  return "neutral";
+}
+
+function adaptBackendContradictions(
+  contradictions: BackendContradiction[],
+): DisplayContradiction[] {
+  return contradictions.map((contradiction, index) => {
+    const sourceRefs = [contradiction.sourceA, contradiction.sourceB]
+      .filter((source): source is NonNullable<typeof source> => source !== null)
+      .map(toSourceRef);
+
+    return {
+      id: contradiction.id,
+      scenarioId: contradiction.metadata?.scenarioId?.toString() ?? "backend",
+      title: contradiction.title,
+      description: contradiction.description,
+      severity: toContradictionSeverity(contradiction.severity),
+      claimIds: [`backend-claim-a-${index}`, `backend-claim-b-${index}`],
+      conflictingStatements: [
+        contradiction.evidenceA ?? contradiction.description,
+        contradiction.evidenceB ?? contradiction.possibleReason ?? contradiction.description,
+      ],
+      sourceRefs,
+      confidence: "medium",
+      resolutionHint:
+        contradiction.recommendation ??
+        contradiction.possibleReason ??
+        "Требуется экспертная проверка условий и применимости источников.",
+      status: toDisplayContradictionStatus(contradiction.status),
+    };
+  });
+}
+
+function adaptBackendGaps(gaps: BackendKnowledgeGap[]): KnowledgeGap[] {
+  return gaps.map((gap) => ({
+    id: gap.id,
+    scenarioId: gap.metadata?.scenarioId?.toString() ?? "backend",
+    title: gap.title,
+    description: gap.description,
+    severity: toGapSeverity(gap.severity),
+    affectedMaterials: [],
+    affectedProcesses: [],
+    missingEvidence: gap.description,
+    recommendedAction: gap.recommendation ?? "Требуется экспертная проверка.",
+    confidence: "medium",
+    relatedSourceRefs: gap.relatedSourceRefs?.map(toSourceRef) ?? [],
+  }));
+}
+
 function getSeverityTone(severity: Contradiction["severity"] | KnowledgeGap["severity"]): StatusTone {
   if (severity === "critical" || severity === "high") {
     return "danger";
@@ -57,6 +236,7 @@ function formatList(items: string[]): string {
 function ContradictionCard({ item }: { item: ContradictionListItem }) {
   const sourceA = item.contradiction.sourceRefs[0];
   const sourceB = item.contradiction.sourceRefs[1];
+  const status = (item.contradiction as DisplayContradiction).status;
 
   return (
     <article className="rounded-xl border border-orange-200 bg-orange-50/60 p-5 shadow-sm">
@@ -66,6 +246,10 @@ function ContradictionCard({ item }: { item: ContradictionListItem }) {
           <p className="mt-2 text-sm leading-6 text-slate-700">{item.contradiction.description}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <StatusBadge label={item.contradiction.severity} tone={getSeverityTone(item.contradiction.severity)} />
+            <StatusBadge
+              label={getContradictionStatusLabel(status)}
+              tone={getContradictionStatusTone(status)}
+            />
             <ConfidenceBadge confidence={item.contradiction.confidence} />
             <StatusBadge label={item.topic} tone="info" />
           </div>
@@ -149,13 +333,16 @@ function ContradictionsHeaderAside() {
 
 export function ContradictionsPage() {
   const [filters, setFilters] = useState<ContradictionFilters>(initialFilters);
+  const [activeStats, setActiveStats] = useState(contradictionStats);
+  const [isIssuesLoading, setIsIssuesLoading] = useState(true);
+  const [issuesError, setIssuesError] = useState<string | null>(null);
   const filteredItems = useMemo(
-    () => filterContradictionItems(contradictionStats.items, filters),
-    [filters],
+    () => filterContradictionItems(activeStats.items, filters),
+    [activeStats.items, filters],
   );
   const sourceTypes = useMemo(
-    () => Array.from(new Set(contradictionStats.items.flatMap((item) => item.sourceTypes))),
-    [],
+    () => Array.from(new Set(activeStats.items.flatMap((item) => item.sourceTypes))),
+    [activeStats.items],
   );
   const sourceTypeOptions: FilterOption[] = [
     { value: "all", label: "Все типы" },
@@ -164,6 +351,43 @@ export function ContradictionsPage() {
       label: getSourceTypeLabel(sourceType),
     })),
   ];
+
+  useEffect(() => {
+    let isActive = true;
+
+    setIsIssuesLoading(true);
+    Promise.all([getContradictions(), getGaps()])
+      .then(([contradictions, gaps]) => {
+        if (!isActive) {
+          return;
+        }
+
+        setActiveStats(
+          buildContradictionStats(
+            adaptBackendContradictions(contradictions),
+            adaptBackendGaps(gaps),
+          ),
+        );
+        setIssuesError(null);
+      })
+      .catch(() => {
+        if (!isActive) {
+          return;
+        }
+
+        setActiveStats(contradictionStats);
+        setIssuesError("Backend-данные недоступны, показана локальная сводка.");
+      })
+      .finally(() => {
+        if (isActive) {
+          setIsIssuesLoading(false);
+        }
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   return (
     <ContentContainer>
@@ -177,32 +401,48 @@ export function ContradictionsPage() {
       <section className="grid grid-cols-4 gap-4">
         <MetricCard
           label="Всего противоречий"
-          value={String(contradictionStats.total)}
+          value={String(activeStats.total)}
           description="Структурированные конфликты утверждений в текущем корпусе."
-          tone={contradictionStats.total > 0 ? "amber" : "green"}
+          tone={activeStats.total > 0 ? "amber" : "green"}
         />
         <MetricCard
           label="Нужна проверка"
-          value={String(contradictionStats.claimsNeedingReviewCount)}
+          value={String(activeStats.claimsNeedingReviewCount)}
           description="Утверждения, связанные с противоречиями."
           tone="amber"
         />
         <MetricCard
           label="Связанные пробелы"
-          value={String(contradictionStats.relatedGapsCount)}
+          value={String(activeStats.relatedGapsCount)}
           description="Пробелы, которые могут снижать уверенность."
           tone="violet"
         />
         <MetricCard
           label="Критичные / средние"
-          value={`${contradictionStats.severityCounts.critical}/${contradictionStats.severityCounts.moderate}`}
+          value={`${activeStats.severityCounts.critical}/${activeStats.severityCounts.moderate}`}
           description="Серьёзные и умеренные конфликты."
-          tone={contradictionStats.severityCounts.critical > 0 ? "red" : "amber"}
+          tone={activeStats.severityCounts.critical > 0 ? "red" : "amber"}
         />
       </section>
 
       <div className="grid grid-cols-[minmax(0,1fr)_420px] gap-6">
         <SectionCard title="Разбор противоречий" eyebrow="Конфликтующие доказательства">
+          <div className="mb-4 rounded-xl border border-ice-100 bg-white/70 px-4 py-3 text-sm text-slate-600 shadow-sm">
+            {isIssuesLoading ? (
+              <span className="text-ice-700">Загрузка противоречий и пробелов...</span>
+            ) : issuesError ? (
+              <span className="text-amber-700">{issuesError}</span>
+            ) : activeStats.total === 0 && activeStats.gaps.length === 0 ? (
+              <span className="text-emerald-700">
+                Явных противоречий и критичных пробелов не найдено.
+              </span>
+            ) : (
+              <span className="text-emerald-700">
+                Данные обновлены из /api/contradictions и /api/gaps.
+              </span>
+            )}
+          </div>
+
           <FilterPanel
             title="Фильтры противоречий"
             description="Отберите конфликты по серьёзности, теме, источнику или тексту описания."
@@ -264,9 +504,13 @@ export function ContradictionsPage() {
         <div className="space-y-6">
           <SectionCard title="Связанные пробелы" eyebrow="Слабые зоны">
             <div className="space-y-3">
-              {contradictionStats.gaps.map((gap) => (
-                <GapCard key={gap.id} gap={gap} />
-              ))}
+              {activeStats.gaps.length > 0 ? (
+                activeStats.gaps.map((gap) => <GapCard key={gap.id} gap={gap} />)
+              ) : (
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
+                  Критичных пробелов не найдено.
+                </div>
+              )}
             </div>
           </SectionCard>
 

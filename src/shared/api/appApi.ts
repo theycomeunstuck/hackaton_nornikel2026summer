@@ -5,7 +5,9 @@ import { demoScenarios as localDemoScenarios } from "../mock/demoScenarios";
 import type { DemoScenario as UiDemoScenario } from "../types/search";
 import type {
   DemoScenario,
+  Contradiction,
   KnowledgeGraph,
+  KnowledgeGap,
   QueryFilters,
   QueryRequest,
   SearchResult,
@@ -315,6 +317,22 @@ export async function getSources(params: SourceListParams = {}): Promise<SourceL
     return await requestJson<SourceListItem[]>(`/api/sources${queryString}`);
   } catch {
     return getFallbackSources();
+  }
+}
+
+export async function getContradictions(): Promise<Contradiction[]> {
+  try {
+    return await requestJson<Contradiction[]>("/api/contradictions");
+  } catch {
+    return Object.values(scenarioSamples).flatMap((sample) => sample.contradictions);
+  }
+}
+
+export async function getGaps(): Promise<KnowledgeGap[]> {
+  try {
+    return await requestJson<KnowledgeGap[]>("/api/gaps");
+  } catch {
+    return Object.values(scenarioSamples).flatMap((sample) => sample.gaps);
   }
 }
 
