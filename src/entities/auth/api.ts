@@ -1,4 +1,5 @@
 import type { LoginRequest, LoginResponse, User } from "./types";
+import { requestJson } from "../../shared/api/appApi";
 
 const testUser: User = {
   id: "researcher-001",
@@ -41,4 +42,27 @@ export async function getCurrentUserMock(token: string): Promise<User | null> {
 
 export async function logoutMock(): Promise<void> {
   await delay(120);
+}
+
+export async function login(email: string, password: string): Promise<LoginResponse> {
+  try {
+    return await requestJson<LoginResponse>("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    });
+  } catch {
+    return loginMock({ email, password });
+  }
+}
+
+export async function getMe(token: string): Promise<User | null> {
+  try {
+    return await requestJson<User>("/api/auth/me", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  } catch {
+    return getCurrentUserMock(token);
+  }
 }

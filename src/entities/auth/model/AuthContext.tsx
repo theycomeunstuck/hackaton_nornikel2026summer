@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { getCurrentUserMock, loginMock, logoutMock } from "../api";
+import { getMe, login as loginWithBackend, logoutMock } from "../api";
 import type { AuthState, LoginRequest, User } from "../types";
 
 type AuthContextValue = AuthState & {
@@ -65,7 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      const currentUser = await getCurrentUserMock(storedToken);
+      const currentUser = await getMe(storedToken);
 
       if (!isMounted) {
         return;
@@ -90,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(async (request: LoginRequest) => {
-    const response = await loginMock(request);
+    const response = await loginWithBackend(request.email, request.password);
     setAccessToken(response.accessToken);
     setUser(response.user);
     writeAuthStorage(response.accessToken, response.user);
