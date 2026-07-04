@@ -6,6 +6,7 @@ import { KnowledgeGraph } from "../../widgets/graph/KnowledgeGraph";
 import { AnswerSummaryCard } from "../../widgets/result/AnswerSummaryCard";
 import { ContradictionsPanel } from "../../widgets/result/ContradictionsPanel";
 import { EvidenceTable } from "../../widgets/result/EvidenceTable";
+import { ExportPanel } from "../../widgets/result/ExportPanel";
 import { GapsPanel } from "../../widgets/result/GapsPanel";
 import { ParsedQueryCard } from "../../widgets/result/ParsedQueryCard";
 import { SourcesPanel } from "../../widgets/result/SourcesPanel";
@@ -147,6 +148,7 @@ export function SearchPage() {
           </div>
           <EvidenceTable evidence={result.evidence} />
           <KnowledgeGraph graph={result.graph} mode="compact" title="Граф связей" />
+          <ExportPanel result={result} scenarioId={activeScenarioId} />
           <div className="grid grid-cols-[minmax(0,1fr)_minmax(360px,0.72fr)] gap-6">
             <SourcesPanel sources={result.evidence.map((item) => item.sourceRef)} />
             <ContradictionsPanel contradictions={result.contradictions} />
