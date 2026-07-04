@@ -1,12 +1,9 @@
-import { useMemo, useState } from "react";
-import { getDemoScenario, searchEvidence } from "../../shared/api/ragApi";
+import { useEffect, useMemo, useState } from "react";
+import { getScenarios, searchEvidence } from "../../shared/api/ragApi";
 import { adaptRagSearchResult, adaptRagSourceRefs } from "../../shared/api/ragResultAdapter";
 import { demoScenarios } from "../../shared/mock/demoScenarios";
-import type {
-  DemoScenario as RagDemoScenario,
-  SearchResult as RagSearchResult,
-} from "../../shared/types/rag";
-import type { DemoScenarioId } from "../../shared/types/search";
+import type { SearchResult as RagSearchResult } from "../../shared/types/rag";
+import type { DemoScenario, DemoScenarioId } from "../../shared/types/search";
 import { CollapsibleSection } from "../../shared/ui/CollapsibleSection";
 import { ContentContainer } from "../../shared/ui/ContentContainer";
 import { EvidencePageHeader } from "../../shared/ui/EvidencePageHeader";
@@ -21,16 +18,16 @@ import { SourcesPanel } from "../../widgets/result/SourcesPanel";
 import { DemoScenarioButtons } from "../../widgets/search/DemoScenarioButtons";
 import { SearchPanel } from "../../widgets/search/SearchPanel";
 
+type DemoScenarioWithQuery = DemoScenario & {
+  query?: string;
+};
+
 const defaultScenarioId: DemoScenarioId = "desalination";
 const defaultScenario = demoScenarios.find((scenario) => scenario.id === defaultScenarioId);
 const defaultQuestion = defaultScenario?.query ?? defaultScenario?.defaultQuery ?? "";
 
-function toRagDemoScenario(scenarioId: DemoScenarioId): RagDemoScenario {
-  if (scenarioId === "desalination" || scenarioId === "catholyte" || scenarioId === "pgm") {
-    return scenarioId;
-  }
-
-  return "catholyte";
+function getScenarioQuery(scenario: DemoScenarioWithQuery | undefined): string {
+  return scenario?.query ?? scenario?.defaultQuery ?? "";
 }
 
 function getErrorMessage(caughtError: unknown, fallback: string): string {
@@ -38,6 +35,7 @@ function getErrorMessage(caughtError: unknown, fallback: string): string {
 }
 
 export function SearchPage() {
+  const [scenarios, setScenarios] = useState<DemoScenarioWithQuery[]>(demoScenarios);
   const [activeScenarioId, setActiveScenarioId] = useState<DemoScenarioId>(defaultScenarioId);
   const [question, setQuestion] = useState(defaultQuestion);
   const [result, setResult] = useState<RagSearchResult | null>(null);
@@ -45,51 +43,49 @@ export function SearchPage() {
   const [error, setError] = useState<string | null>(null);
 
   const activeScenario = useMemo(
-    () => demoScenarios.find((scenario) => scenario.id === activeScenarioId),
-    [activeScenarioId],
+    () => scenarios.find((scenario) => scenario.id === activeScenarioId),
+    [activeScenarioId, scenarios],
   );
   const uiResult = useMemo(() => (result ? adaptRagSearchResult(result) : null), [result]);
   const sourceRefs = useMemo(() => (result ? adaptRagSourceRefs(result.sources) : []), [result]);
 
-  const loadScenario = (scenario: RagDemoScenario) => {
-    setIsLoading(true);
-    setError(null);
+  useEffect(() => {
+    let isMounted = true;
 
-    getDemoScenario(scenario)
-      .then((nextResult) => {
-        setResult(nextResult);
+    getScenarios()
+      .then((nextScenarios) => {
+        if (!isMounted || nextScenarios.length === 0) {
+          return;
+        }
+
+        setScenarios(nextScenarios);
+
+        if (!nextScenarios.some((scenario) => scenario.id === defaultScenarioId)) {
+          const firstScenario = nextScenarios[0];
+          setActiveScenarioId(firstScenario.id);
+          setQuestion(getScenarioQuery(firstScenario));
+        }
       })
-      .catch((caughtError: unknown) => {
-        setResult(null);
-        setError(
-          getErrorMessage(caughtError, "Не удалось загрузить выбранный сценарий анализа."),
-        );
-      })
-      .finally(() => {
-        setIsLoading(false);
+      .catch(() => {
+        // getScenarios() already falls back to local metadata.
       });
-  };
 
-  const handleScenarioSelect = (scenarioId: DemoScenarioId) => {
-    const nextScenario = demoScenarios.find((scenario) => scenario.id === scenarioId);
-    const nextRagScenario = toRagDemoScenario(scenarioId);
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
-    setActiveScenarioId(scenarioId);
-    setQuestion(nextScenario?.query ?? nextScenario?.defaultQuery ?? "");
-    loadScenario(nextRagScenario);
-  };
+  const runSearch = (query: string, scenarioId?: DemoScenarioId) => {
+    const trimmedQuery = query.trim();
 
-  const handleSearch = () => {
-    const trimmedQuestion = question.trim();
-
-    if (trimmedQuestion.length === 0) {
+    if (trimmedQuery.length === 0) {
       return;
     }
 
     setIsLoading(true);
     setError(null);
 
-    searchEvidence(trimmedQuestion, { scenarioId: String(activeScenarioId) })
+    searchEvidence(trimmedQuery, scenarioId ? { scenarioId: String(scenarioId) } : undefined)
       .then((nextResult) => {
         setResult(nextResult);
       })
@@ -100,6 +96,19 @@ export function SearchPage() {
       .finally(() => {
         setIsLoading(false);
       });
+  };
+
+  const handleScenarioSelect = (scenarioId: DemoScenarioId) => {
+    const nextScenario = scenarios.find((scenario) => scenario.id === scenarioId);
+    const nextQuery = getScenarioQuery(nextScenario);
+
+    setActiveScenarioId(scenarioId);
+    setQuestion(nextQuery);
+    runSearch(nextQuery, scenarioId);
+  };
+
+  const handleSearch = () => {
+    runSearch(question, activeScenarioId);
   };
 
   return (
@@ -143,7 +152,7 @@ export function SearchPage() {
       />
 
       <DemoScenarioButtons
-        scenarios={demoScenarios}
+        scenarios={scenarios}
         activeScenarioId={activeScenarioId}
         onSelect={handleScenarioSelect}
         disabled={isLoading}
@@ -175,7 +184,7 @@ export function SearchPage() {
             Начните с вопроса или выберите подготовленный пример
           </p>
           <p className="mt-2 text-sm text-slate-600">
-            Введите научно-технический запрос и нажмите «Найти доказательства» либо выберите один из трёх demo-сценариев. В демонстрационном режиме результат берётся из локальных RAG samples.
+            Введите научно-технический запрос и нажмите «Найти доказательства» либо выберите один из demo-сценариев. Если backend недоступен, будет использован локальный fallback.
           </p>
         </section>
       ) : null}

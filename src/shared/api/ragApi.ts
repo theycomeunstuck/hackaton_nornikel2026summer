@@ -1,7 +1,14 @@
 import sampleCatholyte from "../mock/rag/sample_catholyte_server.json";
 import sampleDesalination from "../mock/rag/sample_desalination_server.json";
 import samplePgm from "../mock/rag/sample_pgm_server.json";
-import type { DemoScenario, QueryFilters, QueryRequest, SearchResult } from "../types/rag";
+import { demoScenarios as localDemoScenarios } from "../mock/demoScenarios";
+import type { DemoScenario as UiDemoScenario } from "../types/search";
+import type {
+  DemoScenario,
+  QueryFilters,
+  QueryRequest,
+  SearchResult,
+} from "../types/rag";
 
 export type RagHealthResponse = {
   status: "ok" | "mock" | "error";
@@ -31,7 +38,13 @@ type ImportMetaWithEnv = ImportMeta & {
 
 const fallbackBaseUrl = "http://127.0.0.1:8000";
 
-const scenarioSamples: Record<DemoScenario, SearchResult> = {
+type LocalScenarioId = "desalination" | "catholyte" | "pgm";
+
+type UiDemoScenarioWithQuery = UiDemoScenario & {
+  query: string;
+};
+
+const scenarioSamples: Record<LocalScenarioId, SearchResult> = {
   desalination: sampleDesalination as unknown as SearchResult,
   catholyte: sampleCatholyte as unknown as SearchResult,
   pgm: samplePgm as unknown as SearchResult,
@@ -92,7 +105,23 @@ function matchesToken(query: string, token: string): boolean {
   return new RegExp(`(^|[^a-zа-яё])${token}([^a-zа-яё]|$)`, "i").test(query);
 }
 
-function resolveScenarioFromQuery(query: string): DemoScenario {
+function toBackendScenarioId(scenarioId: string): string {
+  return scenarioId === "pgm" ? "metals" : scenarioId;
+}
+
+function toLocalScenarioId(scenarioId: string | undefined): LocalScenarioId | null {
+  if (scenarioId === "desalination" || scenarioId === "catholyte" || scenarioId === "pgm") {
+    return scenarioId;
+  }
+
+  if (scenarioId === "metals") {
+    return "pgm";
+  }
+
+  return null;
+}
+
+function resolveScenarioFromQuery(query: string): LocalScenarioId {
   const normalizedQuery = query.toLowerCase();
 
   if (
@@ -118,6 +147,7 @@ function resolveScenarioFromQuery(query: string): DemoScenario {
     matchesToken(normalizedQuery, "ag") ||
     normalizedQuery.includes("мпг") ||
     normalizedQuery.includes("pgm") ||
+    normalizedQuery.includes("metals") ||
     normalizedQuery.includes("штейн") ||
     normalizedQuery.includes("шлак")
   ) {
@@ -147,11 +177,36 @@ export async function getRagStats(): Promise<RagStatsResponse> {
   }
 }
 
-export async function getDemoScenario(scenario: DemoScenario): Promise<SearchResult> {
+function toUiDemoScenario(scenario: DemoScenario): UiDemoScenarioWithQuery {
+  const localScenarioId = toLocalScenarioId(scenario.id);
+  const localScenario = localDemoScenarios.find(
+    (candidate) => candidate.id === localScenarioId,
+  );
+
+  return {
+    id: scenario.id,
+    title: scenario.title,
+    description: localScenario?.description ?? scenario.query,
+    defaultQuery: scenario.query,
+    query: scenario.query,
+    searchResultId: localScenario?.searchResultId ?? localScenarioId ?? scenario.id,
+    tags: localScenario?.tags ?? [],
+  };
+}
+
+function getFallbackScenarios(): UiDemoScenarioWithQuery[] {
+  return localDemoScenarios.map((scenario) => ({
+    ...scenario,
+    query: scenario.query ?? scenario.defaultQuery,
+  }));
+}
+
+export async function getScenarios(): Promise<UiDemoScenarioWithQuery[]> {
   try {
-    return await requestJson<SearchResult>(`/api/demo/${scenario}`);
+    const scenarios = await requestJson<DemoScenario[]>("/api/scenarios");
+    return scenarios.map(toUiDemoScenario);
   } catch {
-    return scenarioSamples[scenario];
+    return getFallbackScenarios();
   }
 }
 
@@ -161,7 +216,7 @@ export async function searchEvidence(
 ): Promise<SearchResult> {
   const requestBody: QueryRequest = {
     query,
-    scenarioId: options.scenarioId,
+    scenarioId: options.scenarioId ? toBackendScenarioId(options.scenarioId) : undefined,
     filters: options.filters,
   };
 
@@ -171,6 +226,8 @@ export async function searchEvidence(
       body: JSON.stringify(requestBody),
     });
   } catch {
-    return scenarioSamples[resolveScenarioFromQuery(query)];
+    const fallbackScenarioId =
+      toLocalScenarioId(options.scenarioId) ?? resolveScenarioFromQuery(query);
+    return scenarioSamples[fallbackScenarioId];
   }
 }

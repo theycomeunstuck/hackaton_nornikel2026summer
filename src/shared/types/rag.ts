@@ -14,7 +14,13 @@ export type ContradictionStatus =
 
 export type GapSeverity = "critical" | "high" | "medium" | "low" | "info" | "unknown";
 
-export type DemoScenario = "desalination" | "catholyte" | "pgm";
+export type DemoScenarioId = "desalination" | "catholyte" | "pgm" | "metals" | string;
+
+export interface DemoScenario {
+  id: string;
+  title: string;
+  query: string;
+}
 
 export type NumericOperator =
   | "eq"
