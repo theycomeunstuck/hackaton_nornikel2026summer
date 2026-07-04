@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import {
   Background,
   BackgroundVariant,
@@ -6,6 +6,7 @@ import {
   ReactFlow,
   type Edge,
   type Node,
+  type ReactFlowInstance,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import type {
@@ -272,7 +273,39 @@ function createFlowEdges(graph: KnowledgeGraphModel): FlowEdge[] {
 export function KnowledgeGraph({ graph, mode = "compact", title = "Граф связей" }: KnowledgeGraphProps) {
   const nodes = useMemo(() => createFlowNodes(graph, mode), [graph, mode]);
   const edges = useMemo(() => createFlowEdges(graph), [graph]);
+  const flowWrapperRef = useRef<HTMLDivElement | null>(null);
+  const flowInstanceRef = useRef<ReactFlowInstance<FlowNode, FlowEdge> | null>(null);
   const heightClassName = mode === "compact" ? "h-[360px]" : "h-[640px]";
+
+  useEffect(() => {
+    const wrapperElement = flowWrapperRef.current;
+
+    if (!wrapperElement || nodes.length === 0) {
+      return;
+    }
+
+    const fitGraphToVisibleArea = () => {
+      window.requestAnimationFrame(() => {
+        flowInstanceRef.current?.fitView({ padding: 0.18 });
+      });
+    };
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      const visibleEntry = entries.find(
+        (entry) => entry.contentRect.width > 0 && entry.contentRect.height > 0,
+      );
+
+      if (visibleEntry) {
+        fitGraphToVisibleArea();
+      }
+    });
+
+    resizeObserver.observe(wrapperElement);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [nodes.length]);
 
   return (
     <SectionCard title={title} eyebrow="Связи результата">
@@ -285,10 +318,16 @@ export function KnowledgeGraph({ graph, mode = "compact", title = "Граф св
         </div>
       ) : (
         <div className="space-y-3">
-          <div className={`${heightClassName} overflow-hidden rounded-xl border border-slate-200 bg-slate-950`}>
+          <div
+            ref={flowWrapperRef}
+            className={`${heightClassName} overflow-hidden rounded-xl border border-slate-200 bg-slate-950`}
+          >
             <ReactFlow
               nodes={nodes}
               edges={edges}
+              onInit={(instance) => {
+                flowInstanceRef.current = instance;
+              }}
               fitView
               fitViewOptions={{ padding: 0.18 }}
               nodesDraggable={false}

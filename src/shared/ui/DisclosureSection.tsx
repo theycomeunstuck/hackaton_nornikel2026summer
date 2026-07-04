@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 type DisclosureSectionProps = {
   title: string;
@@ -17,12 +17,18 @@ export function DisclosureSection({
   defaultOpen = false,
   className = "",
 }: DisclosureSectionProps) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+
   return (
-    <details
-      open={defaultOpen}
-      className={`group rounded border border-white/75 bg-white/72 shadow-glass backdrop-blur-2xl ${className}`}
+    <section
+      className={`rounded border border-white/75 bg-white/72 shadow-glass backdrop-blur-2xl ${className}`}
     >
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-5 p-5 marker:hidden">
+      <button
+        type="button"
+        onClick={() => setIsOpen((currentValue) => !currentValue)}
+        aria-expanded={isOpen}
+        className="flex w-full cursor-pointer items-center justify-between gap-5 p-5 text-left outline-none motion-ui-transition hover:bg-ice-50/45 focus-visible:ring-4 focus-visible:ring-ice-100"
+      >
         <div>
           {eyebrow ? (
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ice-600">
@@ -40,12 +46,34 @@ export function DisclosureSection({
           </h2>
           {summary ? <p className="mt-2 text-sm leading-6 text-slate-600">{summary}</p> : null}
         </div>
-        <span className="shrink-0 rounded border border-ice-100 bg-ice-50 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-ice-600 transition group-open:bg-ice-500 group-open:text-white">
-          <span className="group-open:hidden">Открыть</span>
-          <span className="hidden group-open:inline">Свернуть</span>
+        <span
+          className={`shrink-0 rounded border px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] motion-ui-transition ${
+            isOpen
+              ? "border-ice-500 bg-ice-500 text-white"
+              : "border-ice-100 bg-ice-50 text-ice-600"
+          }`}
+        >
+          {isOpen ? "Свернуть" : "Открыть"}
         </span>
-      </summary>
-      <div className="border-t border-slate-200/80 p-5 pt-4">{children}</div>
-    </details>
+      </button>
+      <div
+        className={`motion-collapsible-grid ${
+          isOpen ? "motion-collapsible-grid-open" : ""
+        }`}
+      >
+        <div className="motion-collapsible-inner">
+          <div
+            className={`border-t border-slate-200/80 p-5 pt-4 motion-ui-transition ${
+              isOpen
+                ? "visible translate-y-0 opacity-100"
+                : "invisible -translate-y-1 opacity-0 pointer-events-none"
+            }`}
+            aria-hidden={!isOpen}
+          >
+            {children}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
