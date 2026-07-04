@@ -28,7 +28,7 @@ export function CollapsibleSection({
       <button
         type="button"
         onClick={() => setIsOpen((currentValue) => !currentValue)}
-        className="flex w-full items-start justify-between gap-5 rounded-2xl px-5 py-4 text-left outline-none transition hover:bg-ice-50/45 focus-visible:ring-4 focus-visible:ring-ice-100"
+        className="motion-ui-transition flex w-full items-start justify-between gap-5 rounded-2xl px-5 py-4 text-left outline-none hover:bg-ice-50/45 focus-visible:ring-4 focus-visible:ring-ice-100"
         aria-expanded={isOpen}
       >
         <span className="min-w-0">
@@ -48,15 +48,35 @@ export function CollapsibleSection({
         <span className="flex shrink-0 items-center gap-3">
           {rightSlot ? <span onClick={(event) => event.stopPropagation()}>{rightSlot}</span> : null}
           <span
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-ice-100 bg-ice-50 text-lg font-semibold text-ice-700 transition"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-ice-100 bg-ice-50 text-ice-700 motion-ui-transition"
             aria-hidden="true"
           >
-            {isOpen ? "-" : "+"}
+            <span
+              className="motion-chevron block h-2.5 w-2.5 border-b-2 border-r-2 border-current"
+              style={{ transform: isOpen ? "rotate(-135deg)" : "rotate(45deg)" }}
+            />
           </span>
         </span>
       </button>
 
-      {isOpen ? <div className="border-t border-slate-100 px-5 py-5">{children}</div> : null}
+      <div
+        className={`motion-collapsible-grid ${
+          isOpen ? "motion-collapsible-grid-open" : ""
+        }`}
+      >
+        <div className="motion-collapsible-inner">
+          <div
+            className={`border-t border-slate-100 px-5 py-5 motion-ui-transition ${
+              isOpen
+                ? "visible translate-y-0 opacity-100"
+                : "invisible -translate-y-1 opacity-0 pointer-events-none"
+            }`}
+            aria-hidden={!isOpen}
+          >
+            {children}
+          </div>
+        </div>
+      </div>
     </section>
   );
 }
