@@ -9,6 +9,7 @@ import type {
   QueryFilters,
   QueryRequest,
   SearchResult,
+  SourceRef,
 } from "../types/rag";
 
 export type HealthResponse = {
@@ -43,6 +44,24 @@ export type DashboardResponse = {
   domainsCoverage?: Record<string, unknown>[] | null;
   priorityGaps?: Record<string, unknown>[] | null;
   recentClaims?: Record<string, unknown>[] | null;
+};
+
+export type SourceListItem = SourceRef & {
+  id?: string | null;
+  title?: string | null;
+  authors?: string[] | null;
+  reliability?: "high" | "medium" | "low" | "unknown" | string | null;
+  excerpt?: string | null;
+  tags?: string[] | null;
+  language?: string | null;
+  organization?: string | null;
+};
+
+export type SourceListParams = {
+  geography?: string;
+  type?: string;
+  year_from?: number;
+  year_to?: number;
 };
 
 export type QueryEvidenceOptions = {
@@ -257,6 +276,45 @@ export async function getGraph(topic?: string): Promise<KnowledgeGraph> {
       ? resolveScenarioFromQuery(trimmedTopic)
       : "desalination";
     return scenarioSamples[fallbackScenarioId].graph;
+  }
+}
+
+function getFallbackSources(): SourceListItem[] {
+  const sourceByKey = new Map<string, SourceListItem>();
+
+  Object.values(scenarioSamples)
+    .flatMap((sample) => sample.sources)
+    .forEach((source) => {
+      const key = [
+        source.documentId,
+        source.sourceName,
+        source.chunkId,
+        source.page,
+      ].join(":");
+
+      if (!sourceByKey.has(key)) {
+        sourceByKey.set(key, source);
+      }
+    });
+
+  return Array.from(sourceByKey.values());
+}
+
+export async function getSources(params: SourceListParams = {}): Promise<SourceListItem[]> {
+  const searchParams = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== "") {
+      searchParams.set(key, String(value));
+    }
+  });
+
+  const queryString = searchParams.size > 0 ? `?${searchParams.toString()}` : "";
+
+  try {
+    return await requestJson<SourceListItem[]>(`/api/sources${queryString}`);
+  } catch {
+    return getFallbackSources();
   }
 }
 

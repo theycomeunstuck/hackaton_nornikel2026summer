@@ -8,7 +8,7 @@ import type { SearchResult } from "../types/search";
 
 export type SourceFilters = {
   sourceType: "all" | SourceType;
-  geography: "all" | "unknown";
+  geography: "all" | string;
   reliability: "all" | ConfidenceLevel;
   yearFrom: number;
   yearTo: number;
@@ -27,7 +27,7 @@ export type SourceReferenceSummary = {
 export type SourceListItem = {
   source: SourceMetadata;
   language: Document["language"] | "unknown";
-  geography: "unknown";
+  geography: string;
   relatedClaimsCount: number;
   excerpt: string;
   references: SourceReferenceSummary[];

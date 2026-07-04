@@ -1,5 +1,6 @@
-import { useId, useMemo, useState } from "react";
-import type { ConfidenceLevel } from "../../entities/source/types";
+import { useEffect, useId, useMemo, useState } from "react";
+import type { ConfidenceLevel, SourceMetadata, SourceType } from "../../entities/source/types";
+import { getSources, type SourceListItem as BackendSourceListItem } from "../../shared/api/appApi";
 import {
   buildSourceStats,
   filterSourceItems,
@@ -41,6 +42,94 @@ const geographyOptions: FilterOption[] = [
   { value: "all", label: "Все значения" },
   { value: "unknown", label: "Не указана" },
 ];
+
+function toSourceType(sourceType: string | null | undefined): SourceType {
+  if (
+    sourceType === "scientific_article" ||
+    sourceType === "internal_report" ||
+    sourceType === "patent" ||
+    sourceType === "experiment_protocol" ||
+    sourceType === "technical_standard" ||
+    sourceType === "reference_book"
+  ) {
+    return sourceType;
+  }
+
+  if (sourceType === "publication") {
+    return "scientific_article";
+  }
+
+  if (sourceType === "report") {
+    return "internal_report";
+  }
+
+  if (sourceType === "experiment") {
+    return "experiment_protocol";
+  }
+
+  if (sourceType === "standard") {
+    return "technical_standard";
+  }
+
+  return "reference_book";
+}
+
+function toConfidenceLevel(value: string | null | undefined): ConfidenceLevel {
+  if (value === "high" || value === "medium" || value === "low") {
+    return value;
+  }
+
+  return "medium";
+}
+
+function getBackendSourceTitle(source: BackendSourceListItem): string {
+  return source.title ?? source.sourceName ?? source.documentId ?? "Источник без названия";
+}
+
+function adaptBackendSourceItems(sources: BackendSourceListItem[]): SourceListItem[] {
+  return sources.map((source, index) => {
+    const title = getBackendSourceTitle(source);
+    const sourceId =
+      source.id ??
+      source.documentId ??
+      source.sourceName ??
+      source.chunkId ??
+      `backend-source-${index}`;
+    const sourceMetadata: SourceMetadata = {
+      id: sourceId,
+      title,
+      sourceType: toSourceType(source.sourceType),
+      year: source.year ?? new Date().getFullYear(),
+      authors: source.authors ?? [],
+      organization: source.organization ?? undefined,
+      documentId: source.documentId ?? undefined,
+      tags: source.tags ?? [],
+      reliability: toConfidenceLevel(source.reliability),
+    };
+    const hasReference =
+      source.page !== null || source.chunkId !== null || source.documentId !== null;
+
+    return {
+      source: sourceMetadata,
+      language: source.language === "ru" || source.language === "en" ? source.language : "unknown",
+      geography: source.geography ?? "unknown",
+      relatedClaimsCount: hasReference ? 1 : 0,
+      excerpt: source.excerpt ?? source.sectionTitle ?? "Фрагмент для источника не найден.",
+      references: hasReference
+        ? [
+            {
+              claimId: `${sourceId}-reference`,
+              claimText: source.excerpt ?? source.sectionTitle ?? title,
+              confidence: sourceMetadata.reliability,
+              page: source.page ?? 0,
+              chunkId: source.chunkId ?? "chunk не указан",
+              year: sourceMetadata.year,
+            },
+          ]
+        : [],
+    };
+  });
+}
 
 function DistributionBars({ items }: { items: Array<{ label: string; count: number }> }) {
   const maxCount = Math.max(...items.map((item) => item.count), 1);
@@ -130,10 +219,16 @@ function SourceCard({ item }: { item: SourceListItem }) {
             }`}
             aria-hidden={!isOpen}
           >
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-5 gap-4">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Авторы</p>
                 <p className="mt-2 text-sm leading-6 text-slate-700">{item.source.authors.join(", ")}</p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Document ID</p>
+                <p className="mt-2 break-all text-sm leading-6 text-slate-700">
+                  {item.source.documentId ?? "не указан"}
+                </p>
               </div>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Язык</p>
@@ -193,10 +288,14 @@ function SourcesHeaderAside() {
 
 export function SourcesPage() {
   const [filters, setFilters] = useState<SourceFilters>(initialFilters);
+  const [backendItems, setBackendItems] = useState<SourceListItem[] | null>(null);
+  const [isSourcesLoading, setIsSourcesLoading] = useState(true);
+  const [sourcesError, setSourcesError] = useState<string | null>(null);
+  const activeItems = backendItems ?? sourceStats.items;
 
   const filteredItems = useMemo(
-    () => filterSourceItems(sourceStats.items, filters),
-    [filters],
+    () => filterSourceItems(activeItems, filters),
+    [activeItems, filters],
   );
   const sourceTypeOptions: FilterOption[] = [
     { value: "all", label: "Все типы" },
@@ -205,6 +304,38 @@ export function SourcesPage() {
       label: getSourceTypeLabel(sourceType),
     })),
   ];
+
+  useEffect(() => {
+    let isActive = true;
+
+    setIsSourcesLoading(true);
+    getSources()
+      .then((sources) => {
+        if (!isActive) {
+          return;
+        }
+
+        setBackendItems(adaptBackendSourceItems(sources));
+        setSourcesError(null);
+      })
+      .catch(() => {
+        if (!isActive) {
+          return;
+        }
+
+        setBackendItems(null);
+        setSourcesError("Backend-источники недоступны, показаны локальные данные.");
+      })
+      .finally(() => {
+        if (isActive) {
+          setIsSourcesLoading(false);
+        }
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   return (
     <ContentContainer>
@@ -229,6 +360,18 @@ export function SourcesPage() {
 
       <div className="grid grid-cols-[minmax(0,1fr)_420px] gap-6">
         <SectionCard title="Реестр источников" eyebrow="Проверяемые ссылки">
+          <div className="mb-4 rounded-xl border border-ice-100 bg-white/70 px-4 py-3 text-sm text-slate-600 shadow-sm">
+            {isSourcesLoading ? (
+              <span className="text-ice-700">Загрузка источников из /api/sources...</span>
+            ) : sourcesError ? (
+              <span className="text-amber-700">{sourcesError}</span>
+            ) : activeItems.length === 0 ? (
+              <span className="text-amber-700">Источники пока не найдены.</span>
+            ) : (
+              <span className="text-emerald-700">Источники обновлены из /api/sources.</span>
+            )}
+          </div>
+
           <FilterPanel
             title="Фильтры источников"
             description="Проверьте корпус по типу документа, надёжности и году публикации."
