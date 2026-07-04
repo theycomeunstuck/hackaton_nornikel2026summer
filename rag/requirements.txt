@@ -1,0 +1,12 @@
+# Mode B core needs ZERO third-party packages — stdlib only (sqlite3 + FTS5).
+# Runs and tests offline. Everything below is OPTIONAL, for later:
+
+# pytest            # nicer test runner (also runnable via: python -m backend.tests_run)
+# qdrant-client     # day-2 vector channel (retrieval/vector.py QdrantVectorSearcher)
+# fastembed         # local multilingual embeddings, no API cost
+
+# HTTP API (backend/api.py) — thin wrapper over Engine.search() for the frontend.
+# Install with:  pip install -r backend/requirements.txt
+fastapi>=0.115
+uvicorn>=0.30
+# The smoke check (python -m backend.api_smoke) is dependency-free (stdlib urllib).

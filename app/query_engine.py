@@ -549,3 +549,118 @@ def run_query(query: str, scenario_id: str | None = None,
         contradictions=active_contradictions,
         sources=sources,
     )
+
+
+# =============================================================================
+# Адаптер mock -> RAG-контракт (единая форма ответа независимо от режима)
+# =============================================================================
+#
+# RAG `SearchResult.to_api()` — «замороженный» контракт из 7 ключей (см.
+# rag/contracts.py и rag/docs/API.md). Чтобы фронтенд писался под ОДНУ форму
+# ответа независимо от того, работает бэкенд на реальном индексе или в demo,
+# приводим mock-результат ровно к этой форме.
+
+
+def _source_ref_api(claim: EvidenceClaim) -> dict:
+    """SourceRef в форме RAG: documentId, sourceName, chunkId, page, sectionTitle,
+    sourceType, year, geography."""
+    src = data.SOURCES_BY_ID.get(claim.source.documentId)
+    return {
+        "documentId": claim.source.documentId,
+        "sourceName": claim.source.sourceName,
+        "chunkId": claim.source.chunkId,
+        "page": claim.source.page,
+        "sectionTitle": None,
+        "sourceType": src.type if src else None,
+        "year": claim.year,
+        "geography": claim.geography or None,
+    }
+
+
+def _evidence_api(claim: EvidenceClaim, score: float) -> dict:
+    """EvidenceClaim -> RAG EvidenceItem: id, text, score, confidence, conditions,
+    matchedTerms, numericStatus, source."""
+    matched = list(claim.materials)
+    if claim.process:
+        matched.append(claim.process)
+    if claim.technology:
+        matched.append(claim.technology)
+    numeric_status = "approximate" if claim.conditions else "none"
+    return {
+        "id": f"ev_{claim.claimId}",
+        "text": claim.text,
+        "score": round(score, 4),
+        "confidence": claim.confidence,
+        "conditions": [c.model_dump() for c in claim.conditions],
+        "matchedTerms": matched,
+        "numericStatus": numeric_status,
+        "source": _source_ref_api(claim),
+    }
+
+
+def to_rag_api(result: SearchResult) -> dict:
+    """Приводит mock SearchResult к «замороженному» RAG-контракту (7 ключей).
+
+    evidence/sources получают ту же форму, что и у реального движка, поэтому
+    фронтенд обрабатывает оба режима одинаково.
+    """
+    pq = result.parsedQuery
+    a = result.answer
+    numeric_mode = "approximate" if pq.conditions else "none"
+
+    evidence = [_evidence_api(c, 1.0 - i * 0.05)
+                for i, c in enumerate(result.evidence)]
+
+    # sources в форме SourceRef (как у RAG), дедуп по (documentId, chunkId)
+    sources, seen = [], set()
+    for c in result.evidence:
+        key = (c.source.documentId, c.source.chunkId)
+        if key in seen:
+            continue
+        seen.add(key)
+        sources.append(_source_ref_api(c))
+
+    # graph: добавляем sourceRef/evidenceText для формы RAG-рёбер
+    graph = {
+        "nodes": [n.model_dump() for n in result.graph.nodes],
+        "edges": [{**e.model_dump(), "sourceRef": None, "evidenceText": None}
+                  for e in result.graph.edges],
+    }
+
+    return {
+        "parsedQuery": {
+            "intent": pq.intent,
+            "materials": pq.materials,
+            "processes": pq.processes,
+            "technologies": pq.technologies,
+            "properties": pq.properties,
+            "conditions": [c.model_dump() for c in pq.conditions],
+            "geography": pq.geography,
+            "timeRange": (pq.timeRange.model_dump(by_alias=True)
+                          if pq.timeRange else None),
+        },
+        # ключи 1:1 с RAG AnswerSummary.to_api() (без recommendation — как у RAG);
+        # рекомендацию дописываем в конец shortConclusion, чтобы не терять смысл
+        "answer": {
+            "shortConclusion": (a.shortConclusion
+                                + (f" Рекомендация: {a.recommendation}"
+                                   if a.recommendation else "")),
+            "confidence": a.confidence,
+            "confidenceReason": a.confidenceReason,
+            "warnings": a.warnings,
+            "numericMode": numeric_mode,
+        },
+        "evidence": evidence,
+        "graph": graph,
+        "gaps": [g.model_dump() for g in result.gaps],
+        "contradictions": [c.model_dump() for c in result.contradictions],
+        "sources": sources,
+        "queryId": result.queryId,
+        "mode": "mock",
+    }
+
+
+def mock_search_api(query: str, scenario_id: str | None = None,
+                    filters: QueryFilters | None = None) -> dict:
+    """Demo-поиск сразу в форме RAG-контракта (для fallback без индекса)."""
+    return to_rag_api(run_query(query, scenario_id, filters))

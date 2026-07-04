@@ -1,0 +1,6 @@
+{"chunk_id": "doc_ro_p3_c1", "name": "сухой остаток", "operator": "lte", "value": 1000, "min": null, "max": null, "unit": "мг/дм³", "raw_value": "≤1000 мг/дм³"}
+{"chunk_id": "doc_ie_p8_c1", "name": "концентрация", "operator": "range", "value": null, "min": 200, "max": 300, "unit": "мг/л", "raw_value": "200–300 мг/л"}
+{"chunk_id": "doc_cat_w_p12_c1", "name": "скорость потока", "operator": "range", "value": null, "min": 0.3, "max": 0.5, "unit": "м/с", "raw_value": "0,3–0,5 м/с"}
+{"chunk_id": "doc_cat_ru_p5_c1", "name": "скорость потока", "operator": "range", "value": null, "min": 0.8, "max": 1.2, "unit": "м/с", "raw_value": "0,8–1,2 м/с"}
+{"chunk_id": "doc_flot_ru_p15_c1", "name": "температура", "operator": "range", "value": null, "min": 40, "max": 60, "unit": "°C", "raw_value": "40–60 °C"}
+{"chunk_id": "doc_flot_w_p9_c1", "name": "температура", "operator": "gt", "value": 55, "min": null, "max": null, "unit": "°C", "raw_value": ">55 °C"}

@@ -100,7 +100,7 @@
 <div class="app">
   <aside class="side">
     <div class="logo">Научный <span>клубок</span></div>
-    <div class="tag">Evidence Engine · R&amp;D</div>
+    <div class="tag">Evidence Engine · <span id="engine-mode">…</span></div>
     <nav class="nav" id="nav">
       <a data-view="dashboard" class="active">📊 Dashboard</a>
       <a data-view="search">🔍 Evidence Search</a>
@@ -252,16 +252,13 @@ async function api(path, opts){
 }
 
 // --- Dashboard ---
+function fmtNum(v){ return (typeof v==='number' && v>=1000) ? v.toLocaleString('ru-RU') : v; }
 async function loadDashboard(){
   try{
     const d = await api('/api/dashboard');
-    const cards = [
-      ['Документов', d.documents],['Claims', d.claims],['Источников', d.sources],
-      ['Связей в графе', d.graphRelations],['Противоречий', d.contradictions],
-      ['Пробелов', d.gaps],['Ср. достоверность', d.averageConfidence],
-    ];
-    el('stats').innerHTML = cards.map(([l,v])=>
-      `<div class="card stat"><div class="num">${v}</div><div class="lbl">${l}</div></div>`).join('');
+    const cards = d.cards || [];
+    el('stats').innerHTML = cards.map(c=>
+      `<div class="card stat"><div class="num">${fmtNum(c.value)}</div><div class="lbl">${esc(c.label)}</div></div>`).join('');
     el('domains').innerHTML = Object.entries(d.domainsCoverage).map(([k,v])=>{
       const names={hydrometallurgy:'Гидрометаллургия',pyrometallurgy:'Пирометаллургия',
         ecology:'Экология',waste_processing:'Переработка отходов'};
@@ -279,16 +276,26 @@ async function loadDashboard(){
   }catch(e){ el('stats').innerHTML='<span class="muted">Ошибка загрузки: '+e+'</span>'; }
 }
 
+function numBadge(st){
+  if(!st||st==='none') return '';
+  const map={structured:'✓ structured',approximate:'≈ approx',unmatched:'⚠ unmatched'};
+  return `<div class="badge" style="margin-top:3px">${map[st]||st}</div>`;
+}
 function claimsTable(claims){
   if(!claims||!claims.length) return '<span class="muted">Нет данных</span>';
-  return `<table><thead><tr><th>Claim</th><th>Условия</th><th>Эффект</th>
+  return `<table><thead><tr><th>Утверждение</th><th>Условия</th><th>Эффект / термины</th>
     <th>Источник</th><th>Дост.</th></tr></thead><tbody>`+
-    claims.map(c=>`<tr>
+    claims.map(c=>{
+      const terms = (c.matchedTerms||[]).slice(0,5).map(t=>`<span class="chip">${esc(t)}</span>`).join('');
+      const mid = c.effect?esc(c.effect.description):(terms||'—');
+      const src=c.source||{};
+      return `<tr>
       <td>${esc(c.text)}</td>
-      <td>${(c.conditions||[]).map(x=>`<span class="chip cond">${esc(x.rawValue)}</span>`).join('')||'—'}</td>
-      <td>${c.effect?esc(c.effect.description):'—'}</td>
-      <td><span class="src">${esc(c.source.sourceName)}</span>${c.source.page?' · стр.'+c.source.page:''}</td>
-      <td>${CONF(c.confidence)}</td></tr>`).join('')+`</tbody></table>`;
+      <td>${(c.conditions||[]).map(x=>`<span class="chip cond">${esc(x.rawValue||x.name)}</span>`).join('')||'—'}</td>
+      <td>${mid}</td>
+      <td><span class="src">${esc(src.sourceName||src.documentId||'—')}</span>${src.page?' · стр.'+src.page:''}</td>
+      <td>${CONF(c.confidence)}${numBadge(c.numericStatus)}</td></tr>`;
+    }).join('')+`</tbody></table>`;
 }
 
 // --- Search ---
@@ -337,6 +344,7 @@ function renderResult(r){
      <h2 style="margin:0;border:none">Краткий вывод</h2>${CONF(a.confidence)}</div>
      <p>${esc(a.shortConclusion)}</p>
      <div class="muted">${esc(a.confidenceReason)}</div>
+     ${a.numericMode&&a.numericMode!=='none'?`<div style="margin-top:6px"><span class="badge">числовая фильтрация: ${esc(a.numericMode)}</span></div>`:''}
      ${a.recommendation?`<p style="margin-top:8px"><b>Рекомендация:</b> ${esc(a.recommendation)}</p>`:''}
      ${(a.warnings||[]).map(w=>`<div class="warnbox">⚠️ ${esc(w)}</div>`).join('')}</div>`;
   // evidence
@@ -369,10 +377,16 @@ function chipRow(label,arr,cls){
     arr.map(x=>`<span class="chip ${cls}">${esc(x)}</span>`).join('')+'</div>';
 }
 function sourceCard(s){
+  const title = s.title || s.sourceName || s.documentId || '—';
+  const type = s.type || s.sourceType || '';
+  const meta = [type, s.year||'', geoName(s.geography||'unknown'),
+                (s.authors||[]).join(', ')].filter(Boolean).join(' · ');
+  const relBadge = s.reliability ? `<span class="conf ${s.reliability}">${s.reliability}</span>` : '';
+  const ref = s.chunkId ? `<div class="src" style="margin-top:5px">chunk: ${esc(s.chunkId)}${s.page?' · стр.'+s.page:''}${s.sectionTitle?' · '+esc(s.sectionTitle):''}</div>` : '';
   return `<div class="card" style="margin:8px 0;padding:12px">
-    <div class="row" style="justify-content:space-between"><b>${esc(s.title)}</b>
-      <span class="conf ${s.reliability}">${s.reliability}</span></div>
-    <div class="muted" style="margin-top:4px">${s.type} · ${s.year||'н/д'} · ${geoName(s.geography)} · ${(s.authors||[]).join(', ')||'—'}</div>
+    <div class="row" style="justify-content:space-between"><b>${esc(title)}</b>${relBadge}</div>
+    <div class="muted" style="margin-top:4px">${esc(meta)||'—'}</div>
+    ${ref}
     ${s.excerpt?`<div style="margin-top:6px;font-style:italic">«${esc(s.excerpt)}»</div>`:''}</div>`;
 }
 function contrCard(c){
@@ -450,8 +464,19 @@ async function doExport(){
   }catch(e){ el('export-out').innerHTML='Ошибка: '+e; }
 }
 
+// engine mode badge
+async function loadEngineMode(){
+  try{
+    const h = await api('/api/health');
+    const rag = h.engine==='rag';
+    const span = el('engine-mode');
+    span.textContent = rag ? 'RAG · реальный индекс' : 'demo (mock)';
+    span.style.color = rag ? 'var(--high)' : 'var(--medium)';
+  }catch(e){ el('engine-mode').textContent='offline'; }
+}
+
 // init
-loadDashboard(); loadExamples();
+loadEngineMode(); loadDashboard(); loadExamples();
 </script>
 </body>
 </html>

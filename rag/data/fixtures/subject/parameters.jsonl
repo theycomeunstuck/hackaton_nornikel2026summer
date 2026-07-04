@@ -1,0 +1,4 @@
+{"chunk_id": "doc_fe_a_p3_c1", "name": "содержание железа", "operator": "gt", "min": null, "max": null, "value": 50, "unit": "%", "raw_value": "свыше 50 %"}
+{"chunk_id": "doc_fe_b_p5_c1", "name": "содержание железа", "operator": "range", "min": 10, "max": 15, "value": null, "unit": "%", "raw_value": "10–15 %"}
+{"chunk_id": "doc_si_c_p2_c1", "name": "содержание кремния", "operator": "eq", "min": null, "max": null, "value": 30, "unit": "%", "raw_value": "30 %"}
+{"chunk_id": "doc_bare_d_p1_c1", "name": "содержание", "operator": "eq", "min": null, "max": null, "value": 99, "unit": "%", "raw_value": "99 %"}

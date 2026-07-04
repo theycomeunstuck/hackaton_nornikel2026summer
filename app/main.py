@@ -17,7 +17,7 @@ from typing import Optional
 
 from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, PlainTextResponse
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
 from . import __version__, data, export
@@ -46,7 +46,8 @@ from .models import (
     UploadResponse,
     UserPublic,
 )
-from .query_engine import build_graph, route_scenario, run_query
+from .query_engine import build_graph, mock_search_api, route_scenario
+from .rag_bridge import bridge
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 STATIC_DIR = BASE_DIR / "static"
@@ -58,17 +59,44 @@ app = FastAPI(
     version=__version__,
 )
 
+# CORS: открыт для любого origin (фронтенд на другом порту/домене).
+# allow_credentials=False — обязательно при allow_origins=["*"], иначе браузер
+# блокирует запросы. Авторизация идёт через Bearer-заголовок (не куки), поэтому
+# режим credentials не нужен.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
+@app.on_event("startup")
+def _startup() -> None:
+    """Инициализируем RAG-движок на event-loop-потоке (важно для sqlite)."""
+    ok = bridge.init()
+    mode = "RAG (реальный индекс)" if ok else f"MOCK (fallback: {bridge.init_error})"
+    print(f"[Научный клубок] evidence engine: {mode}")
+
+
+@app.on_event("shutdown")
+def _shutdown() -> None:
+    bridge.close()
+
+
 def now_iso() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _json(payload) -> JSONResponse:
+    """UTF-8 JSON без экранирования кириллицы."""
+    return JSONResponse(content=payload, media_type="application/json; charset=utf-8")
+
+
+def _dump(obj) -> dict:
+    """Pydantic-модель -> dict в camelCase (by_alias)."""
+    return obj.model_dump(by_alias=True)
 
 
 # =============================================================================
@@ -131,11 +159,22 @@ def me(user: UserPublic = Depends(get_current_user)) -> MeResponse:
 # =============================================================================
 
 
-@app.post("/api/query", response_model=SearchResult, tags=["query"])
-def query(req: QueryRequest) -> SearchResult:
+@app.post("/api/query", tags=["query"])
+async def query(req: QueryRequest):
+    """Главный эндпоинт. Возвращает evidence-first SearchResult (7 ключей).
+
+    Использует реальный RAG-движок (`rag`); при недоступности индекса —
+    прозрачный fallback на демо-данные. Форма ответа идентична (`to_api`).
+    """
     if not req.query or not req.query.strip():
         raise HTTPException(status_code=422, detail="Пустой запрос")
-    return run_query(req.query, req.scenarioId, req.filters)
+    if bridge.available:
+        try:
+            return _json(bridge.search_api(req.query, top_k=15, filters=req.filters))
+        except Exception as exc:  # надёжный fallback, если запрос сломал движок
+            print(f"[query] RAG error, fallback to mock: {exc}")
+    # mock в той же форме, что и RAG (единый контракт для фронтенда)
+    return _json(mock_search_api(req.query, req.scenarioId, req.filters))
 
 
 # =============================================================================
@@ -143,8 +182,13 @@ def query(req: QueryRequest) -> SearchResult:
 # =============================================================================
 
 
-@app.get("/api/graph", response_model=KnowledgeGraph, tags=["graph"])
-def graph(topic: Optional[str] = None) -> KnowledgeGraph:
+@app.get("/api/graph", tags=["graph"])
+async def graph(topic: Optional[str] = None):
+    if bridge.available:
+        try:
+            return _json(bridge.graph_for(topic))
+        except Exception as exc:
+            print(f"[graph] RAG error, fallback to mock: {exc}")
     scenario = route_scenario((topic or "").lower(), None) if topic else "generic"
     if scenario == "generic":
         claims = data.ALL_CLAIMS
@@ -154,7 +198,7 @@ def graph(topic: Optional[str] = None) -> KnowledgeGraph:
         claims = data.claims_for(scenario)
         contradictions = data.contradictions_for(scenario)
         gaps = data.gaps_for(scenario)
-    return build_graph(claims, contradictions, gaps)
+    return _json(_dump(build_graph(claims, contradictions, gaps)))
 
 
 # =============================================================================
@@ -162,13 +206,28 @@ def graph(topic: Optional[str] = None) -> KnowledgeGraph:
 # =============================================================================
 
 
-@app.get("/api/sources", response_model=list[Source], tags=["sources"])
-def list_sources(
+@app.get("/api/sources", tags=["sources"])
+async def list_sources(
     geography: Optional[str] = None,
     type: Optional[str] = None,
     year_from: Optional[int] = None,
     year_to: Optional[int] = None,
-) -> list[Source]:
+):
+    if bridge.available:
+        try:
+            srcs = bridge.aggregated_sources()
+            if geography and geography != "all":
+                geo = "domestic" if geography in ("domestic", "russia") else geography
+                srcs = [s for s in srcs if (s.get("geography") or "") == geo]
+            if type:
+                srcs = [s for s in srcs if (s.get("sourceType") or "") == type]
+            if year_from:
+                srcs = [s for s in srcs if (s.get("year") or 0) >= year_from]
+            if year_to:
+                srcs = [s for s in srcs if (s.get("year") or 9999) <= year_to]
+            return _json(srcs)
+        except Exception as exc:
+            print(f"[sources] RAG error, fallback to mock: {exc}")
     result = data.SOURCES
     if geography and geography != "all":
         geo = "russia" if geography in ("domestic", "russia") else geography
@@ -187,7 +246,15 @@ def list_sources(
 
 
 @app.get("/api/sources/{source_id}", response_model=Source, tags=["sources"])
-def get_source(source_id: str) -> Source:
+async def get_source(source_id: str) -> Source:
+    # Реальная карточка источника из индекса/метаданных; mock — только fallback.
+    if bridge.available:
+        try:
+            detail = bridge.source_detail(source_id)
+            if detail is not None:
+                return Source(**detail)
+        except Exception as exc:
+            print(f"[source] RAG error, fallback to mock: {exc}")
     src = data.SOURCES_BY_ID.get(source_id)
     if src is None:
         raise HTTPException(status_code=404, detail="Источник не найден")
@@ -201,14 +268,24 @@ def get_source(source_id: str) -> Source:
 # =============================================================================
 
 
-@app.get("/api/contradictions", response_model=list[Contradiction], tags=["evidence"])
-def list_contradictions() -> list[Contradiction]:
-    return data.ALL_CONTRADICTIONS
+@app.get("/api/contradictions", tags=["evidence"])
+async def list_contradictions():
+    if bridge.available:
+        try:
+            return _json(bridge.aggregated_contradictions())
+        except Exception as exc:
+            print(f"[contradictions] RAG error, fallback to mock: {exc}")
+    return _json([_dump(c) for c in data.ALL_CONTRADICTIONS])
 
 
-@app.get("/api/gaps", response_model=list[KnowledgeGap], tags=["evidence"])
-def list_gaps() -> list[KnowledgeGap]:
-    return data.ALL_GAPS
+@app.get("/api/gaps", tags=["evidence"])
+async def list_gaps():
+    if bridge.available:
+        try:
+            return _json(bridge.aggregated_gaps())
+        except Exception as exc:
+            print(f"[gaps] RAG error, fallback to mock: {exc}")
+    return _json([_dump(g) for g in data.ALL_GAPS])
 
 
 # =============================================================================
@@ -234,33 +311,43 @@ def get_memory(memory_id: str) -> ResearchMemoryDetails:
 # =============================================================================
 
 
-@app.get("/api/dashboard", response_model=DashboardStats, tags=["dashboard"])
-def dashboard() -> DashboardStats:
+@app.get("/api/dashboard", tags=["dashboard"])
+async def dashboard():
+    if bridge.available:
+        try:
+            return _json(bridge.dashboard())
+        except Exception as exc:
+            print(f"[dashboard] RAG error, fallback to mock: {exc}")
+    # mock-режим
     claims = data.ALL_CLAIMS
     full_graph = build_graph(claims, data.ALL_CONTRADICTIONS, data.ALL_GAPS)
     conf_rank = {"low": 1, "medium": 2, "high": 3}
     rank_label = {1: "low", 2: "medium", 3: "high"}
     avg = round(sum(conf_rank[c.confidence] for c in claims) / len(claims))
+    cards = [
+        {"label": "Документов", "value": len(data.DOCUMENTS) + len(UPLOADS)},
+        {"label": "Claims", "value": len(claims)},
+        {"label": "Источников", "value": len(data.SOURCES)},
+        {"label": "Связей в графе", "value": len(full_graph.edges)},
+        {"label": "Противоречий", "value": len(data.ALL_CONTRADICTIONS)},
+        {"label": "Пробелов", "value": len(data.ALL_GAPS)},
+        {"label": "Ср. достоверность", "value": rank_label.get(avg, "medium")},
+    ]
     domains = {
         "hydrometallurgy": len(data.claims_for("catholyte")),
         "ecology": len(data.claims_for("desalination")),
         "pyrometallurgy": len(data.claims_for("metals")),
         "waste_processing": 0,
     }
-    recent = sorted(claims, key=lambda c: c.year or 0, reverse=True)[:4]
-    priority_gaps = [g for g in data.ALL_GAPS if g.severity == "warning"]
-    return DashboardStats(
-        documents=len(data.DOCUMENTS) + len(UPLOADS),
-        claims=len(claims),
-        sources=len(data.SOURCES),
-        graphRelations=len(full_graph.edges),
-        contradictions=len(data.ALL_CONTRADICTIONS),
-        gaps=len(data.ALL_GAPS),
-        averageConfidence=rank_label.get(avg, "medium"),
-        domainsCoverage=domains,
-        recentClaims=recent,
-        priorityGaps=priority_gaps,
-    )
+    recent = sorted(claims, key=lambda c: c.year or 0, reverse=True)[:5]
+    return _json({
+        "mode": "mock",
+        "cards": cards,
+        "indexStats": None,
+        "domainsCoverage": domains,
+        "priorityGaps": [_dump(g) for g in data.ALL_GAPS if g.severity == "warning"],
+        "recentClaims": [_dump(c) for c in recent],
+    })
 
 
 # =============================================================================
@@ -336,8 +423,21 @@ def document_status(document_id: str) -> ProcessingStatusResponse:
 
 @app.get("/api/documents/{document_id}/extraction",
          response_model=ExtractionResultResponse, tags=["documents"])
-def document_extraction(document_id: str) -> ExtractionResultResponse:
-    # Для демо возвращаем извлечение по сценарию catholyte как образец
+async def document_extraction(document_id: str):
+    # Реальная выжимка из индекса по конкретному document_id (сущности, числовые
+    # параметры, связи, выводы). При недоступности индекса — демо-fallback ниже.
+    if bridge.available:
+        try:
+            result = bridge.document_extraction(document_id)
+            if result is None:
+                raise HTTPException(status_code=404,
+                                    detail="Документ не найден в индексе")
+            return _json(result)
+        except HTTPException:
+            raise
+        except Exception as exc:
+            print(f"[extraction] RAG error, fallback to mock: {exc}")
+    # Демо-fallback (образец по сценарию catholyte) — только без реального индекса
     scenario = "catholyte"
     claims = data.claims_for(scenario)
     materials, processes, equipment, properties = set(), set(), set(), set()
@@ -380,12 +480,18 @@ def document_extraction(document_id: str) -> ExtractionResultResponse:
 
 
 @app.post("/api/reports/export", response_model=ExportReportResponse, tags=["export"])
-def export_report(req: ExportReportRequest) -> ExportReportResponse:
-    # Восстанавливаем SearchResult: по queryId у нас нет персистентности запросов,
-    # поэтому перезапускаем демо-запрос по scenarioId/queryId эвристике.
-    # Для стабильного демо принимаем query через title, если queryId неизвестен.
+async def export_report(req: ExportReportRequest) -> ExportReportResponse:
+    # Перезапускаем запрос, чтобы получить актуальный SearchResult (to_api dict).
+    # queryId здесь несёт текст запроса (персистентности запросов нет); при его
+    # отсутствии используем title.
     query_text = req.queryId or req.title
-    result = run_query(query_text)
+    if bridge.available:
+        try:
+            result = bridge.search_api(query_text, top_k=15)
+        except Exception:
+            result = mock_search_api(query_text)
+    else:
+        result = mock_search_api(query_text)
 
     created = now_iso()
     report_id = f"rep_{uuid.uuid4().hex[:10]}"
@@ -428,7 +534,17 @@ def download_report(report_id: str):
 
 @app.get("/api/health", tags=["meta"])
 def health() -> dict:
-    return {"status": "ok", "service": "Научный клубок", "version": __version__}
+    return {"status": "ok", "service": "Научный клубок", "version": __version__,
+            "engine": "rag" if bridge.available else "mock"}
+
+
+@app.get("/api/stats", tags=["meta"])
+async def stats():
+    """Статистика индекса RAG (chunk/relation/parameter counts)."""
+    if bridge.available:
+        return _json({"mode": "rag", **bridge.stats()})
+    return _json({"mode": "mock", "documents": len(data.DOCUMENTS),
+                  "claims": len(data.ALL_CLAIMS), "sources": len(data.SOURCES)})
 
 
 @app.get("/api/scenarios", tags=["meta"])
@@ -458,10 +574,43 @@ def scenarios() -> list[dict]:
 if STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
+# React-фронтенд (frontend/dist, сборка: cd frontend && VITE_API_BASE_URL=/ npm run build).
+# Если сборка есть — она раздаётся с корня (single-origin: UI + API на одном порту),
+# а старый demo-UI остаётся на /demo. Если сборки нет — на корне старый demo-UI.
+FRONTEND_DIST = BASE_DIR / "frontend" / "dist"
+if (FRONTEND_DIST / "assets").exists():
+    app.mount("/assets", StaticFiles(directory=str(FRONTEND_DIST / "assets")),
+              name="frontend-assets")
 
-@app.get("/", response_class=HTMLResponse, include_in_schema=False)
-def index() -> HTMLResponse:
+
+def _demo_html() -> HTMLResponse:
     index_file = STATIC_DIR / "index.html"
     if index_file.exists():
         return HTMLResponse(index_file.read_text(encoding="utf-8"))
     return HTMLResponse("<h1>Научный клубок</h1><p>UI не найден. См. /docs</p>")
+
+
+@app.get("/", response_class=HTMLResponse, include_in_schema=False)
+def index() -> HTMLResponse:
+    spa = FRONTEND_DIST / "index.html"
+    if spa.exists():
+        return HTMLResponse(spa.read_text(encoding="utf-8"))
+    return _demo_html()
+
+
+@app.get("/demo", response_class=HTMLResponse, include_in_schema=False)
+def demo_ui() -> HTMLResponse:
+    return _demo_html()
+
+
+@app.get("/{full_path:path}", response_class=HTMLResponse, include_in_schema=False)
+def spa_fallback(full_path: str) -> HTMLResponse:
+    """SPA-fallback: клиентские роуты React Router отдают index.html.
+    /api-пути сюда не попадают (совпадают с реальными роутами выше) — но на
+    всякий случай неизвестный /api/* честно возвращает 404, а не HTML."""
+    if full_path.startswith(("api/", "api")) and full_path.split("/")[0] == "api":
+        raise HTTPException(status_code=404, detail="Не найдено")
+    spa = FRONTEND_DIST / "index.html"
+    if spa.exists():
+        return HTMLResponse(spa.read_text(encoding="utf-8"))
+    return _demo_html()

@@ -1,0 +1,17 @@
+{"entity_id": "ent_material_ni", "canonical_name": "никель", "type": "Material", "aliases": ["Ni", "nickel"], "confidence": 0.9}
+{"entity_id": "ent_material_water", "canonical_name": "вода", "type": "Material", "aliases": ["water"], "confidence": 0.9}
+{"entity_id": "ent_material_au", "canonical_name": "золото", "type": "Material", "aliases": ["Au", "gold"], "confidence": 0.9}
+{"entity_id": "ent_material_ag", "canonical_name": "серебро", "type": "Material", "aliases": ["Ag", "silver"], "confidence": 0.9}
+{"entity_id": "ent_material_pgm", "canonical_name": "МПГ", "type": "Material", "aliases": ["PGM", "platinum group metals"], "confidence": 0.9}
+{"entity_id": "ent_material_matte", "canonical_name": "штейн", "type": "Material", "aliases": ["matte"], "confidence": 0.9}
+{"entity_id": "ent_material_slag", "canonical_name": "шлак", "type": "Material", "aliases": ["slag"], "confidence": 0.9}
+{"entity_id": "ent_material_catholyte", "canonical_name": "католит", "type": "Material", "aliases": ["catholyte"], "confidence": 0.9}
+{"entity_id": "ent_process_ew", "canonical_name": "электроэкстракция никеля", "type": "Process", "aliases": ["nickel electrowinning", "электроэкстракция"], "confidence": 0.9}
+{"entity_id": "ent_process_desal", "canonical_name": "обессоливание", "type": "Process", "aliases": ["desalination", "обессоливание воды"], "confidence": 0.9}
+{"entity_id": "ent_process_flot", "canonical_name": "флотация", "type": "Process", "aliases": ["flotation"], "confidence": 0.9}
+{"entity_id": "ent_parameter_flow", "canonical_name": "скорость потока", "type": "Parameter", "aliases": ["flow rate", "скорость циркуляции"], "confidence": 0.9}
+{"entity_id": "ent_parameter_tds", "canonical_name": "сухой остаток", "type": "Parameter", "aliases": ["TDS", "dry residue"], "confidence": 0.9}
+{"entity_id": "ent_parameter_temp", "canonical_name": "температура", "type": "Parameter", "aliases": ["temperature"], "confidence": 0.9}
+{"entity_id": "ent_property_polarization", "canonical_name": "концентрационная поляризация", "type": "Property", "aliases": ["polarization"], "confidence": 0.9}
+{"entity_id": "ent_property_recovery", "canonical_name": "извлечение", "type": "Property", "aliases": ["recovery", "extraction"], "confidence": 0.9}
+{"entity_id": "ent_property_curecovery", "canonical_name": "извлечение меди", "type": "Property", "aliases": ["copper recovery"], "confidence": 0.9}

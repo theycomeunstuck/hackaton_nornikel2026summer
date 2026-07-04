@@ -216,3 +216,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# --- добавлено при интеграции (не пушим гигантские данные и node_modules) ---
+node_modules/
+rag/data/index.sqlite
+rag/data/nornikel.7z
+rag/data/data_samples.7z
+.env.local
