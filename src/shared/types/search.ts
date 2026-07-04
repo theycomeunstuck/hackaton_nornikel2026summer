@@ -38,6 +38,8 @@ export type GraphNodeType =
   | "process"
   | "equipment"
   | "parameter"
+  | "condition"
+  | "entity"
   | "claim"
   | "source"
   | "effect"

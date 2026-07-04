@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Background,
   BackgroundVariant,
@@ -29,10 +29,19 @@ type KnowledgeGraphProps = {
 
 type FlowNodeData = {
   label: string;
+  originalNode: KnowledgeGraphNode;
 };
 
 type FlowNode = Node<FlowNodeData>;
-type FlowEdge = Edge<{ relation: string }>;
+type FlowEdgeData = {
+  relation: string;
+  originalEdge: KnowledgeGraphEdge;
+};
+type FlowEdge = Edge<FlowEdgeData>;
+
+type SelectedGraphItem =
+  | { kind: "node"; node: KnowledgeGraphNode }
+  | { kind: "edge"; edge: KnowledgeGraphEdge };
 
 type NodeVisualStyle = {
   border: string;
@@ -53,6 +62,7 @@ const nodeTypeLabel: Record<string, string> = {
   equipment: "оборудование",
   parameter: "параметр",
   condition: "условие",
+  entity: "сущность",
   claim: "утверждение",
   source: "источник",
   effect: "эффект",
@@ -101,6 +111,12 @@ const nodeStyleByType: Record<string, NodeVisualStyle> = {
     background: "linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%)",
     color: "#9a3412",
     shadow: "0 16px 34px rgba(249, 115, 22, 0.22)",
+  },
+  entity: {
+    border: "rgba(45, 212, 191, 0.74)",
+    background: "linear-gradient(135deg, #f0fdfa 0%, #99f6e4 100%)",
+    color: "#115e59",
+    shadow: "0 16px 34px rgba(45, 212, 191, 0.22)",
   },
   equipment: {
     border: "rgba(129, 140, 248, 0.74)",
@@ -204,7 +220,8 @@ function createFlowNodes(graph: KnowledgeGraphModel, mode: KnowledgeGraphMode): 
       id: node.id,
       position: getNodePosition(index, mode),
       data: {
-        label: `${node.label}\n${getNodeTypeLabel(node.type)}`,
+        label: `${node.label || node.id}\n${getNodeTypeLabel(node.type)}`,
+        originalNode: node,
       },
       style: {
         width: mode === "compact" ? 190 : 220,
@@ -242,6 +259,7 @@ function createFlowEdges(graph: KnowledgeGraphModel): FlowEdge[] {
       label: getRelationLabel(edge.label ?? edge.relation),
       data: {
         relation: edge.relation,
+        originalEdge: edge,
       },
       type: "smoothstep",
       markerEnd: {
@@ -270,12 +288,134 @@ function createFlowEdges(graph: KnowledgeGraphModel): FlowEdge[] {
   });
 }
 
+function formatOptionalValue(value: string | number | undefined): string {
+  if (value === undefined || value === "" || value === 0) {
+    return "—";
+  }
+
+  return String(value);
+}
+
+function GraphItemDetails({ selectedItem }: { selectedItem: SelectedGraphItem | null }) {
+  if (!selectedItem) {
+    return (
+      <aside className="rounded-xl border border-slate-200 bg-white/85 p-4 shadow-sm">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+          Детали графа
+        </p>
+        <p className="mt-2 text-sm leading-6 text-slate-500">
+          Выберите узел или связь, чтобы увидеть тип, источник и фрагмент доказательства.
+        </p>
+      </aside>
+    );
+  }
+
+  if (selectedItem.kind === "node") {
+    const { node } = selectedItem;
+
+    return (
+      <aside className="rounded-xl border border-ice-100 bg-white/90 p-4 shadow-sm">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ice-600">
+          Детали узла
+        </p>
+        <h3 className="mt-3 text-base font-semibold leading-6 text-slate-950">
+          {node.label || node.id}
+        </h3>
+        <dl className="mt-4 grid gap-3 text-sm md:grid-cols-2">
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+              Тип
+            </dt>
+            <dd className="mt-1 text-slate-700">{getNodeTypeLabel(node.type)}</dd>
+          </div>
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+              ID
+            </dt>
+            <dd className="mt-1 break-all text-slate-700">{node.id}</dd>
+          </div>
+          {node.confidence ? (
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+                Достоверность
+              </dt>
+              <dd className="mt-1 text-slate-700">{node.confidence}</dd>
+            </div>
+          ) : null}
+          {node.description ? (
+            <div className="md:col-span-2">
+              <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+                Описание
+              </dt>
+              <dd className="mt-1 leading-6 text-slate-700">{node.description}</dd>
+            </div>
+          ) : null}
+        </dl>
+      </aside>
+    );
+  }
+
+  const { edge } = selectedItem;
+  const sourceRef = edge.sourceRef;
+
+  return (
+    <aside className="rounded-xl border border-ice-100 bg-white/90 p-4 shadow-sm">
+      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ice-600">
+        Детали связи
+      </p>
+      <dl className="mt-4 grid gap-3 text-sm md:grid-cols-2">
+        <div>
+          <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+            Связь
+          </dt>
+          <dd className="mt-1 text-slate-700">{getRelationLabel(edge.label ?? edge.relation)}</dd>
+        </div>
+        <div>
+          <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+            ID
+          </dt>
+          <dd className="mt-1 break-all text-slate-700">{edge.id}</dd>
+        </div>
+        <div>
+          <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+            Источник
+          </dt>
+          <dd className="mt-1 text-slate-700">
+            {formatOptionalValue(sourceRef?.sourceName ?? sourceRef?.documentTitle)}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+            Страница / chunk
+          </dt>
+          <dd className="mt-1 text-slate-700">
+            {formatOptionalValue(sourceRef?.page)} / {formatOptionalValue(sourceRef?.chunkId)}
+          </dd>
+        </div>
+        {edge.evidenceText ? (
+          <div className="md:col-span-2">
+            <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+              Фрагмент доказательства
+            </dt>
+            <dd className="mt-1 leading-6 text-slate-700">{edge.evidenceText}</dd>
+          </div>
+        ) : null}
+      </dl>
+    </aside>
+  );
+}
+
 export function KnowledgeGraph({ graph, mode = "compact", title = "Граф связей" }: KnowledgeGraphProps) {
   const nodes = useMemo(() => createFlowNodes(graph, mode), [graph, mode]);
   const edges = useMemo(() => createFlowEdges(graph), [graph]);
+  const [selectedItem, setSelectedItem] = useState<SelectedGraphItem | null>(null);
   const flowWrapperRef = useRef<HTMLDivElement | null>(null);
   const flowInstanceRef = useRef<ReactFlowInstance<FlowNode, FlowEdge> | null>(null);
   const heightClassName = mode === "compact" ? "h-[360px]" : "h-[640px]";
+
+  useEffect(() => {
+    setSelectedItem(null);
+  }, [graph]);
 
   useEffect(() => {
     const wrapperElement = flowWrapperRef.current;
@@ -328,6 +468,16 @@ export function KnowledgeGraph({ graph, mode = "compact", title = "Граф св
               onInit={(instance) => {
                 flowInstanceRef.current = instance;
               }}
+              onNodeClick={(_, node) => {
+                setSelectedItem({ kind: "node", node: node.data.originalNode });
+              }}
+              onEdgeClick={(_, edge) => {
+                const originalEdge = edge.data?.originalEdge ?? graph.edges.find((graphEdge) => graphEdge.id === edge.id);
+
+                if (originalEdge) {
+                  setSelectedItem({ kind: "edge", edge: originalEdge });
+                }
+              }}
               fitView
               fitViewOptions={{ padding: 0.18 }}
               nodesDraggable={false}
@@ -344,6 +494,7 @@ export function KnowledgeGraph({ graph, mode = "compact", title = "Граф св
             </ReactFlow>
           </div>
           <GraphLegend />
+          <GraphItemDetails selectedItem={selectedItem} />
         </div>
       )}
     </SectionCard>

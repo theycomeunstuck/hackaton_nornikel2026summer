@@ -162,6 +162,8 @@ function toGraphNode(node: RagGraphNode): GraphNode {
     "process",
     "equipment",
     "parameter",
+    "condition",
+    "entity",
     "claim",
     "source",
     "effect",
