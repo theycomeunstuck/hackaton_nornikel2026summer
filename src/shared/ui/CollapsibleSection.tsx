@@ -51,16 +51,12 @@ export function CollapsibleSection({
             className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-ice-100 bg-ice-50 text-lg font-semibold text-ice-700 transition"
             aria-hidden="true"
           >
-            {isOpen ? "−" : "+"}
+            {isOpen ? "-" : "+"}
           </span>
         </span>
       </button>
 
-      {isOpen ? (
-        <div className="border-t border-slate-100 px-5 py-5">
-          {children}
-        </div>
-      ) : null}
+      {isOpen ? <div className="border-t border-slate-100 px-5 py-5">{children}</div> : null}
     </section>
   );
 }

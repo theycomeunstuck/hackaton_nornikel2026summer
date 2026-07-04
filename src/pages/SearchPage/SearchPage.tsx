@@ -53,7 +53,7 @@ export function SearchPage() {
         const message =
           caughtError instanceof Error
             ? caughtError.message
-            : "Не удалось загрузить сценарий анализа.";
+            : "Не удалось загрузить выбранный сценарий анализа.";
         setResult(null);
         setError(message);
       })
@@ -65,7 +65,7 @@ export function SearchPage() {
   return (
     <ContentContainer>
       <EvidencePageHeader
-        eyebrow="Evidence search"
+        eyebrow="Поиск доказательств"
         title="Проверка научно-технических доказательств"
         description="Введите вопрос, выберите пример при необходимости и запустите поиск доказательств. Результат показывает разбор запроса, краткий вывод, таблицу фрагментов, источники, граф связей, противоречия и пробелы."
         aside={
@@ -120,7 +120,7 @@ export function SearchPage() {
             Введите вопрос и нажмите «Найти доказательства»
           </p>
           <p className="mt-2 text-sm text-slate-600">
-            Примеры ниже заполняют поле вопроса и выбирают подготовленный набор доказательств.
+            Примеры заполняют поле вопроса и выбирают подготовленный набор доказательств.
           </p>
         </section>
       ) : null}
@@ -128,7 +128,7 @@ export function SearchPage() {
       {result ? (
         <div className="space-y-4">
           <CollapsibleSection
-            title="Query understanding"
+            title="Как разобран запрос"
             eyebrow="Разбор запроса"
             description="Как выбранный запрос разложен на намерение, материалы, процессы, условия и временной контекст."
             defaultOpen={false}
@@ -137,8 +137,8 @@ export function SearchPage() {
           </CollapsibleSection>
 
           <CollapsibleSection
-            title="Evidence summary"
-            eyebrow="Краткий вывод"
+            title="Краткий вывод"
+            eyebrow="Резюме доказательств"
             description="Короткий вывод по найденным фрагментам и уровень уверенности результата."
             defaultOpen={false}
           >
@@ -146,7 +146,7 @@ export function SearchPage() {
           </CollapsibleSection>
 
           <CollapsibleSection
-            title="Evidence table"
+            title="Таблица доказательств"
             eyebrow="Фрагменты доказательств"
             description="Главная рабочая таблица: фрагменты доказательств, условия, источники и оценка уверенности."
             defaultOpen={false}
@@ -155,17 +155,17 @@ export function SearchPage() {
           </CollapsibleSection>
 
           <CollapsibleSection
-            title="Knowledge graph"
-            eyebrow="Граф связей"
-            description="Схема связей между узлами результата: материалами, процессами, параметрами, источниками и другими объектами."
+            title="Граф связей"
+            eyebrow="Граф знаний"
+            description="Схема связей между материалами, процессами, параметрами, источниками и другими объектами результата."
             defaultOpen={false}
           >
-            <KnowledgeGraph graph={result.graph} mode="compact" title="Knowledge graph" />
+            <KnowledgeGraph graph={result.graph} mode="compact" title="Граф связей" />
           </CollapsibleSection>
 
           <CollapsibleSection
-            title="Sources"
-            eyebrow="Источники"
+            title="Источники"
+            eyebrow="Документы и фрагменты"
             description="Компактный список документов и фрагментов, на которые опирается текущий результат."
             defaultOpen={false}
           >
@@ -173,8 +173,8 @@ export function SearchPage() {
           </CollapsibleSection>
 
           <CollapsibleSection
-            title="Contradictions"
-            eyebrow="Противоречия"
+            title="Противоречия"
+            eyebrow="Экспертная проверка"
             description="Конфликтующие выводы или расхождения, которые требуют экспертной проверки."
             defaultOpen={false}
           >
@@ -182,8 +182,8 @@ export function SearchPage() {
           </CollapsibleSection>
 
           <CollapsibleSection
-            title="Knowledge gaps"
-            eyebrow="Пробелы"
+            title="Пробелы"
+            eyebrow="Слабые зоны"
             description="Недостающие данные и слабые места доказательной базы."
             defaultOpen={false}
           >
@@ -191,7 +191,7 @@ export function SearchPage() {
           </CollapsibleSection>
 
           <CollapsibleSection
-            title="Export"
+            title="Экспорт отчёта"
             eyebrow="Отчёт"
             description="Сохранение текущего результата анализа в отчёт для дальнейшей проверки и обсуждения."
             defaultOpen={false}

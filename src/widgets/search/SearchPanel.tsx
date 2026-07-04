@@ -11,14 +11,14 @@ export function SearchPanel({ query, onQueryChange, onSearch, disabled = false }
       <div className="grid grid-cols-[minmax(0,1fr)_280px] gap-6">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-ice-600">
-            Evidence search
+            Поиск доказательств
           </p>
           <h2 className="mt-2 text-2xl font-semibold text-slate-950">
             Сформулируйте научно-технический вопрос
           </h2>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-            Укажите материал, процесс, параметры или требуемый результат. В демо-режиме
-            результат берётся из подготовленного mock-сценария.
+            Укажите материал, процесс, параметры или требуемый результат. В демонстрационном
+            режиме результат берётся из подготовленного сценария.
           </p>
         </div>
 
