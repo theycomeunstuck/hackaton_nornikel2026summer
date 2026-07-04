@@ -51,7 +51,7 @@ export function FileDropzone({ selectedFile, onFileSelect }: FileDropzoneProps) 
       }}
       onDragLeave={() => setIsDragging(false)}
       onDrop={handleDrop}
-      className={`rounded border-2 border-dashed p-6 transition ${
+      className={`rounded-2xl border-2 border-dashed p-6 shadow-glass transition ${
         isDragging
           ? "border-ice-500 bg-ice-50"
           : "border-slate-300 bg-white/78 hover:border-ice-300 hover:bg-ice-50/45"
@@ -73,28 +73,28 @@ export function FileDropzone({ selectedFile, onFileSelect }: FileDropzoneProps) 
       <div className="grid grid-cols-[minmax(0,1fr)_180px] items-center gap-5">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ice-600">
-            Прием документа
+            Приём документа
           </p>
           <h3 className="mt-2 text-xl font-semibold text-slate-950">
             Перетащите документ или выберите файл
           </h3>
           <p className="mt-2 text-sm leading-6 text-slate-600">
-            Поддерживаются PDF, DOCX, TXT, CSV и XLSX. Файл подготавливается к
-            локальной обработке и пополнению индекса доказательств.
+            Поддерживаются PDF, DOCX, TXT, CSV и XLSX. Файл подготавливается к локальной обработке
+            и пополнению индекса доказательств.
           </p>
         </div>
 
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="rounded bg-graphite-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-graphite-800"
+          className="rounded-xl bg-graphite-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-graphite-800"
         >
           Выбрать файл
         </button>
       </div>
 
       {selectedFile ? (
-        <div className="mt-5 grid grid-cols-3 gap-3 rounded border border-ice-100 bg-ice-50 p-4 text-sm">
+        <div className="mt-5 grid grid-cols-3 gap-3 rounded-xl border border-ice-100 bg-ice-50 p-4 text-sm">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
               Имя
@@ -115,7 +115,7 @@ export function FileDropzone({ selectedFile, onFileSelect }: FileDropzoneProps) 
           </div>
         </div>
       ) : (
-        <div className="mt-5 rounded border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+        <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
           Файл пока не выбран. После выбора можно запустить обработку документа.
         </div>
       )}

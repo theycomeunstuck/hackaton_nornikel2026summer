@@ -54,7 +54,7 @@ export type SourceStats = {
 
 const sourceTypeLabel: Record<SourceType, string> = {
   scientific_article: "Публикации",
-  internal_report: "Отчеты",
+  internal_report: "Отчёты",
   patent: "Патенты",
   experiment_protocol: "Эксперименты",
   technical_standard: "Стандарты",
@@ -138,7 +138,7 @@ export function buildSourceStats(
         label: "Всего источников",
         value: String(sources.length),
         tone: "cyan",
-        description: "Публикации, отчеты и протоколы, поддерживающие утверждения.",
+        description: "Публикации, отчёты и протоколы, поддерживающие утверждения.",
       },
       ...typeDistribution.map((item) => ({
         label: item.label,
@@ -147,10 +147,10 @@ export function buildSourceStats(
         description: "Распределение по типу источника.",
       })),
       {
-        label: "Высокая надежность",
+        label: "Высокая надёжность",
         value: String(sources.filter((source) => source.reliability === "high").length),
         tone: "green",
-        description: "Источники с высокой надежностью.",
+        description: "Источники с высокой надёжностью.",
       },
       {
         label: "Диапазон лет",

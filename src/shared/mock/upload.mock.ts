@@ -38,7 +38,7 @@ export const uploadProcessingSteps: UploadProcessingStep[] = [
   },
   {
     id: "text_extracted",
-    title: "Текст извлечен",
+    title: "Текст извлечён",
     description: "Содержимое подготовлено для разбиения на научно-технические фрагменты.",
   },
   {
@@ -63,7 +63,7 @@ export const uploadProcessingSteps: UploadProcessingStep[] = [
   },
   {
     id: "evidence_index_updated",
-    title: "Индекс доказательств обновлен",
+    title: "Индекс доказательств обновлён",
     description: "Новые утверждения, источники и связи готовы для поиска доказательств.",
   },
 ];

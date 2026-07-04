@@ -11,7 +11,7 @@ type ClaimCardProps = {
 
 const sourceTypeLabel: Record<SourceType, string> = {
   scientific_article: "Научная статья",
-  internal_report: "Внутренний отчет",
+  internal_report: "Внутренний отчёт",
   patent: "Патент",
   experiment_protocol: "Протокол эксперимента",
   technical_standard: "Технический стандарт",
@@ -50,7 +50,7 @@ function formatEffect(effect: Effect): string {
 
 export function ClaimCard({ item }: ClaimCardProps) {
   return (
-    <details className="rounded border border-slate-200 bg-white/86 p-5 shadow-sm">
+    <details className="rounded-xl border border-slate-200 bg-white/86 p-5 shadow-sm">
       <summary className="cursor-pointer list-none">
         <div className="flex items-start justify-between gap-5">
           <div>
@@ -67,7 +67,7 @@ export function ClaimCard({ item }: ClaimCardProps) {
             </h3>
             <p className="mt-2 text-sm text-slate-500">{item.scenarioTitle}</p>
           </div>
-          <div className="min-w-44 rounded border border-ice-100 bg-ice-50 p-3 text-sm">
+          <div className="min-w-44 rounded-xl border border-ice-100 bg-ice-50 p-3 text-sm">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ice-600">
               Источник
             </p>
@@ -88,7 +88,7 @@ export function ClaimCard({ item }: ClaimCardProps) {
             <p className="mt-1 text-slate-700">{formatList(item.claim.processes)}</p>
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Технология</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Оборудование</p>
             <p className="mt-1 text-slate-700">{formatList(item.claim.equipment)}</p>
           </div>
           <div>
@@ -101,7 +101,7 @@ export function ClaimCard({ item }: ClaimCardProps) {
       <div className="mt-5 border-t border-slate-200 pt-5">
         <div className="grid grid-cols-[minmax(0,1fr)_360px] gap-5">
           <div className="space-y-4">
-            <div className="rounded border border-slate-200 bg-slate-50 p-4">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
                 Полное утверждение
               </p>
@@ -109,14 +109,14 @@ export function ClaimCard({ item }: ClaimCardProps) {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="rounded border border-slate-200 bg-white p-4">
+              <div className="rounded-xl border border-slate-200 bg-white p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
                   Условия
                 </p>
                 <div className="mt-3 space-y-2">
                   {item.relatedConditions.length > 0 ? (
                     item.relatedConditions.map((condition) => (
-                      <div key={condition.id} className="rounded bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                      <div key={condition.id} className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700">
                         {formatCondition(condition)}
                       </div>
                     ))
@@ -125,14 +125,14 @@ export function ClaimCard({ item }: ClaimCardProps) {
                   )}
                 </div>
               </div>
-              <div className="rounded border border-slate-200 bg-white p-4">
+              <div className="rounded-xl border border-slate-200 bg-white p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
                   Эффекты
                 </p>
                 <div className="mt-3 space-y-2">
                   {item.relatedEffects.length > 0 ? (
                     item.relatedEffects.map((effect) => (
-                      <div key={effect.id} className="rounded bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+                      <div key={effect.id} className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
                         {formatEffect(effect)}
                       </div>
                     ))
@@ -143,7 +143,7 @@ export function ClaimCard({ item }: ClaimCardProps) {
               </div>
             </div>
 
-            <div className="rounded border border-slate-200 bg-white p-4">
+            <div className="rounded-xl border border-slate-200 bg-white p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
                 Связанные отношения графа
               </p>
@@ -152,7 +152,7 @@ export function ClaimCard({ item }: ClaimCardProps) {
                   item.relatedGraphRelations.map((relation) => (
                     <div key={relation.id} className="grid grid-cols-[1fr_130px_1fr] items-center gap-3 text-xs text-slate-600">
                       <span className="truncate">{relation.source}</span>
-                      <span className="rounded border border-ice-100 bg-ice-50 px-2 py-1 text-center font-semibold text-ice-600">
+                      <span className="rounded-full border border-ice-100 bg-ice-50 px-2 py-1 text-center font-semibold text-ice-600">
                         {relation.label}
                       </span>
                       <span className="truncate text-right">{relation.target}</span>
@@ -166,7 +166,7 @@ export function ClaimCard({ item }: ClaimCardProps) {
           </div>
 
           <aside className="space-y-4">
-            <div className="rounded border border-ice-100 bg-ice-50 p-4">
+            <div className="rounded-xl border border-ice-100 bg-ice-50 p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ice-600">
                 Ссылка на источник
               </p>
@@ -183,7 +183,7 @@ export function ClaimCard({ item }: ClaimCardProps) {
               ) : null}
             </div>
 
-            <div className="rounded border border-orange-200 bg-orange-50 p-4">
+            <div className="rounded-xl border border-orange-200 bg-orange-50 p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-orange-700">
                 Контекст проверки
               </p>
@@ -197,8 +197,8 @@ export function ClaimCard({ item }: ClaimCardProps) {
               <p className="mt-3 text-sm leading-6 text-slate-700">
                 <span className="font-semibold">Следующий шаг: </span>
                 {item.status === "confirmed"
-                  ? "Можно использовать в доказательном отчете с сохранением ссылки на источник."
-                  : "Проверить условия эксперимента, источники и связанные пробелы перед использованием в отчете."}
+                  ? "Можно использовать в доказательном отчёте с сохранением ссылки на источник."
+                  : "Проверить условия эксперимента, источники и связанные пробелы перед использованием в отчёте."}
               </p>
             </div>
           </aside>

@@ -97,7 +97,7 @@ export function ProcessingPipeline({ canStart, onComplete, onReset }: Processing
   };
 
   return (
-    <div className="rounded border border-white/75 bg-white/72 p-5 shadow-glass backdrop-blur-2xl">
+    <div className="rounded-2xl border border-white/75 bg-white/72 p-5 shadow-glass backdrop-blur-2xl">
       <div className="flex items-start justify-between gap-5">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ice-600">
@@ -107,15 +107,15 @@ export function ProcessingPipeline({ canStart, onComplete, onReset }: Processing
             От документа к индексу доказательств
           </h3>
           <p className="mt-2 text-sm leading-6 text-slate-600">
-            Процесс показывает, как файл превращается в фрагменты, утверждения,
-            сущности, ссылки на источники и связи графа.
+            Процесс показывает, как файл превращается в фрагменты, утверждения, сущности, ссылки на
+            источники и связи графа.
           </p>
         </div>
         <button
           type="button"
           disabled={!canStart || isProcessing}
           onClick={handleStart}
-          className="rounded bg-ice-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-ice-600 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500"
+          className="rounded-xl bg-ice-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-ice-600 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500"
         >
           {isProcessing ? "Обработка..." : "Запустить обработку"}
         </button>
@@ -126,8 +126,8 @@ export function ProcessingPipeline({ canStart, onComplete, onReset }: Processing
           <span className="font-semibold text-slate-700">Прогресс</span>
           <span className="text-slate-500">{progress}%</span>
         </div>
-        <div className="mt-2 h-2 overflow-hidden rounded bg-slate-100">
-          <div className="h-full rounded bg-ice-500 transition-all" style={{ width: `${progress}%` }} />
+        <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
+          <div className="h-full rounded-full bg-ice-500 transition-all" style={{ width: `${progress}%` }} />
         </div>
       </div>
 
@@ -135,7 +135,7 @@ export function ProcessingPipeline({ canStart, onComplete, onReset }: Processing
         {steps.map((step, index) => (
           <div
             key={step.id}
-            className={`grid grid-cols-[42px_minmax(0,1fr)_110px] items-center gap-4 rounded border p-3 ${
+            className={`grid grid-cols-[42px_minmax(0,1fr)_110px] items-center gap-4 rounded-xl border p-3 ${
               step.status === "running"
                 ? "border-ice-200 bg-ice-50"
                 : step.status === "done"
@@ -143,7 +143,7 @@ export function ProcessingPipeline({ canStart, onComplete, onReset }: Processing
                   : "border-slate-200 bg-white"
             }`}
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded bg-graphite-900 text-xs font-semibold text-white">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-graphite-900 text-xs font-semibold text-white">
               {index + 1}
             </div>
             <div>

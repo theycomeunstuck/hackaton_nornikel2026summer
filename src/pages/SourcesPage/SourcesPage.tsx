@@ -8,6 +8,8 @@ import {
   type SourceListItem,
 } from "../../shared/lib/sourceStats";
 import { ConfidenceBadge } from "../../shared/ui/ConfidenceBadge";
+import { ContentContainer } from "../../shared/ui/ContentContainer";
+import { EvidencePageHeader } from "../../shared/ui/EvidencePageHeader";
 import { FilterField } from "../../shared/ui/filters/FilterField";
 import { FilterInput } from "../../shared/ui/filters/FilterInput";
 import { FilterPanel } from "../../shared/ui/filters/FilterPanel";
@@ -51,9 +53,9 @@ function DistributionBars({ items }: { items: Array<{ label: string; count: numb
             <span className="font-medium text-slate-700">{item.label}</span>
             <span className="text-slate-500">{item.count}</span>
           </div>
-          <div className="mt-2 h-2 overflow-hidden rounded bg-slate-100">
+          <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
             <div
-              className="h-full rounded bg-ice-500"
+              className="h-full rounded-full bg-ice-500"
               style={{ width: `${Math.max((item.count / maxCount) * 100, 8)}%` }}
             />
           </div>
@@ -64,11 +66,12 @@ function DistributionBars({ items }: { items: Array<{ label: string; count: numb
 }
 
 function SourceCard({ item }: { item: SourceListItem }) {
-  const languageLabel = item.language === "en" ? "английский" : item.language === "ru" ? "русский" : "не указан";
+  const languageLabel =
+    item.language === "en" ? "английский" : item.language === "ru" ? "русский" : "не указан";
   const geographyLabel = item.geography === "unknown" ? "не указана" : item.geography;
 
   return (
-    <details className="rounded border border-slate-200 bg-white/86 p-4 shadow-sm">
+    <details className="rounded-xl border border-slate-200 bg-white/86 p-4 shadow-sm">
       <summary className="cursor-pointer list-none">
         <div className="grid grid-cols-[minmax(0,1fr)_140px_110px_120px] items-start gap-4">
           <div>
@@ -76,7 +79,7 @@ function SourceCard({ item }: { item: SourceListItem }) {
             <p className="mt-2 text-sm leading-6 text-slate-600">{item.excerpt}</p>
             <div className="mt-3 flex flex-wrap gap-2">
               {item.source.tags.map((tag) => (
-                <span key={tag} className="rounded border border-ice-100 bg-ice-50 px-2 py-1 text-xs text-ice-600">
+                <span key={tag} className="rounded-full border border-ice-100 bg-ice-50 px-2.5 py-1 text-xs text-ice-600">
                   {tag}
                 </span>
               ))}
@@ -116,14 +119,14 @@ function SourceCard({ item }: { item: SourceListItem }) {
           </div>
         </div>
 
-        <div className="mt-4 rounded border border-slate-200 bg-slate-50 p-4">
+        <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
             Связанные утверждения и ссылки
           </p>
           <div className="mt-3 space-y-3">
             {item.references.length > 0 ? (
               item.references.map((reference) => (
-                <div key={reference.chunkId} className="rounded border border-white bg-white p-3">
+                <div key={reference.chunkId} className="rounded-xl border border-white bg-white p-3">
                   <div className="flex items-start justify-between gap-4">
                     <p className="text-sm leading-6 text-slate-700">{reference.claimText}</p>
                     <ConfidenceBadge confidence={reference.confidence} />
@@ -143,6 +146,19 @@ function SourceCard({ item }: { item: SourceListItem }) {
   );
 }
 
+function SourcesHeaderAside() {
+  return (
+    <div className="rounded-xl border border-ice-100 bg-ice-50/75 p-5">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ice-600">
+        Принцип доказательности
+      </p>
+      <p className="mt-3 text-lg font-semibold text-slate-950">
+        Фактическое утверждение должно иметь источник.
+      </p>
+    </div>
+  );
+}
+
 export function SourcesPage() {
   const [filters, setFilters] = useState<SourceFilters>(initialFilters);
 
@@ -159,30 +175,13 @@ export function SourcesPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-[1680px] space-y-6">
-      <section className="rounded border border-white/75 bg-white/76 p-7 shadow-glass backdrop-blur-2xl">
-        <div className="grid grid-cols-[minmax(0,1fr)_360px] gap-8">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-ice-600">
-              Источники
-            </p>
-            <h2 className="mt-3 text-3xl font-semibold text-slate-950">
-              Доказательная база утверждений
-            </h2>
-            <p className="mt-3 max-w-4xl text-sm leading-6 text-slate-600">
-              Источники связывают утверждения с конкретными документами, страницами и
-              фрагментами. Эксперт может быстро увидеть тип источника, надежность и
-              поддерживаемые утверждения.
-            </p>
-          </div>
-          <div className="rounded border border-ice-100 bg-graphite-900 p-5 text-white">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ice-300">
-              Принцип доказательности
-            </p>
-            <p className="mt-3 text-lg font-semibold">Фактическое утверждение должно иметь источник.</p>
-          </div>
-        </div>
-      </section>
+    <ContentContainer>
+      <EvidencePageHeader
+        eyebrow="Источники"
+        title="Доказательная база утверждений"
+        description="Источники связывают утверждения с конкретными документами, страницами и фрагментами. Страница помогает быстро увидеть тип источника, надёжность и поддерживаемые утверждения."
+        aside={<SourcesHeaderAside />}
+      />
 
       <section className="grid grid-cols-4 gap-4">
         {sourceStats.metrics.slice(0, 8).map((metric) => (
@@ -200,7 +199,7 @@ export function SourcesPage() {
         <SectionCard title="Реестр источников" eyebrow="Проверяемые ссылки">
           <FilterPanel
             title="Фильтры источников"
-            description="Проверьте корпус по типу документа, надежности и году публикации."
+            description="Проверьте корпус по типу документа, надёжности и году публикации."
             action={<ResetFiltersButton label="Очистить фильтры" onClick={() => setFilters(initialFilters)} />}
             columnsClassName="grid-cols-5"
           >
@@ -269,7 +268,7 @@ export function SourcesPage() {
             {filteredItems.length > 0 ? (
               filteredItems.map((item) => <SourceCard key={item.source.id} item={item} />)
             ) : (
-              <div className="rounded border border-amber-200 bg-amber-50 p-6 text-sm text-amber-700">
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-700">
                 По текущим фильтрам источники не найдены. Измените тип, год или строку поиска.
               </div>
             )}
@@ -280,13 +279,13 @@ export function SourcesPage() {
           <SectionCard title="Покрытие по типу" eyebrow="Распределение">
             <DistributionBars items={sourceStats.typeDistribution} />
           </SectionCard>
-          <SectionCard title="Надежность" eyebrow="Качество источников">
+          <SectionCard title="Надёжность" eyebrow="Качество источников">
             <DistributionBars items={sourceStats.reliabilityDistribution} />
           </SectionCard>
           <SectionCard title="Режим просмотра" eyebrow="Статус раздела">
             <p className="text-sm leading-6 text-slate-600">
-              Страница показывает сведения из текущего индекса доказательств.
-              География отмечена как не указанная, если она отсутствует в данных источника.
+              Страница показывает сведения из текущего индекса доказательств. География отмечена
+              как не указанная, если она отсутствует в данных источника.
             </p>
             <div className="mt-4">
               <StatusBadge label="только просмотр" tone="info" />
@@ -294,6 +293,6 @@ export function SourcesPage() {
           </SectionCard>
         </div>
       </div>
-    </div>
+    </ContentContainer>
   );
 }

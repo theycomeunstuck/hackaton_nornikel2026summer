@@ -8,6 +8,8 @@ import {
 import type { UploadExtractionResult } from "../../shared/mock/upload.mock";
 import { mockUploadExtractionResult } from "../../shared/mock/upload.mock";
 import { ConfidenceBadge } from "../../shared/ui/ConfidenceBadge";
+import { ContentContainer } from "../../shared/ui/ContentContainer";
+import { EvidencePageHeader } from "../../shared/ui/EvidencePageHeader";
 import { FileDropzone, type SelectedUploadFile } from "../../shared/ui/FileDropzone";
 import { MetricCard } from "../../shared/ui/MetricCard";
 import { SectionCard } from "../../shared/ui/SectionCard";
@@ -43,7 +45,7 @@ function TagGroup({ title, items }: { title: string; items: string[] }) {
       <div className="mt-2 flex flex-wrap gap-2">
         {items.length > 0 ? (
           items.map((item) => (
-            <span key={item} className="rounded border border-ice-100 bg-ice-50 px-2.5 py-1 text-xs font-medium text-ice-600">
+            <span key={item} className="rounded-full border border-ice-100 bg-ice-50 px-2.5 py-1 text-xs font-medium text-ice-600">
               {item}
             </span>
           ))
@@ -58,20 +60,20 @@ function TagGroup({ title, items }: { title: string; items: string[] }) {
 function ExtractedObjectsPanel({ extraction }: { extraction: UploadExtractionResult }) {
   return (
     <div className="space-y-6">
-      <SectionCard title="Извлеченные объекты" eyebrow="Результат обработки">
+      <SectionCard title="Извлечённые объекты" eyebrow="Результат обработки">
         <div className="grid grid-cols-3 gap-5">
           <TagGroup title="Материалы" items={extraction.materials} />
           <TagGroup title="Процессы" items={extraction.processes} />
           <TagGroup title="Оборудование" items={extraction.equipment} />
         </div>
 
-        <div className="mt-6 rounded border border-slate-200 bg-slate-50 p-4">
+        <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
             Параметры и числовые условия
           </p>
           <div className="mt-3 grid grid-cols-2 gap-3">
             {extraction.conditions.map((condition) => (
-              <div key={condition.id} className="rounded border border-white bg-white p-3 text-sm text-slate-700">
+              <div key={condition.id} className="rounded-xl border border-white bg-white p-3 text-sm text-slate-700">
                 {formatCondition(condition)}
               </div>
             ))}
@@ -82,7 +84,7 @@ function ExtractedObjectsPanel({ extraction }: { extraction: UploadExtractionRes
       <SectionCard title="Утверждения и ссылки на источники" eyebrow="Доказательные объекты">
         <div className="space-y-3">
           {extraction.claims.map((claim) => (
-            <article key={claim.id} className="rounded border border-slate-200 bg-white/86 p-4">
+            <article key={claim.id} className="rounded-xl border border-slate-200 bg-white/86 p-4 shadow-sm">
               <div className="flex items-start justify-between gap-4">
                 <p className="text-sm leading-6 text-slate-900">{claim.statement}</p>
                 <ConfidenceBadge confidence={claim.confidence} />
@@ -109,10 +111,10 @@ function ExtractedObjectsPanel({ extraction }: { extraction: UploadExtractionRes
       <SectionCard title="Связи графа" eyebrow="Граф утверждений">
         <div className="grid grid-cols-2 gap-3">
           {extraction.graphRelations.map((relation) => (
-            <div key={relation.id} className="rounded border border-slate-200 bg-white/86 p-3">
+            <div key={relation.id} className="rounded-xl border border-slate-200 bg-white/86 p-3">
               <div className="grid grid-cols-[1fr_120px_1fr] items-center gap-3 text-xs">
                 <span className="truncate text-slate-600">{relation.source}</span>
-                <span className="rounded border border-ice-100 bg-ice-50 px-2 py-1 text-center font-semibold text-ice-600">
+                <span className="rounded-full border border-ice-100 bg-ice-50 px-2 py-1 text-center font-semibold text-ice-600">
                   {relation.label}
                 </span>
                 <span className="truncate text-right text-slate-600">{relation.target}</span>
@@ -121,6 +123,19 @@ function ExtractedObjectsPanel({ extraction }: { extraction: UploadExtractionRes
           ))}
         </div>
       </SectionCard>
+    </div>
+  );
+}
+
+function UploadHeaderAside() {
+  return (
+    <div className="rounded-xl border border-ice-100 bg-ice-50/75 p-5">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ice-600">
+        Индекс доказательств
+      </p>
+      <p className="mt-3 text-lg font-semibold text-slate-950">
+        Новый документ должен добавить проверяемые утверждения, источники и связи в граф.
+      </p>
     </div>
   );
 }
@@ -186,32 +201,13 @@ export function UploadPage() {
   };
 
   return (
-    <div className="mx-auto max-w-[1680px] space-y-6">
-      <section className="rounded border border-white/75 bg-white/76 p-7 shadow-glass backdrop-blur-2xl">
-        <div className="grid grid-cols-[minmax(0,1fr)_420px] gap-8">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-ice-600">
-              Загрузка документов
-            </p>
-            <h2 className="mt-3 text-3xl font-semibold text-slate-950">
-              Загрузка документа в индекс доказательств
-            </h2>
-            <p className="mt-3 max-w-4xl text-sm leading-6 text-slate-600">
-              Процесс показывает, как документ проходит обработку: текст,
-              фрагменты, утверждения, сущности, числовые условия, ссылки на источники
-              и связи графа.
-            </p>
-          </div>
-          <div className="rounded border border-ice-100 bg-graphite-900 p-5 text-white">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ice-300">
-              Индекс доказательств
-            </p>
-            <p className="mt-3 text-lg font-semibold">
-              Новый документ должен добавить проверяемые утверждения, источники и связи в граф.
-            </p>
-          </div>
-        </div>
-      </section>
+    <ContentContainer>
+      <EvidencePageHeader
+        eyebrow="Загрузка документов"
+        title="Загрузка документа в индекс доказательств"
+        description="Процесс показывает, как документ проходит обработку: текст, фрагменты, утверждения, сущности, числовые условия, ссылки на источники и связи графа."
+        aside={<UploadHeaderAside />}
+      />
 
       <div className="grid grid-cols-[minmax(0,0.95fr)_minmax(520px,1.05fr)] gap-6">
         <div className="space-y-6">
@@ -226,7 +222,7 @@ export function UploadPage() {
         <div className="space-y-6">
           <SectionCard title="Состояние обработки" eyebrow="Статус документа">
             <div className="grid grid-cols-2 gap-4">
-              <div className="rounded border border-slate-200 bg-slate-50 p-4">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
                   Выбранный файл
                 </p>
@@ -234,7 +230,7 @@ export function UploadPage() {
                   {selectedFile?.name ?? "Файл не выбран"}
                 </p>
               </div>
-              <div className="rounded border border-slate-200 bg-slate-50 p-4">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
                   Статус документа
                 </p>
@@ -247,16 +243,16 @@ export function UploadPage() {
               </div>
             </div>
             {!selectedFile ? (
-              <p className="mt-4 rounded border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
+              <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
                 Выберите файл, чтобы запустить обработку документа.
               </p>
             ) : null}
           </SectionCard>
 
           {extraction ? (
-            <SectionCard title="Индекс доказательств обновлен" eyebrow="Итог обработки">
+            <SectionCard title="Индекс доказательств обновлён" eyebrow="Итог обработки">
               <p className="text-sm leading-6 text-slate-700">
-                Индекс доказательств обновлен: новые утверждения, источники и связи добавлены в граф.
+                Индекс доказательств обновлён: новые утверждения, источники и связи добавлены в граф.
               </p>
               <div className="mt-4 grid grid-cols-5 gap-3">
                 {summaryMetrics.map((metric) => (
@@ -277,13 +273,13 @@ export function UploadPage() {
       {extraction ? (
         <ExtractedObjectsPanel extraction={extraction} />
       ) : (
-        <SectionCard title="Извлеченные объекты" eyebrow="Ожидание обработки">
-          <div className="rounded border border-slate-200 bg-slate-50 p-6 text-sm text-slate-500">
-            После завершения обработки здесь появятся материалы, процессы, оборудование,
-            числовые условия, утверждения, ссылки на источники и связи графа.
+        <SectionCard title="Извлечённые объекты" eyebrow="Ожидание обработки">
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-6 text-sm text-slate-500">
+            После завершения обработки здесь появятся материалы, процессы, оборудование, числовые
+            условия, утверждения, ссылки на источники и связи графа.
           </div>
         </SectionCard>
       )}
-    </div>
+    </ContentContainer>
   );
 }

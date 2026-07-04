@@ -11,6 +11,8 @@ import {
 } from "../../shared/lib/contradictionStats";
 import { getSourceTypeLabel } from "../../shared/lib/sourceStats";
 import { ConfidenceBadge } from "../../shared/ui/ConfidenceBadge";
+import { ContentContainer } from "../../shared/ui/ContentContainer";
+import { EvidencePageHeader } from "../../shared/ui/EvidencePageHeader";
 import { FilterField } from "../../shared/ui/filters/FilterField";
 import { FilterInput } from "../../shared/ui/filters/FilterInput";
 import { FilterPanel } from "../../shared/ui/filters/FilterPanel";
@@ -57,7 +59,7 @@ function ContradictionCard({ item }: { item: ContradictionListItem }) {
   const sourceB = item.contradiction.sourceRefs[1];
 
   return (
-    <article className="rounded border border-orange-200 bg-orange-50/60 p-5 shadow-sm">
+    <article className="rounded-xl border border-orange-200 bg-orange-50/60 p-5 shadow-sm">
       <div className="flex items-start justify-between gap-5">
         <div>
           <h3 className="text-base font-semibold text-slate-950">{item.contradiction.title}</h3>
@@ -71,7 +73,7 @@ function ContradictionCard({ item }: { item: ContradictionListItem }) {
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-4">
-        <div className="rounded border border-white/80 bg-white/86 p-4">
+        <div className="rounded-xl border border-white/80 bg-white/86 p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Утверждение A</p>
           <p className="mt-2 text-sm leading-6 text-slate-700">
             {item.claimA?.statement ?? item.contradiction.conflictingStatements[0] ?? "Утверждение не связано."}
@@ -82,7 +84,7 @@ function ContradictionCard({ item }: { item: ContradictionListItem }) {
             </p>
           ) : null}
         </div>
-        <div className="rounded border border-white/80 bg-white/86 p-4">
+        <div className="rounded-xl border border-white/80 bg-white/86 p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Утверждение B</p>
           <p className="mt-2 text-sm leading-6 text-slate-700">
             {item.claimB?.statement ?? item.contradiction.conflictingStatements[1] ?? "Утверждение не связано."}
@@ -106,7 +108,7 @@ function ContradictionCard({ item }: { item: ContradictionListItem }) {
         </div>
       </div>
 
-      <p className="mt-4 rounded border border-white/80 bg-white/80 p-3 text-sm leading-6 text-slate-700">
+      <p className="mt-4 rounded-xl border border-white/80 bg-white/80 p-3 text-sm leading-6 text-slate-700">
         <span className="font-semibold">Возможная причина и следующий шаг: </span>
         {item.contradiction.resolutionHint}
       </p>
@@ -116,7 +118,7 @@ function ContradictionCard({ item }: { item: ContradictionListItem }) {
 
 function GapCard({ gap }: { gap: KnowledgeGap }) {
   return (
-    <article className="rounded border border-amber-200 bg-amber-50/65 p-4">
+    <article className="rounded-xl border border-amber-200 bg-amber-50/65 p-4">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h3 className="text-sm font-semibold text-slate-950">{gap.title}</h3>
@@ -129,6 +131,19 @@ function GapCard({ gap }: { gap: KnowledgeGap }) {
         {gap.recommendedAction}
       </p>
     </article>
+  );
+}
+
+function ContradictionsHeaderAside() {
+  return (
+    <div className="rounded-xl border border-orange-200 bg-orange-50 p-5">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange-700">
+        Принцип проверки
+      </p>
+      <p className="mt-3 text-lg font-semibold text-slate-950">
+        Конфликт источников должен быть виден до переноса вывода в отчёт.
+      </p>
+    </div>
   );
 }
 
@@ -151,32 +166,13 @@ export function ContradictionsPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-[1680px] space-y-6">
-      <section className="rounded border border-white/75 bg-white/76 p-7 shadow-glass backdrop-blur-2xl">
-        <div className="grid grid-cols-[minmax(0,1fr)_390px] gap-8">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-ice-600">
-              Противоречия
-            </p>
-            <h2 className="mt-3 text-3xl font-semibold text-slate-950">
-              Противоречия и слабые места доказательной базы
-            </h2>
-            <p className="mt-3 max-w-4xl text-sm leading-6 text-slate-600">
-              Противоречия показывают конфликтующие утверждения, разные условия экспериментов
-              или несовпадающие выводы источников. Это не ошибка системы, а точка для
-              экспертной проверки.
-            </p>
-          </div>
-          <div className="rounded border border-orange-200 bg-orange-50 p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange-700">
-              Принцип проверки
-            </p>
-            <p className="mt-3 text-lg font-semibold text-slate-950">
-              Конфликт источников должен быть виден до переноса вывода в отчет.
-            </p>
-          </div>
-        </div>
-      </section>
+    <ContentContainer>
+      <EvidencePageHeader
+        eyebrow="Противоречия"
+        title="Противоречия и слабые места доказательной базы"
+        description="Противоречия показывают конфликтующие утверждения, разные условия экспериментов или несовпадающие выводы источников. Это не ошибка системы, а точка для экспертной проверки."
+        aside={<ContradictionsHeaderAside />}
+      />
 
       <section className="grid grid-cols-4 gap-4">
         <MetricCard
@@ -200,7 +196,7 @@ export function ContradictionsPage() {
         <MetricCard
           label="Критичные / средние"
           value={`${contradictionStats.severityCounts.critical}/${contradictionStats.severityCounts.moderate}`}
-          description="Серьезные и умеренные конфликты."
+          description="Серьёзные и умеренные конфликты."
           tone={contradictionStats.severityCounts.critical > 0 ? "red" : "amber"}
         />
       </section>
@@ -209,7 +205,7 @@ export function ContradictionsPage() {
         <SectionCard title="Разбор противоречий" eyebrow="Конфликтующие доказательства">
           <FilterPanel
             title="Фильтры противоречий"
-            description="Отберите конфликты по серьезности, теме, источнику или тексту описания."
+            description="Отберите конфликты по серьёзности, теме, источнику или тексту описания."
             action={<ResetFiltersButton label="Очистить фильтры" onClick={() => setFilters(initialFilters)} />}
             columnsClassName="grid-cols-4"
           >
@@ -258,7 +254,7 @@ export function ContradictionsPage() {
                 <ContradictionCard key={item.contradiction.id} item={item} />
               ))
             ) : (
-              <div className="rounded border border-amber-200 bg-amber-50 p-6 text-sm text-amber-700">
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-700">
                 По текущим фильтрам противоречия не найдены.
               </div>
             )}
@@ -274,32 +270,32 @@ export function ContradictionsPage() {
             </div>
           </SectionCard>
 
-          <section className="rounded border border-graphite-800 bg-graphite-900 p-5 text-white shadow-glass">
+          <section className="rounded-xl border border-graphite-800 bg-graphite-900 p-5 text-white shadow-glass">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ice-300">
               Следующий шаг
             </p>
             <h2 className="mt-2 text-xl font-semibold">Проверить доказательный контекст</h2>
             <p className="mt-2 text-sm leading-6 text-slate-300">
-              Откройте поиск доказательств или граф знаний, чтобы увидеть утверждения,
-              источники и связи вокруг конфликта.
+              Откройте поиск доказательств или граф знаний, чтобы увидеть утверждения, источники и
+              связи вокруг конфликта.
             </p>
             <div className="mt-4 grid grid-cols-2 gap-3">
               <Link
                 to="/search"
-                className="rounded border border-ice-300/30 bg-ice-500 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-ice-600"
+                className="rounded-xl border border-ice-300/30 bg-ice-500 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-ice-600"
               >
-                Перейти к поиску доказательств
+                Перейти к поиску
               </Link>
               <Link
                 to="/graph"
-                className="rounded border border-white/15 bg-white/8 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-white/14"
+                className="rounded-xl border border-white/15 bg-white/8 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-white/14"
               >
-                Открыть граф знаний
+                Открыть граф
               </Link>
             </div>
           </section>
         </div>
       </div>
-    </div>
+    </ContentContainer>
   );
 }

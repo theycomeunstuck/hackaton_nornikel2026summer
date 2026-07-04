@@ -58,8 +58,8 @@ export function AuthPage() {
             Проверка научно-технических утверждений по источникам, условиям и связям
           </h1>
           <p className="mt-6 max-w-3xl text-base leading-7 text-slate-300">
-            Корпоративная рабочая область для анализа источников, утверждений,
-            противоречий и пробелов в научно-технических данных.
+            Корпоративная рабочая область для анализа источников, утверждений, противоречий и
+            пробелов в научно-технических данных.
           </p>
 
           <div className="mt-8 grid max-w-4xl grid-cols-3 gap-4">
@@ -68,7 +68,7 @@ export function AuthPage() {
               ["Источники", "страницы и фрагменты"],
               ["Граф знаний", "связи материалов и процессов"],
             ].map(([title, description]) => (
-              <div key={title} className="rounded border border-white/10 bg-white/8 p-4">
+              <div key={title} className="rounded-xl border border-white/10 bg-white/8 p-4">
                 <p className="text-lg font-semibold text-white">{title}</p>
                 <p className="mt-2 text-sm leading-6 text-slate-400">{description}</p>
               </div>
@@ -76,14 +76,14 @@ export function AuthPage() {
           </div>
         </section>
 
-        <section className="rounded border border-white/12 bg-white/10 p-6 shadow-glass backdrop-blur-2xl">
-          <div className="rounded border border-ice-300/20 bg-ice-500/10 p-4">
+        <section className="rounded-2xl border border-white/12 bg-white/10 p-6 shadow-glass backdrop-blur-2xl">
+          <div className="rounded-xl border border-ice-300/20 bg-ice-500/10 p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ice-200">
               Тестовый доступ
             </p>
             <h2 className="mt-2 text-2xl font-semibold">Вход в рабочую область</h2>
             <p className="mt-2 text-sm leading-6 text-slate-300">
-              Используйте тестовые учетные данные, чтобы открыть защищенные разделы.
+              Используйте тестовые учётные данные, чтобы открыть защищённые разделы.
             </p>
           </div>
 
@@ -94,7 +94,7 @@ export function AuthPage() {
                 type="email"
                 value={loginValue}
                 onChange={(event) => setLoginValue(event.target.value)}
-                className="mt-2 w-full rounded border border-white/10 bg-white/90 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-ice-300 focus:ring-4 focus:ring-ice-500/20"
+                className="mt-2 w-full rounded-xl border border-white/10 bg-white/90 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-ice-300 focus:ring-4 focus:ring-ice-500/20"
                 autoComplete="email"
               />
             </label>
@@ -105,13 +105,13 @@ export function AuthPage() {
                 type="password"
                 value={secretValue}
                 onChange={(event) => setSecretValue(event.target.value)}
-                className="mt-2 w-full rounded border border-white/10 bg-white/90 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-ice-300 focus:ring-4 focus:ring-ice-500/20"
+                className="mt-2 w-full rounded-xl border border-white/10 bg-white/90 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-ice-300 focus:ring-4 focus:ring-ice-500/20"
                 autoComplete="current-password"
               />
             </label>
 
             {error ? (
-              <div className="rounded border border-red-300/40 bg-red-500/12 px-4 py-3 text-sm text-red-100">
+              <div className="rounded-xl border border-red-300/40 bg-red-500/12 px-4 py-3 text-sm text-red-100">
                 {error}
               </div>
             ) : null}
@@ -119,13 +119,13 @@ export function AuthPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full rounded bg-ice-500 px-5 py-3 text-sm font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-ice-600 disabled:cursor-not-allowed disabled:bg-slate-600"
+              className="w-full rounded-xl bg-ice-500 px-5 py-3 text-sm font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-ice-600 disabled:cursor-not-allowed disabled:bg-slate-600"
             >
               {isSubmitting ? "Вход..." : "Войти"}
             </button>
           </form>
 
-          <div className="mt-5 rounded border border-white/10 bg-white/6 p-4 text-sm text-slate-300">
+          <div className="mt-5 rounded-xl border border-white/10 bg-white/6 p-4 text-sm text-slate-300">
             <p className="font-semibold text-white">Тестовый доступ</p>
             <p className="mt-2">researcher@demo.local / demo123</p>
           </div>
