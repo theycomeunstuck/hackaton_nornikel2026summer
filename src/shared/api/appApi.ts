@@ -86,6 +86,47 @@ export type ExportReportResponse = {
   message?: string;
 };
 
+export type UploadResponse = {
+  documentId: string;
+  title?: string | null;
+  status: string;
+};
+
+export type ProcessingStep = {
+  id: string;
+  title: string;
+  status: "pending" | "running" | "done" | "failed" | string;
+  description?: string | null;
+};
+
+export type ProcessingStatusResponse = {
+  documentId: string;
+  title?: string | null;
+  status: "uploaded" | "processing" | "processed" | "failed" | string;
+  progress?: number | null;
+  steps?: ProcessingStep[];
+  error?: string | null;
+};
+
+export type ExtractionResultResponse = {
+  documentId?: string | null;
+  entities?: {
+    materials?: string[];
+    processes?: string[];
+    equipment?: string[];
+    properties?: string[];
+  } | null;
+  parameters?: string[];
+  conclusions?: string[];
+  relations?: Array<{
+    id?: string | null;
+    source?: string | null;
+    target?: string | null;
+    relation?: string | null;
+    label?: string | null;
+  }>;
+};
+
 export type QueryEvidenceOptions = {
   scenarioId?: string;
   filters?: QueryFilters;
@@ -375,6 +416,49 @@ export function getApiDownloadUrl(downloadUrl: string): string {
 
 export function openReport(downloadUrl: string): void {
   window.open(getApiDownloadUrl(downloadUrl), "_blank", "noopener,noreferrer");
+}
+
+async function requestFormData<TResponse>(
+  path: string,
+  formData: FormData,
+): Promise<TResponse> {
+  const response = await fetch(`${getBaseUrl()}${path}`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error(`App API request failed: ${response.status}`);
+  }
+
+  return (await response.json()) as TResponse;
+}
+
+export async function uploadDocument(file: File, title?: string): Promise<UploadResponse> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  if (title?.trim()) {
+    formData.append("title", title.trim());
+  }
+
+  return requestFormData<UploadResponse>("/api/documents/upload", formData);
+}
+
+export async function getDocumentStatus(
+  documentId: string,
+): Promise<ProcessingStatusResponse> {
+  return requestJson<ProcessingStatusResponse>(
+    `/api/documents/${encodeURIComponent(documentId)}/status`,
+  );
+}
+
+export async function getDocumentExtraction(
+  documentId: string,
+): Promise<ExtractionResultResponse> {
+  return requestJson<ExtractionResultResponse>(
+    `/api/documents/${encodeURIComponent(documentId)}/extraction`,
+  );
 }
 
 export async function queryEvidence(

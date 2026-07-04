@@ -4,6 +4,7 @@ export type SelectedUploadFile = {
   name: string;
   size: number;
   type: string;
+  file: File;
 };
 
 type FileDropzoneProps = {
@@ -26,6 +27,7 @@ function toSelectedUploadFile(file: File): SelectedUploadFile {
     name: file.name,
     size: file.size,
     type: file.type || file.name.split(".").pop()?.toUpperCase() || "unknown",
+    file,
   };
 }
 
