@@ -126,7 +126,7 @@ function SourceCard({ item }: { item: SourceListItem }) {
             className={`border-t border-slate-200 px-4 py-4 motion-ui-transition ${
               isOpen
                 ? "visible translate-y-0 opacity-100"
-                : "invisible -translate-y-1 opacity-0 pointer-events-none"
+                : "-translate-y-1 opacity-0 pointer-events-none"
             }`}
             aria-hidden={!isOpen}
           >

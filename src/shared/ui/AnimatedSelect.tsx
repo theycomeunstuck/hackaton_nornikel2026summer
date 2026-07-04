@@ -22,7 +22,7 @@ type AnimatedSelectProps = {
   className?: string;
 };
 
-const exitAnimationMs = 170;
+const exitAnimationMs = 320;
 
 function getNextIndex(currentIndex: number, optionsLength: number): number {
   if (optionsLength === 0) {

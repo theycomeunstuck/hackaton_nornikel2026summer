@@ -69,7 +69,7 @@ export function CollapsibleSection({
             className={`border-t border-slate-100 px-5 py-5 motion-ui-transition ${
               isOpen
                 ? "visible translate-y-0 opacity-100"
-                : "invisible -translate-y-1 opacity-0 pointer-events-none"
+                : "-translate-y-1 opacity-0 pointer-events-none"
             }`}
             aria-hidden={!isOpen}
           >
