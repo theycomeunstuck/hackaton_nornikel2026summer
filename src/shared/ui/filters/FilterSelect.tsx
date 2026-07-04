@@ -1,6 +1,9 @@
-import { FilterDropdown, type FilterOption } from "./FilterDropdown";
+import {
+  AnimatedSelect,
+  type AnimatedSelectOption,
+} from "../AnimatedSelect";
 
-export type { FilterOption };
+export type FilterOption = AnimatedSelectOption;
 
 type FilterSelectProps = {
   value: string;
@@ -18,7 +21,7 @@ export function FilterSelect({
   disabled = false,
 }: FilterSelectProps) {
   return (
-    <FilterDropdown
+    <AnimatedSelect
       label={ariaLabel}
       value={value}
       options={options}
