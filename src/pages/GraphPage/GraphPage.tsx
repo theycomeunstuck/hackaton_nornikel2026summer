@@ -1,7 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { demoScenarios } from "../../shared/mock/demoScenarios.mock";
 import { mockSearchResults } from "../../shared/mock/searchResults.mock";
-import type { DemoScenario, SearchResult } from "../../shared/types/search";
+import { getGraph } from "../../shared/api/appApi";
+import { adaptRagKnowledgeGraph } from "../../shared/api/ragResultAdapter";
+import type { DemoScenario, KnowledgeGraph as UiKnowledgeGraph, SearchResult } from "../../shared/types/search";
 import { ContentContainer } from "../../shared/ui/ContentContainer";
 import { EvidencePageHeader } from "../../shared/ui/EvidencePageHeader";
 import { MetricCard } from "../../shared/ui/MetricCard";
@@ -34,19 +36,20 @@ function GraphHeaderAside({ title }: { title: string }) {
 
 export function GraphPage() {
   const [selectedResult, setSelectedResult] = useState<SearchResult>(initialResult);
+  const [backendGraph, setBackendGraph] = useState<UiKnowledgeGraph | null>(null);
+  const [isGraphLoading, setIsGraphLoading] = useState(true);
+  const [graphError, setGraphError] = useState<string | null>(null);
 
   const selectedScenario =
     demoScenarios.find((scenario) => scenario.searchResultId === selectedResult.id) ??
     demoScenarios[0];
+  const activeGraph = backendGraph ?? selectedResult.graph;
 
   const graphStats = useMemo(
     () => ({
-      nodes:
-        selectedResult.graph.nodes.length +
-        selectedResult.contradictions.length +
-        selectedResult.gaps.length,
+      nodes: activeGraph.nodes.length + selectedResult.contradictions.length + selectedResult.gaps.length,
       edges:
-        selectedResult.graph.edges.length +
+        activeGraph.edges.length +
         selectedResult.contradictions.reduce(
           (sum, contradiction) => sum + contradiction.claimIds.length,
           0,
@@ -55,11 +58,34 @@ export function GraphPage() {
       sources: selectedResult.sources.length,
       claims: selectedResult.evidence.length,
     }),
-    [selectedResult],
+    [activeGraph, selectedResult],
   );
 
+  const loadGraph = (topic?: string) => {
+    setIsGraphLoading(true);
+    setGraphError(null);
+
+    getGraph(topic)
+      .then((graph) => {
+        setBackendGraph(adaptRagKnowledgeGraph(graph));
+      })
+      .catch(() => {
+        setBackendGraph(null);
+        setGraphError("Backend-граф недоступен, показан локальный граф.");
+      })
+      .finally(() => {
+        setIsGraphLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    loadGraph();
+  }, []);
+
   const handleScenarioSelect = (scenario: DemoScenario) => {
-    setSelectedResult(getResultByScenario(scenario));
+    const nextResult = getResultByScenario(scenario);
+    setSelectedResult(nextResult);
+    loadGraph(scenario.defaultQuery || scenario.title);
   };
 
   return (
@@ -104,8 +130,20 @@ export function GraphPage() {
         onSelect={handleScenarioSelect}
       />
 
+      <div className="rounded-xl border border-ice-100 bg-white/70 px-4 py-3 text-sm text-slate-600 shadow-sm">
+        {isGraphLoading ? (
+          <span className="text-ice-700">Загрузка графа из /api/graph...</span>
+        ) : graphError ? (
+          <span className="text-amber-700">{graphError}</span>
+        ) : activeGraph.nodes.length === 0 ? (
+          <span className="text-amber-700">Граф пока пуст.</span>
+        ) : (
+          <span className="text-emerald-700">Граф обновлён из /api/graph.</span>
+        )}
+      </div>
+
       <KnowledgeGraph
-        graph={selectedResult.graph}
+        graph={activeGraph}
         contradictions={selectedResult.contradictions}
         gaps={selectedResult.gaps}
         mode="full"

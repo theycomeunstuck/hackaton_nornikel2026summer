@@ -19,6 +19,7 @@ import type {
   EvidenceItem,
   GraphEdge,
   GraphNode,
+  KnowledgeGraph,
   KnowledgeGap,
   ParsedQuery,
   SearchResult,
@@ -257,6 +258,16 @@ function toGraphEdge(edge: RagGraphEdge, index: number): GraphEdge {
     confidence: edge.confidence ? toSupportedConfidence(edge.confidence) : undefined,
     sourceRef: edge.sourceRef ? toSourceRef(edge.sourceRef, index) : undefined,
     evidenceText: edge.evidenceText ?? undefined,
+  };
+}
+
+export function adaptRagKnowledgeGraph(graph: {
+  nodes: RagGraphNode[];
+  edges: RagGraphEdge[];
+}): KnowledgeGraph {
+  return {
+    nodes: graph.nodes.map(toGraphNode),
+    edges: graph.edges.map(toGraphEdge),
   };
 }
 

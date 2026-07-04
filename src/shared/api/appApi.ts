@@ -5,6 +5,7 @@ import { demoScenarios as localDemoScenarios } from "../mock/demoScenarios";
 import type { DemoScenario as UiDemoScenario } from "../types/search";
 import type {
   DemoScenario,
+  KnowledgeGraph,
   QueryFilters,
   QueryRequest,
   SearchResult,
@@ -241,6 +242,22 @@ export async function getScenarios(): Promise<UiDemoScenarioWithQuery[]> {
 
 export async function getDashboard(): Promise<DashboardResponse> {
   return requestJson<DashboardResponse>("/api/dashboard");
+}
+
+export async function getGraph(topic?: string): Promise<KnowledgeGraph> {
+  const trimmedTopic = topic?.trim();
+  const queryString = trimmedTopic
+    ? `?${new URLSearchParams({ topic: trimmedTopic }).toString()}`
+    : "";
+
+  try {
+    return await requestJson<KnowledgeGraph>(`/api/graph${queryString}`);
+  } catch {
+    const fallbackScenarioId = trimmedTopic
+      ? resolveScenarioFromQuery(trimmedTopic)
+      : "desalination";
+    return scenarioSamples[fallbackScenarioId].graph;
+  }
 }
 
 export async function queryEvidence(
