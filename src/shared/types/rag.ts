@@ -105,8 +105,10 @@ export interface SourceRef {
 }
 
 export interface ParsedQueryTimeRange {
-  fromYear: number | null;
-  toYear: number | null;
+  from?: number | null;
+  to?: number | null;
+  fromYear?: number | null;
+  toYear?: number | null;
   rawValue?: string | null;
 }
 

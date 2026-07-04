@@ -8,6 +8,7 @@ import type {
   GraphEdge as RagGraphEdge,
   GraphNode as RagGraphNode,
   KnowledgeGap as RagKnowledgeGap,
+  ParsedQueryTimeRange as RagParsedQueryTimeRange,
   SearchResult as RagSearchResult,
   SourceRef as RagSourceRef,
 } from "../types/rag";
@@ -19,6 +20,7 @@ import type {
   GraphEdge,
   GraphNode,
   KnowledgeGap,
+  ParsedQuery,
   SearchResult,
   SourceMetadata,
   SourceRef,
@@ -34,10 +36,25 @@ type EvidenceItemWithRagFields = EvidenceItem & {
   matchedTerms?: string[];
 };
 
+const supportedQueryIntents: ParsedQuery["intent"][] = [
+  "technology_selection",
+  "parameter_optimization",
+  "evidence_review",
+  "gap_analysis",
+  "literature_review",
+  "experiments_lookup",
+];
+
 function toSupportedConfidence(confidence: RagConfidenceLevel): SupportedConfidenceLevel {
   return confidence === "high" || confidence === "medium" || confidence === "low"
     ? confidence
     : "medium";
+}
+
+function toParsedQueryIntent(intent: string | null): ParsedQuery["intent"] {
+  return supportedQueryIntents.includes(intent as ParsedQuery["intent"])
+    ? (intent as ParsedQuery["intent"])
+    : "evidence_review";
 }
 
 function toSourceType(sourceType: string | null): SourceType {
@@ -92,6 +109,26 @@ function toCondition(condition: RagCondition, index: number): Condition {
     unit: condition.unit ?? "",
     rawValue: condition.rawValue ?? undefined,
     name: condition.name ?? undefined,
+  };
+}
+
+function toParsedQueryTimeRange(
+  timeRange: RagParsedQueryTimeRange | string | null,
+): ParsedQuery["timeRange"] | undefined {
+  if (!timeRange || typeof timeRange === "string") {
+    return undefined;
+  }
+
+  const fromYear = timeRange.fromYear ?? timeRange.from ?? undefined;
+  const toYear = timeRange.toYear ?? timeRange.to ?? undefined;
+
+  if (fromYear === undefined || toYear === undefined) {
+    return undefined;
+  }
+
+  return {
+    fromYear,
+    toYear,
   };
 }
 
@@ -311,7 +348,7 @@ export function adaptRagSearchResult(result: RagSearchResult): SearchResult {
       originalText: "",
       normalizedQuestion: "",
       domain: "water_treatment",
-      intent: "evidence_review",
+      intent: toParsedQueryIntent(result.parsedQuery.intent),
       materials: result.parsedQuery.materials,
       processes: result.parsedQuery.processes,
       equipment: [],
@@ -323,6 +360,7 @@ export function adaptRagSearchResult(result: RagSearchResult): SearchResult {
         result.parsedQuery.geography && result.parsedQuery.geography !== "all"
           ? [result.parsedQuery.geography]
           : [],
+      timeRange: toParsedQueryTimeRange(result.parsedQuery.timeRange),
     },
     answer: toAnswerSummary(result.answer),
     evidence: result.evidence.map(toEvidenceItem),

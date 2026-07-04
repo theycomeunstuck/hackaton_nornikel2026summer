@@ -9,7 +9,9 @@ export interface ParsedQuery {
     | "technology_selection"
     | "parameter_optimization"
     | "evidence_review"
-    | "gap_analysis";
+    | "gap_analysis"
+    | "literature_review"
+    | "experiments_lookup";
   materials: string[];
   processes: string[];
   equipment: string[];
