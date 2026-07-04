@@ -1,12 +1,18 @@
-import { Link } from "react-router-dom";
 import type { ReactNode } from "react";
+import { Link } from "react-router-dom";
 import type { EvidenceClaim } from "../../entities/claim/types";
 import type { Contradiction } from "../../entities/contradiction/types";
 import type { KnowledgeGap } from "../../entities/gap/types";
 import type { SourceType } from "../../entities/source/types";
-import { buildDashboardStats, type DashboardMetric, type SourceDistributionItem } from "../../shared/lib/dashboardStats";
+import {
+  buildDashboardStats,
+  type DashboardMetric,
+  type SourceDistributionItem,
+} from "../../shared/lib/dashboardStats";
 import { ConfidenceBadge } from "../../shared/ui/ConfidenceBadge";
+import { ContentContainer } from "../../shared/ui/ContentContainer";
 import { DisclosureSection } from "../../shared/ui/DisclosureSection";
+import { EvidencePageHeader } from "../../shared/ui/EvidencePageHeader";
 import { MetricCard } from "../../shared/ui/MetricCard";
 import { SectionCard } from "../../shared/ui/SectionCard";
 import { StatusBadge, type StatusTone } from "../../shared/ui/StatusBadge";
@@ -15,7 +21,7 @@ const dashboardStats = buildDashboardStats();
 
 const sourceTypeLabel: Record<SourceType, string> = {
   scientific_article: "Научная статья",
-  internal_report: "Внутренний отчет",
+  internal_report: "Внутренний отчёт",
   patent: "Патент",
   experiment_protocol: "Протокол эксперимента",
   technical_standard: "Технический стандарт",
@@ -31,11 +37,15 @@ const questionsForReview =
   dashboardStats.highPriorityGaps.length + dashboardStats.possibleContradictions.length;
 
 const primaryMetrics: DashboardMetric[] = [
-  getMetricByLabel("Индексированные документы"),
   {
-    ...getMetricByLabel("Извлеченные утверждения"),
+    ...dashboardStats.metrics[0],
+    label: "Индексированные документы",
+    description: "Документы, уже попавшие в доказательный индекс.",
+  },
+  {
+    ...dashboardStats.metrics[1],
     label: "Проверяемые утверждения",
-    description: "Утверждения, связанные с источниками, условиями и уровнем достоверности.",
+    description: "Утверждения, связанные с источниками, условиями и достоверностью.",
   },
   {
     label: "Источники",
@@ -50,21 +60,6 @@ const primaryMetrics: DashboardMetric[] = [
     tone: questionsForReview > 0 ? "amber" : "green",
   },
 ];
-
-function getMetricByLabel(label: string): DashboardMetric {
-  const metric = dashboardStats.metrics.find((item) => item.label === label);
-
-  if (!metric) {
-    return {
-      label,
-      value: "0",
-      description: "Нет данных для отображения.",
-      tone: "slate",
-    };
-  }
-
-  return metric;
-}
 
 function formatList(items: string[], limit = 2): string {
   if (items.length === 0) {
@@ -111,9 +106,9 @@ function DistributionList({ items }: { items: SourceDistributionItem[] }) {
             <span className="font-medium text-slate-700">{item.label}</span>
             <span className="text-slate-500">{item.count}</span>
           </div>
-          <div className="mt-2 h-2 overflow-hidden rounded bg-slate-100">
+          <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
             <div
-              className="h-full rounded bg-ice-500"
+              className="h-full rounded-full bg-ice-500"
               style={{ width: `${Math.max((item.count / maxCount) * 100, 8)}%` }}
             />
           </div>
@@ -125,7 +120,7 @@ function DistributionList({ items }: { items: SourceDistributionItem[] }) {
 
 function RecentClaimItem({ claim }: { claim: EvidenceClaim }) {
   return (
-    <article className="rounded border border-slate-200 bg-white/86 p-4">
+    <article className="rounded-xl border border-slate-200 bg-white/86 p-4 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <p className="text-sm leading-6 text-slate-900">{claim.statement}</p>
         <ConfidenceBadge confidence={claim.confidence} />
@@ -153,7 +148,7 @@ function AttentionItem({
   toneClassName: string;
 }) {
   return (
-    <article className={`rounded border p-4 ${toneClassName}`}>
+    <article className={`rounded-xl border p-4 shadow-sm ${toneClassName}`}>
       <div className="flex items-start justify-between gap-4">
         <div>
           <h3 className="text-sm font-semibold text-slate-950">{title}</h3>
@@ -162,6 +157,23 @@ function AttentionItem({
         {badge}
       </div>
     </article>
+  );
+}
+
+function HeaderAside() {
+  return (
+    <div className="rounded-xl border border-ice-100 bg-ice-50/75 p-5">
+      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ice-600">
+        Принцип работы
+      </p>
+      <p className="mt-3 text-xl font-semibold leading-7 text-slate-950">
+        Каждый вывод должен иметь проверяемый источник.
+      </p>
+      <p className="mt-3 text-sm leading-6 text-slate-600">
+        Панель помогает быстро понять, что уже подтверждено, какие данные требуют проверки и куда
+        перейти для следующего действия.
+      </p>
+    </div>
   );
 }
 
@@ -195,56 +207,13 @@ export function DashboardPage() {
   ].filter((item): item is NonNullable<typeof item> => item !== null);
 
   return (
-    <div className="mx-auto max-w-[1680px] space-y-6">
-      <section className="overflow-hidden rounded border border-white/75 bg-white/76 shadow-glass backdrop-blur-2xl">
-        <div className="grid grid-cols-[minmax(0,1fr)_minmax(360px,420px)] gap-8 p-7">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-ice-600">
-              R&D Evidence Hub
-            </p>
-            <h2 className="mt-3 max-w-4xl text-4xl font-semibold leading-tight text-slate-950">
-              Панель проверки научно-технических утверждений
-            </h2>
-            <p className="mt-4 max-w-3xl text-base leading-7 text-slate-600">
-              Выберите действие: найти доказательства, загрузить документ или открыть базу
-              утверждений.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link
-                to="/search"
-                className="rounded border border-ice-400 bg-ice-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-ice-600"
-              >
-                Найти доказательства
-              </Link>
-              <Link
-                to="/upload"
-                className="rounded border border-ice-100 bg-ice-50 px-5 py-3 text-sm font-semibold text-ice-700 transition hover:border-ice-200 hover:bg-white"
-              >
-                Загрузить документ
-              </Link>
-              <Link
-                to="/claims"
-                className="rounded border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-ice-100 hover:text-ice-700"
-              >
-                Открыть базу утверждений
-              </Link>
-            </div>
-          </div>
-
-          <div className="rounded border border-ice-100 bg-ice-50/75 p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ice-600">
-              Принцип работы
-            </p>
-            <p className="mt-3 text-xl font-semibold leading-7 text-slate-950">
-              Каждый вывод должен иметь проверяемый источник.
-            </p>
-            <p className="mt-3 text-sm leading-6 text-slate-600">
-              Система помогает быстро увидеть, что уже подтверждено, какие данные требуют
-              проверки и куда перейти для следующего действия.
-            </p>
-          </div>
-        </div>
-      </section>
+    <ContentContainer>
+      <EvidencePageHeader
+        eyebrow="R&D Evidence Hub"
+        title="Панель проверки научно-технических утверждений"
+        description="Выберите действие: найти доказательства, загрузить документ или открыть базу утверждений. Ниже показаны ключевые метрики, последняя активность и вопросы для экспертной проверки."
+        aside={<HeaderAside />}
+      />
 
       <section className="grid grid-cols-4 gap-4">
         {primaryMetrics.map((metric) => (
@@ -256,6 +225,29 @@ export function DashboardPage() {
             tone={metric.tone}
           />
         ))}
+      </section>
+
+      <section className="rounded-2xl border border-white/75 bg-white/72 p-5 shadow-glass backdrop-blur-2xl">
+        <div className="flex flex-wrap gap-3">
+          <Link
+            to="/search"
+            className="rounded-xl border border-ice-400 bg-ice-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-ice-600"
+          >
+            Найти доказательства
+          </Link>
+          <Link
+            to="/upload"
+            className="rounded-xl border border-ice-100 bg-ice-50 px-5 py-3 text-sm font-semibold text-ice-700 transition hover:border-ice-200 hover:bg-white"
+          >
+            Загрузить документ
+          </Link>
+          <Link
+            to="/claims"
+            className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-ice-100 hover:text-ice-700"
+          >
+            Открыть базу утверждений
+          </Link>
+        </div>
       </section>
 
       <div className="grid grid-cols-[minmax(0,1fr)_minmax(360px,0.72fr)] gap-6">
@@ -281,7 +273,7 @@ export function DashboardPage() {
               ))}
             </div>
           ) : (
-            <div className="rounded border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
               Критичных вопросов для проверки сейчас нет.
             </div>
           )}
@@ -316,7 +308,7 @@ export function DashboardPage() {
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-950">По надежности</h3>
+                  <h3 className="text-sm font-semibold text-slate-950">По надёжности</h3>
                   <div className="mt-4">
                     <DistributionList items={dashboardStats.sourceReliabilityDistribution} />
                   </div>
@@ -327,7 +319,7 @@ export function DashboardPage() {
                 <h3 className="text-sm font-semibold text-slate-950">Важные источники</h3>
                 <div className="mt-3 space-y-3">
                   {dashboardStats.importantSources.map((source) => (
-                    <article key={source.id} className="rounded border border-slate-200 bg-white/80 p-3">
+                    <article key={source.id} className="rounded-xl border border-slate-200 bg-white/80 p-3">
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <p className="text-sm font-semibold leading-5 text-slate-900">
@@ -357,7 +349,7 @@ export function DashboardPage() {
           <SectionCard title="Сценарии анализа" eyebrow="Рабочие направления">
             <div className="grid grid-cols-3 gap-4">
               {dashboardStats.scenarioOverviews.map((scenario) => (
-                <article key={scenario.id} className="rounded border border-slate-200 bg-white/84 p-4">
+                <article key={scenario.id} className="rounded-xl border border-slate-200 bg-white/84 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <h3 className="text-base font-semibold text-slate-950">{scenario.title}</h3>
@@ -372,21 +364,21 @@ export function DashboardPage() {
                     )}
                   </div>
                   <div className="mt-4 grid grid-cols-4 gap-2 text-center">
-                    <div className="rounded bg-slate-50 px-2 py-3">
+                    <div className="rounded-lg bg-slate-50 px-2 py-3">
                       <p className="text-lg font-semibold text-slate-950">{scenario.claimsCount}</p>
                       <p className="text-xs text-slate-500">утверждений</p>
                     </div>
-                    <div className="rounded bg-slate-50 px-2 py-3">
+                    <div className="rounded-lg bg-slate-50 px-2 py-3">
                       <p className="text-lg font-semibold text-slate-950">{scenario.sourcesCount}</p>
                       <p className="text-xs text-slate-500">источников</p>
                     </div>
-                    <div className="rounded bg-slate-50 px-2 py-3">
+                    <div className="rounded-lg bg-slate-50 px-2 py-3">
                       <p className="text-lg font-semibold text-slate-950">
                         {scenario.graphNodesCount}/{scenario.graphEdgesCount}
                       </p>
                       <p className="text-xs text-slate-500">узлы/связи</p>
                     </div>
-                    <div className="rounded bg-slate-50 px-2 py-3">
+                    <div className="rounded-lg bg-slate-50 px-2 py-3">
                       <p className="text-lg font-semibold text-slate-950">
                         {scenario.gapsCount}/{scenario.contradictionsCount}
                       </p>
@@ -399,6 +391,6 @@ export function DashboardPage() {
           </SectionCard>
         </div>
       </DisclosureSection>
-    </div>
+    </ContentContainer>
   );
 }

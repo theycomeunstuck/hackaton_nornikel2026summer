@@ -54,7 +54,7 @@ const confidenceScore: Record<EvidenceClaim["confidence"], number> = {
 
 const sourceTypeLabel: Record<SourceType, string> = {
   scientific_article: "Научные статьи",
-  internal_report: "Внутренние отчеты",
+  internal_report: "Внутренние отчёты",
   patent: "Патенты",
   experiment_protocol: "Протоколы экспериментов",
   technical_standard: "Технические стандарты",
@@ -158,13 +158,13 @@ export function buildDashboardStats(
       {
         label: "Индексированные документы",
         value: String(documents.filter((document) => document.status === "indexed").length),
-        description: "Научные статьи, отчеты, протоколы и внутренние материалы в корпусе.",
+        description: "Научные статьи, отчёты, протоколы и внутренние материалы в корпусе.",
         tone: "cyan",
       },
       {
-        label: "Извлеченные утверждения",
+        label: "Извлечённые утверждения",
         value: String(claims.length),
-        description: "Структурированные утверждения, извлеченные из текущего корпуса.",
+        description: "Структурированные утверждения, извлечённые из текущего корпуса.",
         tone: "green",
       },
       {

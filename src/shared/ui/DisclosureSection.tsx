@@ -29,7 +29,13 @@ export function DisclosureSection({
               {eyebrow}
             </p>
           ) : null}
-          <h2 className={eyebrow ? "mt-2 text-lg font-semibold text-slate-950" : "text-lg font-semibold text-slate-950"}>
+          <h2
+            className={
+              eyebrow
+                ? "mt-2 text-lg font-semibold text-slate-950"
+                : "text-lg font-semibold text-slate-950"
+            }
+          >
             {title}
           </h2>
           {summary ? <p className="mt-2 text-sm leading-6 text-slate-600">{summary}</p> : null}
