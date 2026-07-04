@@ -99,7 +99,7 @@ body {
   }
 
   .auth-dotted-wave {
-    opacity: 0.5;
+    opacity: 0.58;
     background-image:
       radial-gradient(circle, rgba(125, 255, 218, 0.62) 0 1.1px, transparent 1.35px),
       radial-gradient(circle, rgba(56, 189, 248, 0.4) 0 1px, transparent 1.25px);
@@ -112,7 +112,28 @@ body {
     mask-image:
       radial-gradient(ellipse at 28% 42%, #000 0 18%, transparent 48%),
       radial-gradient(ellipse at 72% 58%, #000 0 14%, transparent 44%);
-    animation: auth-dotted-drift 22s var(--motion-ease-premium) infinite alternate;
+    animation: auth-dotted-drift 32s var(--motion-ease-premium) infinite alternate;
+  }
+
+  .auth-particle-wave {
+    opacity: 0.44;
+    background-image:
+      radial-gradient(circle, rgba(94, 234, 212, 0.82) 0 1.25px, transparent 1.55px),
+      radial-gradient(circle, rgba(34, 211, 238, 0.48) 0 1px, transparent 1.3px),
+      linear-gradient(115deg, transparent 0 38%, rgba(125, 255, 218, 0.08) 44%, transparent 58%);
+    background-position:
+      0 0,
+      34px 26px,
+      0 0;
+    background-size:
+      68px 52px,
+      92px 72px,
+      100% 100%;
+    mask-image:
+      radial-gradient(ellipse at 43% 54%, #000 0 15%, transparent 50%),
+      linear-gradient(110deg, transparent 12%, #000 36%, #000 62%, transparent 86%);
+    transform: skewY(-8deg);
+    animation: auth-particle-wave-drift 34s var(--motion-ease-premium) infinite alternate;
   }
 
   .auth-glow-field {
@@ -135,7 +156,7 @@ body {
       0 0 52px rgba(34, 211, 238, 0.12),
       inset 0 0 32px rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(10px);
-    animation: auth-shape-float 14s var(--motion-ease-premium) infinite alternate;
+    animation: auth-shape-morph 24s var(--motion-ease-premium) infinite alternate;
   }
 
   .auth-floating-shape::before {
@@ -152,6 +173,7 @@ body {
     width: 180px;
     height: 180px;
     border-radius: 42% 58% 48% 52%;
+    animation-duration: 26s;
   }
 
   .auth-floating-shape-two {
@@ -160,7 +182,7 @@ body {
     width: 230px;
     height: 138px;
     border-radius: 999px;
-    animation-duration: 16s;
+    animation-duration: 30s;
     animation-delay: -5s;
   }
 
@@ -171,7 +193,7 @@ body {
     height: 108px;
     border-color: rgba(168, 85, 247, 0.28);
     border-radius: 28px;
-    animation-duration: 12s;
+    animation-duration: 22s;
     animation-delay: -3s;
   }
 
@@ -254,13 +276,44 @@ body {
 
 @keyframes auth-dotted-drift {
   from {
-    transform: translate3d(-18px, -10px, 0);
-    opacity: 0.42;
+    transform: translate3d(-26px, -14px, 0) skewY(-2deg);
+    opacity: 0.38;
+    background-position:
+      0 0,
+      28px 22px;
   }
 
   to {
-    transform: translate3d(22px, 16px, 0);
-    opacity: 0.58;
+    transform: translate3d(34px, 22px, 0) skewY(2deg);
+    opacity: 0.62;
+    background-position:
+      62px 34px,
+      -18px 78px;
+  }
+}
+
+@keyframes auth-particle-wave-drift {
+  0% {
+    opacity: 0.28;
+    transform: translate3d(-36px, 18px, 0) skewY(-8deg) scale(1);
+    background-position:
+      0 0,
+      34px 26px,
+      0 0;
+  }
+
+  50% {
+    opacity: 0.48;
+    transform: translate3d(18px, -10px, 0) skewY(-6deg) scale(1.025);
+  }
+
+  100% {
+    opacity: 0.36;
+    transform: translate3d(58px, -28px, 0) skewY(-9deg) scale(1.04);
+    background-position:
+      74px 44px,
+      -38px 94px,
+      0 0;
   }
 }
 
@@ -276,13 +329,26 @@ body {
   }
 }
 
-@keyframes auth-shape-float {
-  from {
-    transform: translate3d(-10px, 8px, 0);
+@keyframes auth-shape-morph {
+  0% {
+    opacity: 0.74;
+    border-radius: 42% 58% 48% 52%;
+    transform: translate3d(-12px, 9px, 0) scale(0.98);
+    filter: saturate(1);
   }
 
-  to {
-    transform: translate3d(16px, -14px, 0);
+  45% {
+    opacity: 0.92;
+    border-radius: 58% 42% 62% 38%;
+    transform: translate3d(12px, -10px, 0) scale(1.045);
+    filter: saturate(1.18);
+  }
+
+  100% {
+    opacity: 0.78;
+    border-radius: 38% 62% 44% 56%;
+    transform: translate3d(24px, -18px, 0) scale(1.02);
+    filter: saturate(1.08);
   }
 }
 
@@ -309,6 +375,7 @@ body {
   }
 
   .auth-dotted-wave,
+  .auth-particle-wave,
   .auth-glow-field,
   .auth-floating-shape,
   .auth-hero-enter,

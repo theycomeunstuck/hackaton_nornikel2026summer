@@ -50,6 +50,7 @@ export function AuthPage() {
   return (
     <main className="auth-animated-bg relative min-h-screen overflow-hidden bg-graphite-950 px-10 py-10 text-white">
       <div className="auth-dotted-wave pointer-events-none absolute inset-0" />
+      <div className="auth-particle-wave pointer-events-none absolute inset-0" />
       <div className="auth-glow-field pointer-events-none absolute inset-0" />
       <div className="auth-floating-shape auth-floating-shape-one pointer-events-none" />
       <div className="auth-floating-shape auth-floating-shape-two pointer-events-none" />
