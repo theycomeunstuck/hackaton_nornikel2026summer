@@ -1,7 +1,7 @@
 import sampleCatholyte from "../mock/rag/sample_catholyte_server.json";
 import sampleDesalination from "../mock/rag/sample_desalination_server.json";
 import samplePgm from "../mock/rag/sample_pgm_server.json";
-import type { DemoScenario, SearchResult } from "../types/rag";
+import type { DemoScenario, QueryFilters, QueryRequest, SearchResult } from "../types/rag";
 
 export type RagHealthResponse = {
   status: "ok" | "mock" | "error";
@@ -20,9 +20,9 @@ export type RagStatsResponse = {
   isMock: boolean;
 };
 
-type SearchRequest = {
-  query: string;
-  topK: number;
+type SearchEvidenceOptions = {
+  scenarioId?: string;
+  filters?: QueryFilters;
 };
 
 type ImportMetaWithEnv = ImportMeta & {
@@ -155,11 +155,18 @@ export async function getDemoScenario(scenario: DemoScenario): Promise<SearchRes
   }
 }
 
-export async function searchEvidence(query: string, topK = 10): Promise<SearchResult> {
-  const requestBody: SearchRequest = { query, topK };
+export async function searchEvidence(
+  query: string,
+  options: SearchEvidenceOptions = {},
+): Promise<SearchResult> {
+  const requestBody: QueryRequest = {
+    query,
+    scenarioId: options.scenarioId,
+    filters: options.filters,
+  };
 
   try {
-    return await requestJson<SearchResult>("/api/search", {
+    return await requestJson<SearchResult>("/api/query", {
       method: "POST",
       body: JSON.stringify(requestBody),
     });

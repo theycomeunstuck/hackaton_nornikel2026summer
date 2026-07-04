@@ -89,7 +89,7 @@ export function SearchPage() {
     setIsLoading(true);
     setError(null);
 
-    searchEvidence(trimmedQuestion, 15)
+    searchEvidence(trimmedQuestion, { scenarioId: String(activeScenarioId) })
       .then((nextResult) => {
         setResult(nextResult);
       })
