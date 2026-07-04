@@ -1,1578 +1,494 @@
-# R&D Evidence Hub — Frontend README для backend-разработчика
+# Научный клубок — Frontend
 
-> Текущий документ описывает **реальное состояние frontend-проекта на данный момент** и фиксирует, что именно backend должен отдать, чтобы заменить mock-данные реальной интеграцией.
+Frontend для hackathon MVP **«Научный клубок»** — evidence-first интерфейс для работы с научно-техническими источниками, RAG-результатами, графом знаний, пробелами и возможными противоречиями.
 
----
+Проект работает в двух режимах:
 
-## 1. Что это за продукт
+1. **Offline demo mode** — без backend, через локальные `sample_*_server.json`.
+2. **RAG API mode** — через backend endpoint'ы `/api/demo/*` и `/api/search`.
 
-**R&D Evidence Hub** — это frontend-прототип evidence-first платформы для R&D-специалистов, которые работают с научно-техническими документами, публикациями, отчётами, протоколами экспериментов и технологическими материалами.
+Главный принцип интерфейса:
 
-Система не должна работать как обычный chatbot. Главная ценность интерфейса — не “текстовый ответ”, а **проверяемая доказательная структура**:
+> Нет источника — нет фактического утверждения.
 
-1. пользователь задаёт научно-технический вопрос;
-2. система разбирает запрос на материалы, процессы, оборудование, параметры и условия;
-3. система возвращает краткий вывод;
-4. каждый вывод/фрагмент доказательства связан с источником;
-5. источник содержит страницу, chunk id, тип документа, год и уровень надёжности;
-6. отдельно показываются противоречия и пробелы;
-7. результат визуализируется в графе знаний;
-8. результат можно экспортировать в Markdown/JSON, а в будущем — PDF.
-
-Главный принцип продукта:
-
-> Фактическое утверждение без источника не считается доказанным.
+Поэтому основной экран строится не как chatbot, а как **evidence dashboard**: parsed query, answer summary, evidence table, sources, knowledge graph, gaps и contradictions.
 
 ---
 
-## 2. Текущий статус проекта
+## Текущий статус frontend
 
-Frontend уже реализован как полноценный интерактивный MVP-прототип на mock-данных.
+Реализовано:
 
-Текущая основная ветка frontend:
-
-```bash
-frontend/evidence-hub
-```
-
-Текущий стек:
-
-```text
-Vite
-React 18
-TypeScript
-Tailwind CSS
-React Router 7
-@xyflow/react
-```
-
-Проект сейчас:
-
-- запускается локально;
-- имеет защищённую рабочую область через mock-auth;
-- показывает все основные страницы продукта;
-- работает на mock-данных;
-- имеет mock API layer;
-- имеет adapter layer для нормализации SearchResult;
-- не подключён к реальному backend;
-- не выполняет настоящий RAG/поиск;
-- не выполняет настоящую загрузку/обработку документов;
-- формирует Markdown/JSON экспорт на frontend;
-- PDF экспорт отмечен как будущая backend-функция.
+- TypeScript-контракт `SearchResult`;
+- RAG API client с mock fallback;
+- demo scenarios:
+  - `desalination`;
+  - `catholyte`;
+  - `pgm`;
+- SearchPage с evidence-first flow;
+- AnswerSummaryCard;
+- ParsedQueryCard;
+- EvidenceTable;
+- SourcesPanel;
+- GapsPanel;
+- ContradictionsPanel;
+- KnowledgeGraph;
+- loading / empty / error states;
+- отображение `sourceName`, `page`, `chunkId`, `documentId`;
+- работа без backend через local samples.
 
 ---
 
-## 3. Локальный запуск frontend
+## Стек
+
+- React
+- TypeScript
+- Vite
+- Tailwind CSS
+- React Router
+- React Flow
+- mock-first RAG integration
+
+---
+
+## Установка
 
 ```bash
 npm install
+```
+
+---
+
+## Запуск frontend
+
+```bash
 npm run dev
 ```
 
-Сборка:
+По умолчанию frontend может работать без backend: если API недоступен, `ragApi` вернёт local sample данные.
+
+---
+
+## Сборка
 
 ```bash
 npm run build
 ```
 
-Проверка TypeScript:
-
-```bash
-npm run typecheck
-```
-
-Preview production build:
+Проверка preview build:
 
 ```bash
 npm run preview
 ```
 
-Скрипты из `package.json`:
+---
 
-```json
+## ENV
+
+Создай файл `.env.local` в корне frontend-проекта:
+
+```env
+# RAG backend base URL.
+# Если backend недоступен, frontend использует local sample_*_server.json fallback.
+VITE_RAG_BASE_URL=http://localhost:8000
+```
+
+Для примера можно хранить `.env.example`:
+
+```env
+# RAG backend base URL.
+# Local backend default:
+VITE_RAG_BASE_URL=http://localhost:8000
+```
+
+Важно: переменные Vite, доступные в браузере, должны начинаться с `VITE_`.
+
+---
+
+## RAG API contract
+
+Frontend ожидает backend, который возвращает один объект `SearchResult`.
+
+Верхний уровень ответа всегда содержит 7 ключей:
+
+```ts
 {
-  "dev": "vite",
-  "build": "tsc -b && vite build",
-  "typecheck": "tsc -b",
-  "preview": "vite preview"
+  parsedQuery,
+  answer,
+  evidence,
+  graph,
+  gaps,
+  contradictions,
+  sources
 }
 ```
 
----
+### Expected backend endpoints
 
-## 4. Структура проекта
+| Method | Endpoint | Purpose |
+|---|---|---|
+| `GET` | `/api/health` | Проверка доступности backend |
+| `GET` | `/api/stats` | Статистика индекса |
+| `GET` | `/api/demo/desalination` | Demo scenario: обессоливание воды |
+| `GET` | `/api/demo/catholyte` | Demo scenario: циркуляция католита |
+| `GET` | `/api/demo/pgm` | Demo scenario: Au / Ag / МПГ, штейн и шлак |
+| `POST` | `/api/search` | Пользовательский поиск |
 
-Актуальная структура frontend:
-
-```text
-src/
-  app/
-    App.tsx
-    router.tsx
-    providers/
-
-  entities/
-    auth/
-    claim/
-    contradiction/
-    document/
-    gap/
-    graph/
-    query/
-    report/
-    source/
-
-  pages/
-    AuthPage/
-    DashboardPage/
-    SearchPage/
-    ClaimsPage/
-    GraphPage/
-    SourcesPage/
-    ContradictionsPage/
-    ExportPage/
-    UploadPage/
-
-  shared/
-    api/
-      searchApi.ts
-      searchResultAdapter.ts
-
-    lib/
-      claimStats.ts
-      contradictionStats.ts
-      dashboardStats.ts
-      downloadFile.ts
-      exportEvidenceReport.ts
-      exportMarkdown.ts
-      sourceStats.ts
-
-    mock/
-      raw/
-        sampleCatholyte.json
-        sampleDesalination.json
-        samplePgm.json
-      curatedScenarioSummaries.ts
-      demoScenarios.ts
-      searchResults.mock.ts
-      sources.mock.ts
-      contradictions.mock.ts
-      gaps.mock.ts
-      documents.mock.ts
-      upload.mock.ts
-
-    types/
-      search.ts
-
-    ui/
-      AnimatedSelect.tsx
-      CollapsibleSection.tsx
-      DisclosureSection.tsx
-      ConfidenceBadge.tsx
-      ContentContainer.tsx
-      EvidencePageHeader.tsx
-      FileDropzone.tsx
-      MetricCard.tsx
-      SectionCard.tsx
-      SectionEyebrow.tsx
-      StatusBadge.tsx
-      filters/
-
-  widgets/
-    app-shell/
-      AppShell.tsx
-      Header.tsx
-      Sidebar.tsx
-
-    graph/
-      KnowledgeGraph.tsx
-      GraphLegend.tsx
-      GraphNodeDetails.tsx
-
-    result/
-      ParsedQueryCard.tsx
-      AnswerSummaryCard.tsx
-      EvidenceTable.tsx
-      SourcesPanel.tsx
-      ContradictionsPanel.tsx
-      GapsPanel.tsx
-      ExportPanel.tsx
-
-    search/
-      SearchPanel.tsx
-      DemoScenarioButtons.tsx
-      FiltersPanel.tsx
-
-    ProcessingPipeline/
-      ProcessingPipeline.tsx
-
-  styles/
-    index.css
-```
-
----
-
-## 5. Маршруты frontend
-
-Маршрутизация находится в:
-
-```text
-src/app/router.tsx
-```
-
-Актуальные маршруты:
-
-```text
-/auth
-/dashboard
-/search
-/claims
-/graph
-/sources
-/contradictions
-/export
-/upload
-```
-
-Поведение:
-
-- `/auth` — публичная страница входа;
-- все остальные страницы защищены через mock-auth;
-- `/` редиректит на `/dashboard`;
-- неизвестные маршруты внутри app shell редиректят на `/dashboard`.
-
----
-
-## 6. Страницы и что backend должен для них отдать
-
-### 6.1 `/auth` — AuthPage
-
-Назначение:
-
-- вход в рабочую область;
-- сейчас используется mock-auth.
-
-Текущий тестовый доступ:
-
-```text
-researcher@demo.local
-demo123
-```
-
-Текущие mock-функции:
-
-```text
-src/entities/auth/api.ts
-```
+Пример запроса:
 
 ```ts
-loginMock(request: LoginRequest): Promise<LoginResponse>
-getCurrentUserMock(token: string): Promise<User | null>
-logoutMock(): Promise<void>
-```
-
-Будущий backend:
-
-```http
-POST /api/auth/login
-GET /api/auth/me
-POST /api/auth/logout
+await fetch(`${baseUrl}/api/search`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    query: 'Какая скорость потока католита оптимальна при электроэкстракции никеля?',
+    topK: 15,
+  }),
+});
 ```
 
 ---
 
-### 6.2 `/dashboard` — DashboardPage / Обзор
+## SearchResult structure
 
-Назначение:
+### `parsedQuery`
 
-- стартовая страница после входа;
-- показывает общую сводку по доказательной базе;
-- содержит быстрые действия:
-  - найти доказательства;
-  - загрузить документ;
-  - открыть базу утверждений;
-- показывает последние активности и блок “требует внимания”;
-- имеет раскрываемую расширенную аналитику.
+Показывает, как система поняла запрос:
 
-Сейчас данные считаются из mock-массивов:
+- `intent`;
+- `materials`;
+- `processes`;
+- `technologies`;
+- `properties`;
+- `conditions`;
+- `geography`;
+- `timeRange`.
 
-```text
-src/shared/mock/searchResults.mock.ts
-src/shared/mock/sources.mock.ts
-src/shared/mock/contradictions.mock.ts
-src/shared/mock/gaps.mock.ts
-src/shared/lib/dashboardStats.ts
-```
+### `answer`
 
-Будущий backend может отдать агрегированную сводку:
+Краткий evidence-based summary:
 
-```http
-GET /api/dashboard/summary
-```
+- `shortConclusion`;
+- `confidence`;
+- `confidenceReason`;
+- `warnings`;
+- `numericMode`.
 
-Но это не priority 1. В первую очередь важнее подключить `/api/search`.
+Важно: `answer.shortConclusion` может быть длинным, поэтому UI показывает preview и кнопку «Показать полностью».
+
+### `evidence`
+
+Главный блок результата. Каждая строка содержит:
+
+- `text`;
+- `score`;
+- `confidence`;
+- `conditions`;
+- `matchedTerms`;
+- `numericStatus`;
+- `source`.
+
+Обязательные source поля в UI:
+
+- `sourceName`;
+- `page`;
+- `chunkId`;
+- `documentId`.
+
+### `graph`
+
+Knowledge graph по найденным evidence chunks:
+
+- `nodes`: `id`, `label`, `type`;
+- `edges`: `id`, `source`, `target`, `relation`, `sourceRef`, `evidenceText`.
+
+Каждое graph edge должно сохранять `sourceRef`.
+
+### `gaps`
+
+Пробелы знания:
+
+- `knowledge_gap`;
+- `weak_coverage`;
+- `geographic_gap`;
+- `evidence_gap`;
+- `missing_numeric_data`;
+- `missing_combination`.
+
+### `contradictions`
+
+Возможные противоречия. В текущем Mode B backend они эвристические.
+
+UI должен отображать статусы честно:
+
+| Backend status | UI label |
+|---|---|
+| `possible` | Возможное противоречие |
+| `needs_review` | Требует экспертной проверки |
+| `confirmed` | Подтверждено |
+
+Не нужно называть `possible` или `needs_review` подтверждёнными противоречиями.
+
+### `sources`
+
+Deduplicated список источников. Используется для SourcesPanel.
 
 ---
 
-### 6.3 `/search` — SearchPage / Поиск доказательств
+## Offline demo samples
 
-Главная страница продукта.
-
-Текущее поведение:
-
-- есть поле ввода научно-технического вопроса;
-- есть 3 подготовленных demo-сценария;
-- выбор demo-сценария подставляет пример запроса;
-- кнопка поиска загружает соответствующий mock SearchResult;
-- результат разбит на раскрываемые секции:
-  - разбор запроса;
-  - краткий вывод;
-  - таблица доказательств;
-  - граф связей;
-  - источники;
-  - противоречия;
-  - пробелы;
-  - экспорт.
-
-Текущий mock API:
+Frontend хранит local samples:
 
 ```text
-src/shared/api/searchApi.ts
+src/shared/mock/rag/sample_desalination_server.json
+src/shared/mock/rag/sample_catholyte_server.json
+src/shared/mock/rag/sample_pgm_server.json
 ```
 
-```ts
-searchEvidenceByScenario(scenarioId: DemoScenarioId): Promise<SearchResult>
-```
+Они нужны для demo без backend.
 
-Текущий adapter:
+`ragApi` работает так:
+
+1. Пытается обратиться к backend.
+2. Если backend недоступен, возвращает local sample.
+3. Для пользовательского поиска выбирает sample по эвристике:
+   - вода / обессоливание / сухой остаток → `desalination`;
+   - католит / никель / электроэкстракция → `catholyte`;
+   - Au / Ag / МПГ / PGM / штейн / шлак → `pgm`.
+
+---
+
+## Важные frontend-файлы
 
 ```text
-src/shared/api/searchResultAdapter.ts
+src/shared/types/rag.ts
+src/shared/api/ragApi.ts
+src/shared/api/ragResultAdapter.ts
+src/shared/mock/rag/
+src/widgets/result/EvidenceTable.tsx
+src/widgets/result/AnswerSummaryCard.tsx
+src/widgets/result/SourcesPanel.tsx
+src/widgets/result/GapsPanel.tsx
+src/widgets/result/ContradictionsPanel.tsx
+src/widgets/result/ParsedQueryCard.tsx
+src/widgets/graph/KnowledgeGraph.tsx
 ```
 
-```ts
-normalizeSearchResult(raw: unknown): SearchResult
+Названия некоторых файлов могут отличаться в зависимости от текущей структуры проекта, но смысловой слой должен оставаться таким.
+
+---
+
+## Как подключить реальный backend
+
+1. Запустить backend на `http://localhost:8000`.
+2. Создать `.env.local`:
+
+```env
+VITE_RAG_BASE_URL=http://localhost:8000
 ```
 
-Backend priority 1:
+3. Перезапустить Vite dev server:
 
-```http
+```bash
+npm run dev
+```
+
+4. Проверить:
+
+```text
+GET  http://localhost:8000/api/health
+GET  http://localhost:8000/api/demo/desalination
+POST http://localhost:8000/api/search
+```
+
+Если backend упал или недоступен, frontend не должен падать: он вернётся к mock fallback.
+
+---
+
+## Demo сценарии
+
+### 1. Обессоливание воды
+
+Фокус:
+
+- sulfates;
+- chlorides;
+- calcium;
+- magnesium;
+- sodium;
+- dry residue;
+- numeric conditions;
+- technology selection.
+
+Лучше всего демонстрирует:
+
+- ParsedQueryCard;
+- numeric conditions;
+- EvidenceTable;
+- GapsPanel.
+
+### 2. Циркуляция католита
+
+Фокус:
+
+- nickel electrowinning;
+- catholyte circulation;
+- flow rate;
+- process parameters;
+- sourced graph.
+
+Лучше всего демонстрирует:
+
+- KnowledgeGraph;
+- SourcesPanel;
+- EvidenceTable.
+
+### 3. Au / Ag / МПГ между штейном и шлаком
+
+Фокус:
+
+- precious metals;
+- platinum group metals;
+- matte;
+- slag;
+- distribution / recovery;
+- time range 2021–2026.
+
+Лучше всего демонстрирует:
+
+- parsed timeRange;
+- multi-entity query;
+- sources by year;
+- graph and evidence.
+
+---
+
+## Manual QA checklist
+
+Перед push проверь:
+
+```text
+[ ] npm run build проходит
+[ ] frontend запускается без backend
+[ ] desalination demo работает
+[ ] catholyte demo работает
+[ ] pgm demo работает
+[ ] пользовательский search работает через fallback
+[ ] EvidenceTable показывает sourceName/page/chunkId/documentId
+[ ] SourcesPanel показывает sourceName/page/chunkId/documentId
+[ ] KnowledgeGraph edge details показывает sourceRef
+[ ] long answer не ломает layout
+[ ] long evidence text открывается через modal/details
+[ ] loading state есть
+[ ] empty state есть
+[ ] error state есть
+[ ] possible/needs_review не называются confirmed
+```
+
+---
+
+## Known frontend risks
+
+### Large JS chunk warning
+
+Vite может предупреждать о большом JS chunk из-за React Flow / graph rendering.
+
+Это не ломает build. Позже можно вынести граф в lazy chunk:
+
+```text
+perf: lazy load RAG knowledge graph
+```
+
+### Backend ещё может измениться
+
+Frontend защищён через `ragApi` и mock fallback. Если backend изменит endpoint или shape ответа, сначала нужно обновлять:
+
+```text
+src/shared/types/rag.ts
+src/shared/api/ragApi.ts
+src/shared/api/ragResultAdapter.ts
+```
+
+а не переписывать SearchPage.
+
+---
+
+## Git commit examples
+
+```bash
+git add .
+git commit -m "docs: document RAG frontend integration"
+```
+
+Если добавляешь `.env.example`:
+
+```bash
+git add .env.example
+git commit -m "chore: add RAG backend env example"
+```
+
+---
+
+## Для backend-разработчика
+
+Frontend ожидает:
+
+```text
+GET  /api/health
+GET  /api/stats
+GET  /api/demo/desalination
+GET  /api/demo/catholyte
+GET  /api/demo/pgm
 POST /api/search
 ```
 
-Этот endpoint должен вернуть полный `SearchResult`.
-
----
-
-### 6.4 `/claims` — ClaimsPage / База утверждений
-
-Назначение:
-
-- реестр проверяемых научно-технических утверждений;
-- показывает карточки утверждений;
-- каждая карточка имеет источник, условия, материалы, процессы, оборудование и confidence;
-- карточки раскрываются через “Подробнее”;
-- есть фильтры:
-  - направление;
-  - статус;
-  - достоверность;
-  - тип источника;
-  - материалы;
-  - текстовый поиск.
-
-Сейчас используется mock-слой.
-
-Будущий backend:
-
-```http
-GET /api/claims
-GET /api/claims/{claimId}
-```
-
----
-
-### 6.5 `/graph` — GraphPage / Граф знаний
-
-Назначение:
-
-- показывает связи между сущностями;
-- используется `@xyflow/react`;
-- есть demo-сценарии;
-- граф использует цветовую семантику узлов и связей.
-
-Сущности графа:
-
-```text
-material
-process
-equipment
-parameter
-claim
-source
-effect
-technology
-```
-
-Связи графа:
-
-```text
-supports
-contradicts
-influences
-requires
-measured_in
-derived_from
-contains
-selected_for
-```
-
-Будущий backend:
-
-```http
-GET /api/graph
-```
-
-Query-параметры могут быть:
-
-```text
-scenarioId
-searchResultId
-claimId
-sourceId
-```
-
----
-
-### 6.6 `/sources` — SourcesPage / Источники
-
-Назначение:
-
-- список источников;
-- показывает тип источника, год, надёжность, теги, связанные утверждения;
-- карточки источников раскрываются через “Подробнее”;
-- есть фильтры по типу, географии, надёжности, году и тексту.
-
-Будущий backend:
-
-```http
-GET /api/sources
-GET /api/sources/{sourceId}
-```
-
----
-
-### 6.7 `/contradictions` — ContradictionsPage / Противоречия
-
-Назначение:
-
-- показывает конфликтующие утверждения;
-- показывает связанные пробелы;
-- помогает эксперту понять, где выводы требуют проверки;
-- противоречие не считается ошибкой системы, это зона экспертной проверки.
-
-Будущий backend:
-
-```http
-GET /api/contradictions
-GET /api/contradictions/{contradictionId}
-```
-
----
-
-### 6.8 `/upload` — UploadPage / Загрузка документов
-
-Назначение:
-
-- выбор файла;
-- имитация pipeline обработки;
-- отображение этапов:
-  1. файл загружен;
-  2. текст извлечён;
-  3. фрагменты сформированы;
-  4. утверждения извлечены;
-  5. сущности и условия найдены;
-  6. связи графа построены;
-  7. индекс доказательств обновлён.
-
-Текущий mock API:
-
-```text
-src/entities/document/api.ts
-```
-
-```ts
-uploadDocumentMock(request): Promise<UploadDocumentMockResponse>
-getProcessingStatusMock(documentId): Promise<ProcessingStatusMockResponse>
-getExtractionResultMock(documentId): Promise<UploadExtractionResult>
-```
-
-Будущий backend:
-
-```http
-POST /api/documents/upload
-GET /api/documents/{documentId}/status
-GET /api/documents/{documentId}/extraction
-```
-
----
-
-### 6.9 `/export` — ExportPage / Экспорт
-
-Назначение:
-
-- объясняет форматы отчётов;
-- реальный Markdown/JSON экспорт сейчас выполняется на frontend из SearchPage;
-- PDF отмечен как будущая серверная функция.
-
-Текущий report API stub:
-
-```text
-src/entities/report/api.ts
-```
-
-```ts
-requestReportExport(request: ExportReportRequest): Promise<ExportReportResponse>
-```
-
-PDF сейчас возвращает статус:
-
-```text
-unsupported
-```
-
-Будущий backend:
-
-```http
-POST /api/reports/export
-```
-
----
-
-## 7. Текущие demo-сценарии
-
-Frontend сейчас работает на 3 подготовленных сценариях.
-
-Файл registry:
-
-```text
-src/shared/mock/demoScenarios.ts
-```
-
-Raw JSON:
-
-```text
-src/shared/mock/raw/sampleDesalination.json
-src/shared/mock/raw/sampleCatholyte.json
-src/shared/mock/raw/samplePgm.json
-```
-
-Curated summaries:
-
-```text
-src/shared/mock/curatedScenarioSummaries.ts
-```
-
-### 7.1 Обессоливание воды
-
-ID в registry:
-
-```text
-desalination
-```
-
-Тема:
-
-```text
-сульфаты
-хлориды
-Ca
-Mg
-Na
-сухой остаток
-обессоливание
-reverse osmosis
-ion exchange polishing
-```
-
-### 7.2 Циркуляция католита
-
-ID в registry:
-
-```text
-catholyte
-```
-
-Тема:
-
-```text
-nickel electrowinning
-catholyte circulation
-flow velocity
-circulation pump
-stable cathode deposit
-```
-
-### 7.3 Au / Ag / МПГ между штейном и шлаком
-
-ID в registry:
-
-```text
-pgm
-```
-
-Тема:
-
-```text
-Au
-Ag
-PGM / МПГ
-copper matte
-nickel matte
-slag
-matte-slag separation
-```
-
----
-
-## 8. Главный frontend DTO: SearchResult
-
-Актуальный frontend-тип находится здесь:
-
-```text
-src/shared/types/search.ts
-```
-
-Главная структура:
-
-```ts
-export interface SearchResult {
-  id: string;
-  scenarioId: DemoScenarioId;
-  title: string;
-  parsedQuery: ParsedQuery;
-  answer: AnswerSummary;
-  evidence: EvidenceItem[];
-  graph: KnowledgeGraph;
-  sources: SourceMetadata[];
-  contradictions: Contradiction[];
-  gaps: KnowledgeGap[];
-  generatedAt: string;
-}
-```
-
-Backend может либо:
-
-1. сразу возвращать данные максимально близко к этому DTO;
-2. либо возвращать свой DTO, который frontend будет приводить к `SearchResult` через adapter.
-
-Но для быстрого подключения лучше договориться о DTO, максимально близком к текущему `SearchResult`.
-
----
-
-## 9. Подробные DTO
-
-### 9.1 Confidence
-
-```ts
-export type ConfidenceLevel = "high" | "medium" | "low" | "unknown";
-export type SupportedConfidenceLevel = "high" | "medium" | "low";
-```
-
-Для основных UI-элементов лучше использовать:
-
-```text
-high
-medium
-low
-```
-
-`unknown` допустим только как промежуточный fallback.
-
----
-
-### 9.2 Condition
-
-Числовые условия должны быть структурированными.
-
-```ts
-export type NumericOperator =
-  | "equals"
-  | "less_than"
-  | "less_than_or_equal"
-  | "greater_than"
-  | "greater_than_or_equal"
-  | "range"
-  | "approximately"
-  | "unknown";
-
-export type ConditionKind =
-  | "concentration"
-  | "temperature"
-  | "ph"
-  | "flow_velocity"
-  | "flow_rate"
-  | "pressure"
-  | "dry_residue"
-  | "time"
-  | "ratio"
-  | "composition"
-  | "equipment_setting";
-
-export interface Condition {
-  id: string;
-  kind: ConditionKind;
-  parameter: string;
-  operator: Exclude<NumericOperator, "unknown">;
-  value?: number;
-  min?: number;
-  max?: number;
-  minValue?: number;
-  maxValue?: number;
-  unit: string;
-  rawValue?: string;
-  material?: string;
-  note?: string;
-  name?: string;
-}
-```
-
-Пример хорошего условия:
+`POST /api/search` body:
 
 ```json
 {
-  "id": "cond-sulfates-200-300",
-  "kind": "concentration",
-  "parameter": "sulfates",
-  "operator": "range",
-  "min": 200,
-  "max": 300,
-  "unit": "mg/l",
-  "rawValue": "200–300 mg/l"
+  "query": "Какая скорость потока католита оптимальна при электроэкстракции никеля?",
+  "topK": 15
 }
 ```
 
-Плохой вариант:
+Response: `SearchResult` with exactly these top-level keys:
 
 ```json
 {
-  "condition": "sulfates 200-300 mg/l"
-}
-```
-
----
-
-### 9.3 ParsedQuery
-
-```ts
-export interface ParsedQuery {
-  id: string;
-  originalText: string;
-  normalizedQuestion: string;
-  domain: "water_treatment" | "nickel_electrowinning" | "matte_slag_partitioning";
-  intent:
-    | "technology_selection"
-    | "parameter_optimization"
-    | "evidence_review"
-    | "gap_analysis";
-  materials: string[];
-  processes: string[];
-  equipment: string[];
-  targetParameters: string[];
-  numericConditions: Condition[];
-  technologies?: string[];
-  conditions?: Condition[];
-  geography?: string[];
-  timeScope?: {
-    fromYear: number;
-    toYear: number;
-  };
-  timeRange?: {
-    fromYear: number;
-    toYear: number;
-  };
-}
-```
-
-Что frontend показывает из этого блока:
-
-- намерение запроса;
-- предметную область;
-- материалы;
-- процессы;
-- оборудование;
-- целевые параметры;
-- числовые условия;
-- временной диапазон;
-- географию, если есть.
-
----
-
-### 9.4 AnswerSummary
-
-```ts
-export interface AnswerSummary {
-  shortConclusion: string;
-  confidence: SupportedConfidenceLevel;
-  confidenceReason: string;
-  keyFindings: string[];
-  limitations: string[];
-  warnings?: string[];
-  recommendations?: string[];
-}
-```
-
-Важно:
-
-- `shortConclusion` должен быть чистым текстом без OCR/парсинг-шума;
-- вывод не должен быть длинным фрагментом из источника;
-- вывод должен опираться на `evidence`;
-- `confidenceReason` должен объяснять, почему уровень уверенности именно такой;
-- `limitations` и `warnings` не нужно прятать внутри текста.
-
----
-
-### 9.5 EvidenceItem
-
-```ts
-export interface EvidenceItem {
-  id: string;
-  scenarioId: string;
-  claimType:
-    | "technology_selection"
-    | "parameter_range"
-    | "process_effect"
-    | "material_behavior"
-    | "equipment_requirement"
-    | "source_limitation";
-  statement: string;
-  confidence: SupportedConfidenceLevel;
-  confidenceReason: string;
-  sourceRef: SourceRef;
-  conditions: Condition[];
-  effects: Effect[];
-  materials: string[];
-  processes: string[];
-  equipment: string[];
-  year: number;
-  claim?: string;
-  technologies?: string[];
-  geography?: string;
-}
-```
-
-`EvidenceItem` — главная единица доказательной таблицы.
-
-Обязательно:
-
-```text
-id
-statement
-confidence
-sourceRef
-materials
-processes
-conditions
-year
-```
-
-Каждый `EvidenceItem` должен иметь `sourceRef`.
-
----
-
-### 9.6 SourceRef
-
-```ts
-export type SourceType =
-  | "scientific_article"
-  | "internal_report"
-  | "patent"
-  | "experiment_protocol"
-  | "technical_standard"
-  | "reference_book";
-
-export interface SourceRef {
-  sourceId: string;
-  documentTitle: string;
-  sourceType: SourceType;
-  year: number;
-  page: number;
-  chunkId: string;
-  section?: string;
-  documentId?: string;
-  sourceName?: string;
-  sectionTitle?: string;
-  geography?: string;
-}
-```
-
-`SourceRef` нужен для связи:
-
-```text
-evidence item -> source -> page -> chunk
-```
-
----
-
-### 9.7 SourceMetadata
-
-```ts
-export interface SourceMetadata {
-  id: string;
-  title: string;
-  sourceType: SourceType;
-  year: number;
-  authors: string[];
-  organization?: string;
-  documentId?: string;
-  tags: string[];
-  reliability: SupportedConfidenceLevel;
-  geography?: string;
-  language?: string;
-  excerpt?: string;
-}
-```
-
-`SearchResult.sources` должен содержать уникальный список источников, на которые ссылаются evidence items.
-
----
-
-### 9.8 KnowledgeGraph
-
-```ts
-export type GraphNodeType =
-  | "material"
-  | "process"
-  | "equipment"
-  | "parameter"
-  | "claim"
-  | "source"
-  | "effect"
-  | "technology";
-
-export type GraphEdgeRelation =
-  | "supports"
-  | "contradicts"
-  | "influences"
-  | "requires"
-  | "measured_in"
-  | "derived_from"
-  | "contains"
-  | "selected_for";
-
-export interface GraphNode {
-  id: string;
-  type: GraphNodeType;
-  label: string;
-  confidence?: SupportedConfidenceLevel;
-  metadata?: Record<string, string | number | boolean>;
-  description?: string;
-}
-
-export interface GraphEdge {
-  id: string;
-  source: string;
-  target: string;
-  relation: GraphEdgeRelation;
-  label: string;
-  confidence?: SupportedConfidenceLevel;
-  sourceRef?: SourceRef;
-  evidenceText?: string;
-  metadata?: Record<string, string | number | boolean>;
-}
-
-export interface KnowledgeGraph {
-  nodes: GraphNode[];
-  edges: GraphEdge[];
-}
-```
-
-Требования:
-
-- `edge.source` и `edge.target` должны ссылаться на существующие `node.id`;
-- `id` узлов и связей должны быть стабильными;
-- graph должен быть не декоративным, а связанным с evidence/source/claims.
-
----
-
-### 9.9 Contradiction
-
-```ts
-export interface Contradiction {
-  id: string;
-  scenarioId: string;
-  title: string;
-  description: string;
-  severity: "minor" | "moderate" | "critical";
-  claimIds: string[];
-  conflictingStatements: string[];
-  sourceRefs: SourceRef[];
-  confidence: SupportedConfidenceLevel;
-  resolutionHint: string;
-  topic?: string;
-  status?: "possible" | "confirmed" | "resolved";
-  possibleReason?: string;
-  recommendation?: string;
-}
-```
-
-Важно:
-
-- противоречие не является ошибкой системы;
-- это объект для экспертной проверки;
-- его нельзя прятать внутри `answer.shortConclusion`;
-- frontend показывает противоречия отдельно.
-
----
-
-### 9.10 KnowledgeGap
-
-```ts
-export interface KnowledgeGap {
-  id: string;
-  scenarioId: string;
-  title: string;
-  description: string;
-  severity: "low" | "medium" | "high";
-  affectedMaterials: string[];
-  affectedProcesses: string[];
-  missingEvidence: string;
-  recommendedAction: string;
-  confidence: SupportedConfidenceLevel;
-  relatedSourceRefs: SourceRef[];
-  topic?: string;
-  priority?: "low" | "medium" | "high";
-  relatedClaimIds?: string[];
-  recommendation?: string;
-}
-```
-
-Пробелы нужны для ответа на вопрос:
-
-```text
-чего не хватает, чтобы вывод был надёжным?
-```
-
----
-
-## 10. Priority API для backend
-
-### Priority 1 — Search API
-
-Самое важное для интеграции:
-
-```http
-POST /api/search
-```
-
-Request:
-
-```json
-{
-  "query": "Выбрать технологию обессоливания воды по сульфатам, хлоридам, Ca, Mg, Na и сухому остатку.",
-  "filters": {
-    "sourceType": null,
-    "confidence": null,
-    "yearFrom": 2020,
-    "yearTo": 2026,
-    "geography": null
-  }
-}
-```
-
-Response:
-
-```json
-{
-  "id": "search-desalination-001",
-  "scenarioId": "desalination",
-  "title": "Обессоливание воды",
   "parsedQuery": {},
   "answer": {},
   "evidence": [],
-  "graph": {
-    "nodes": [],
-    "edges": []
-  },
-  "sources": [],
-  "contradictions": [],
+  "graph": {},
   "gaps": [],
-  "generatedAt": "2026-07-04T00:00:00.000Z"
-}
-```
-
-Минимальный MVP для backend:
-
-- можно сначала возвращать один статический `SearchResult`;
-- главное — отдавать его через настоящий endpoint;
-- frontend после этого заменит `searchEvidenceByScenario()` на реальный `searchEvidence()`.
-
----
-
-### Priority 2 — Documents API
-
-```http
-POST /api/documents/upload
-GET /api/documents/{documentId}/status
-GET /api/documents/{documentId}/extraction
-```
-
-Upload request:
-
-```text
-multipart/form-data
-file: File
-```
-
-Upload response:
-
-```json
-{
-  "documentId": "doc-001",
-  "title": "pilot-report.pdf",
-  "fileName": "pilot-report.pdf",
-  "fileType": "application/pdf",
-  "status": "uploaded",
-  "uploadedAt": "2026-07-04T00:00:00.000Z"
-}
-```
-
-Status response:
-
-```json
-{
-  "documentId": "doc-001",
-  "status": "processing",
-  "progress": 42,
-  "steps": [
-    {
-      "id": "file_uploaded",
-      "title": "Файл загружен",
-      "status": "done"
-    },
-    {
-      "id": "text_extracted",
-      "title": "Текст извлечён",
-      "status": "processing"
-    }
-  ]
-}
-```
-
-Extraction response:
-
-```json
-{
-  "documentId": "doc-001",
-  "materials": [],
-  "processes": [],
-  "equipment": [],
-  "conditions": [],
-  "claims": [],
-  "sourceRefs": [],
-  "graphRelations": []
-}
-```
-
----
-
-### Priority 3 — Registry APIs
-
-Для страниц `ClaimsPage`, `SourcesPage`, `ContradictionsPage`, `GraphPage`.
-
-```http
-GET /api/claims
-GET /api/claims/{claimId}
-
-GET /api/sources
-GET /api/sources/{sourceId}
-
-GET /api/graph
-
-GET /api/contradictions
-GET /api/contradictions/{contradictionId}
-
-GET /api/gaps
-```
-
----
-
-### Priority 4 — Export API
-
-Markdown/JSON сейчас делает frontend.
-
-Backend нужен в первую очередь для PDF:
-
-```http
-POST /api/reports/export
-```
-
-Request:
-
-```json
-{
-  "format": "pdf",
-  "searchResultId": "search-desalination-001",
-  "options": {
-    "includeEvidenceTable": true,
-    "includeSources": true,
-    "includeContradictions": true,
-    "includeGaps": true,
-    "includeGraphSummary": true
-  }
-}
-```
-
-Response:
-
-```json
-{
-  "reportId": "report-001",
-  "format": "pdf",
-  "filename": "evidence-report.pdf",
-  "contentType": "application/pdf",
-  "downloadUrl": "/api/reports/report-001/download",
-  "generatedAt": "2026-07-04T00:00:00.000Z",
-  "status": "ready"
-}
-```
-
----
-
-### Priority 5 — Auth API
-
-Сейчас auth полностью mock.
-
-Будущий backend:
-
-```http
-POST /api/auth/login
-GET /api/auth/me
-POST /api/auth/logout
-```
-
-Login request:
-
-```json
-{
-  "email": "researcher@demo.local",
-  "password": "demo123"
-}
-```
-
-Login response:
-
-```json
-{
-  "accessToken": "jwt-or-session-token",
-  "user": {
-    "id": "researcher-001",
-    "name": "Инженер-исследователь",
-    "email": "researcher@demo.local",
-    "role": "researcher",
-    "organization": "Научно-технический центр"
-  }
-}
-```
-
----
-
-## 11. Как подключать backend к текущему frontend
-
-Рекомендуемая стратегия:
-
-```text
-1. Не переписывать UI.
-2. Не удалять mock-данные.
-3. Добавить отдельный real API layer.
-4. Оставить adapter layer.
-5. Подключить real endpoint сначала только к SearchPage.
-6. Сравнить backend response с SearchResult.
-7. Нормализовать backend response через adapter.
-8. Потом подключать остальные страницы.
-```
-
-Предлагаемая структура:
-
-```text
-src/shared/api/
-  httpClient.ts
-  searchApi.ts
-  searchResultAdapter.ts
-  backendSearchApi.ts
-```
-
-Пример будущей функции:
-
-```ts
-export async function searchEvidence(query: string, filters: SearchFilters): Promise<SearchResult> {
-  const response = await httpClient.post("/api/search", { query, filters });
-  return normalizeSearchResult(response);
-}
-```
-
-Важно:
-
-- `normalizeSearchResult()` уже существует;
-- его можно расширить под backend DTO;
-- UI не должен знать, mock это или real API.
-
----
-
-## 12. Что backend не должен возвращать
-
-Плохо:
-
-```json
-{
-  "answer": "Для вашего случая лучше использовать обратный осмос..."
-}
-```
-
-Такой ответ недостаточен.
-
-Хорошо:
-
-```json
-{
-  "parsedQuery": {},
-  "answer": {
-    "shortConclusion": "Для заданного состава воды наиболее обоснована комбинированная схема предварительной подготовки, мембранного обессоливания и polishing stage.",
-    "confidence": "high",
-    "confidenceReason": "Вывод поддержан несколькими источниками и числовыми условиями."
-  },
-  "evidence": [
-    {
-      "id": "ev-001",
-      "statement": "Для состава с сульфатами и хлоридами 200–300 mg/l требуется контроль Ca/Mg перед мембранной стадией.",
-      "confidence": "high",
-      "sourceRef": {
-        "sourceId": "src-001",
-        "documentTitle": "Pilot desalination tests for sulfate-chloride mine water",
-        "sourceType": "internal_report",
-        "year": 2024,
-        "page": 12,
-        "chunkId": "water-pilot-2024-p12-c03"
-      },
-      "conditions": [],
-      "effects": [],
-      "materials": ["sulfates", "chlorides", "Ca", "Mg", "Na"],
-      "processes": ["feed characterization"],
-      "equipment": [],
-      "year": 2024
-    }
-  ],
-  "sources": [],
-  "graph": {
-    "nodes": [],
-    "edges": []
-  },
   "contradictions": [],
-  "gaps": []
+  "sources": []
 }
 ```
 
----
+Главное: не терять source references.
 
-## 13. Backend checklist для первого рабочего `/api/search`
+Каждый evidence item должен иметь:
 
-Endpoint считается пригодным для frontend-интеграции, если он возвращает:
-
-- [ ] `id`
-- [ ] `title`
-- [ ] `scenarioId` или другой topic id
-- [ ] `parsedQuery`
-- [ ] `answer.shortConclusion`
-- [ ] `answer.confidence`
-- [ ] `answer.confidenceReason`
-- [ ] `evidence[]`
-- [ ] у каждого evidence есть `statement`
-- [ ] у каждого evidence есть `sourceRef`
-- [ ] у каждого sourceRef есть `sourceId`, `documentTitle`, `sourceType`, `year`, `page`, `chunkId`
-- [ ] `sources[]`
-- [ ] `graph.nodes[]`
-- [ ] `graph.edges[]`
-- [ ] `contradictions[]`
-- [ ] `gaps[]`
-- [ ] `generatedAt`
-
----
-
-## 14. Валидация данных на backend
-
-Backend должен следить за следующими правилами.
-
-### 14.1 Каждый claim имеет источник
-
-```text
-EvidenceItem.sourceRef обязателен.
+```json
+{
+  "source": {
+    "documentId": "...",
+    "sourceName": "...",
+    "chunkId": "...",
+    "page": 1
+  }
+}
 ```
 
-### 14.2 Числовые условия структурированы
+Каждый graph edge должен иметь:
 
-```text
-parameter + operator + value/min/max + unit
+```json
+{
+  "sourceRef": {
+    "documentId": "...",
+    "sourceName": "...",
+    "chunkId": "...",
+    "page": 1
+  }
+}
 ```
-
-### 14.3 Confidence объясняется
-
-```text
-confidenceReason обязателен для answer и evidence.
-```
-
-### 14.4 Graph связан с evidence
-
-Граф должен быть связан с реальными сущностями результата, а не быть независимой иллюстрацией.
-
-### 14.5 Contradictions и gaps — отдельные массивы
-
-Их нельзя прятать в `answer.shortConclusion`.
-
----
-
-## 15. Рекомендуемый порядок backend-задач
-
-### Задача 1 — согласовать SearchResult DTO
-
-Согласовать поля:
-
-```text
-SearchResult
-ParsedQuery
-AnswerSummary
-EvidenceItem
-SourceRef
-SourceMetadata
-KnowledgeGraph
-Contradiction
-KnowledgeGap
-```
-
-### Задача 2 — сделать `/api/search` со статическим ответом
-
-Можно начать с одного статического результата, похожего на текущий mock.
-
-Цель:
-
-- проверить CORS;
-- проверить shape response;
-- подключить frontend к реальному endpoint;
-- убедиться, что UI не ломается.
-
-### Задача 3 — добавить реальные source/chunk references
-
-Подготовить хранение:
-
-```text
-document
-source
-page
-chunk
-claim
-```
-
-### Задача 4 — добавить поиск по корпусу
-
-Минимально:
-
-```text
-query -> relevant chunks -> evidence candidates -> SearchResult
-```
-
-### Задача 5 — добавить загрузку документов
-
-```text
-upload -> extract text -> chunk -> index -> claims -> graph
-```
-
-### Задача 6 — подключить остальные endpoints
-
-```text
-claims
-sources
-graph
-contradictions
-gaps
-reports
-auth
-```
-
----
-
-## 16. Важные frontend-ограничения
-
-На момент текущего MVP:
-
-- frontend ожидает JSON;
-- frontend не ожидает streaming response;
-- frontend не ожидает HTML/Markdown как основной answer;
-- frontend может показывать длинные evidence statements, но лучше возвращать аккуратные короткие утверждения;
-- frontend поддерживает раскрываемые карточки и секции;
-- frontend умеет визуализировать graph через nodes/edges;
-- frontend умеет локально экспортировать Markdown/JSON из SearchResult;
-- frontend лучше всего работает, когда backend возвращает стабильные id.
-
----
-
-## 17. CORS и окружение
-
-Сейчас frontend работает локально через Vite.
-
-Обычно frontend URL:
-
-```text
-http://localhost:5173
-```
-
-Backend должен разрешить CORS для frontend origin на время разработки.
-
-Рекомендуемые env-переменные для будущей интеграции:
-
-```env
-VITE_API_BASE_URL=http://localhost:8000
-VITE_USE_MOCK_API=false
-```
-
-Сейчас таких env-переключателей может ещё не быть. Их стоит добавить на этапе интеграции.
-
----
-
-## 18. Definition of Done для backend MVP
-
-Backend MVP считается готовым для frontend, если:
-
-1. frontend отправляет запрос на `POST /api/search`;
-2. backend возвращает полный `SearchResult`;
-3. frontend отображает:
-   - разбор запроса;
-   - краткий вывод;
-   - таблицу доказательств;
-   - граф связей;
-   - источники;
-   - противоречия;
-   - пробелы;
-   - экспорт;
-4. каждый evidence item связан с source/page/chunk;
-5. сборка frontend не ломается;
-6. mock-сценарии можно оставить как fallback/demo.
-
----
-
-## 19. Самый важный вывод для backend-разработчика
-
-Frontend уже построен вокруг evidence-first модели.
-
-Поэтому backend должен отдавать не “ответ чат-бота”, а **структурированный доказательный объект анализа**:
-
-```text
-SearchResult =
-  parsedQuery
-  + answer
-  + evidence
-  + sources
-  + graph
-  + contradictions
-  + gaps
-  + generatedAt
-```
-
-Если backend вернёт только текст, основная ценность текущего frontend потеряется.
