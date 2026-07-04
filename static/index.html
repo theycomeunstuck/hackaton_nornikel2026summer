@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Научный клубок — Evidence Engine</title>
+<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+<style>
+  :root{
+    --bg:#0f1420; --panel:#171d2b; --panel2:#1e2536; --line:#2a3348;
+    --txt:#e6ebf5; --muted:#8a97b1; --accent:#5b8cff; --accent2:#7c5bff;
+    --high:#31c48d; --medium:#f6b73c; --low:#f0616d; --warn:#f6b73c;
+    --chip:#232c42;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);
+       color:var(--txt);font-size:14px}
+  a{color:var(--accent)}
+  .app{display:flex;min-height:100vh}
+  /* sidebar */
+  .side{width:230px;background:var(--panel);border-right:1px solid var(--line);
+        padding:18px 14px;position:sticky;top:0;height:100vh;flex-shrink:0}
+  .logo{font-weight:700;font-size:17px;margin-bottom:2px}
+  .logo span{color:var(--accent)}
+  .tag{color:var(--muted);font-size:11px;margin-bottom:22px}
+  .nav a{display:block;padding:9px 12px;border-radius:8px;color:var(--muted);
+         text-decoration:none;margin-bottom:3px;cursor:pointer;font-weight:500}
+  .nav a:hover{background:var(--panel2);color:var(--txt)}
+  .nav a.active{background:var(--accent);color:#fff}
+  .principle{margin-top:24px;padding:12px;background:var(--panel2);border-radius:8px;
+             font-size:11.5px;color:var(--muted);border:1px solid var(--line)}
+  /* main */
+  .main{flex:1;padding:26px 34px;max-width:1200px}
+  h1{font-size:22px;margin:0 0 4px}
+  h2{font-size:16px;margin:26px 0 12px;border-bottom:1px solid var(--line);
+     padding-bottom:6px}
+  .sub{color:var(--muted);margin:0 0 18px}
+  .view{display:none}
+  .view.active{display:block}
+  /* cards / grid */
+  .grid{display:grid;gap:14px}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+        padding:16px}
+  .stat .num{font-size:28px;font-weight:700}
+  .stat .lbl{color:var(--muted);font-size:12px;margin-top:2px}
+  /* chips */
+  .chip{display:inline-block;background:var(--chip);border:1px solid var(--line);
+        border-radius:20px;padding:3px 11px;margin:3px 4px 3px 0;font-size:12px}
+  .chip.mat{border-color:#3a5bd0} .chip.proc{border-color:#7c5bff}
+  .chip.tech{border-color:#31c48d} .chip.cond{border-color:#f6b73c}
+  .conf{font-weight:600;text-transform:uppercase;font-size:11px;padding:2px 8px;
+        border-radius:6px}
+  .conf.high{background:rgba(49,196,141,.15);color:var(--high)}
+  .conf.medium{background:rgba(246,183,60,.15);color:var(--medium)}
+  .conf.low{background:rgba(240,97,109,.15);color:var(--low)}
+  /* search */
+  .searchbar{display:flex;gap:10px;margin-bottom:14px}
+  textarea,input,select{background:var(--panel2);border:1px solid var(--line);
+    color:var(--txt);border-radius:10px;padding:11px 13px;font-family:inherit;
+    font-size:14px;width:100%}
+  textarea{resize:vertical;min-height:64px}
+  button{background:var(--accent);color:#fff;border:none;border-radius:10px;
+    padding:11px 20px;font-weight:600;cursor:pointer;font-size:14px}
+  button:hover{filter:brightness(1.1)}
+  button.ghost{background:var(--panel2);border:1px solid var(--line);color:var(--txt)}
+  .examples{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .examples button{background:var(--panel2);border:1px solid var(--line);
+    color:var(--muted);font-weight:500;font-size:12px;padding:7px 12px}
+  .examples button:hover{color:var(--txt);border-color:var(--accent)}
+  .filters{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+  /* table */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);
+        vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:12px}
+  tr:hover td{background:var(--panel2)}
+  .src{color:var(--accent);font-size:12px}
+  .warnbox{background:rgba(246,183,60,.1);border:1px solid var(--warn);
+    border-radius:10px;padding:10px 14px;margin:6px 0;color:#ffd98a;font-size:13px}
+  .contradiction{border-left:3px solid var(--low)}
+  .gap{border-left:3px solid var(--warn)}
+  #graph{height:520px;background:var(--panel);border:1px solid var(--line);
+    border-radius:12px}
+  .muted{color:var(--muted)}
+  .badge{font-size:11px;padding:2px 7px;border-radius:5px;background:var(--chip);
+    border:1px solid var(--line);color:var(--muted)}
+  .loader{color:var(--muted);padding:20px 0}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin:10px 0;font-size:12px}
+  .legend i{display:inline-block;width:11px;height:11px;border-radius:3px;
+    margin-right:5px;vertical-align:middle}
+  pre{background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+    padding:14px;overflow:auto;font-size:12px;max-height:420px}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="logo">Научный <span>клубок</span></div>
+    <div class="tag">Evidence Engine · R&amp;D</div>
+    <nav class="nav" id="nav">
+      <a data-view="dashboard" class="active">📊 Dashboard</a>
+      <a data-view="search">🔍 Evidence Search</a>
+      <a data-view="graph">🕸️ Knowledge Graph</a>
+      <a data-view="sources">📚 Sources</a>
+      <a data-view="issues">⚠️ Противоречия &amp; Пробелы</a>
+      <a data-view="export">📄 Export Report</a>
+    </nav>
+    <div class="principle">
+      <b>No source — no factual claim.</b><br/>
+      Каждый вывод привязан к источнику, условию и уровню достоверности.
+    </div>
+  </aside>
+
+  <main class="main">
+    <!-- DASHBOARD -->
+    <section class="view active" id="view-dashboard">
+      <h1>Dashboard</h1>
+      <p class="sub">Состояние evidence index за 30 секунд.</p>
+      <div class="grid g4" id="stats"></div>
+      <div class="grid g2" style="margin-top:18px">
+        <div class="card">
+          <h2 style="margin-top:0">Покрытие по доменам</h2>
+          <div id="domains"></div>
+        </div>
+        <div class="card">
+          <h2 style="margin-top:0">Приоритетные пробелы</h2>
+          <div id="priority-gaps"></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:18px">
+        <h2 style="margin-top:0">Последние claims</h2>
+        <div id="recent-claims"></div>
+      </div>
+    </section>
+
+    <!-- SEARCH -->
+    <section class="view" id="view-search">
+      <h1>Evidence Search</h1>
+      <p class="sub">Задайте научно-технический вопрос — система вернёт проверяемую доказательную структуру.</p>
+      <div class="examples" id="examples"></div>
+      <textarea id="q" placeholder="Например: какие методы обессоливания воды подходят при сульфатах 200–300 мг/л и сухом остатке ≤1000 мг/дм³?"></textarea>
+      <div class="filters" style="margin-top:10px">
+        <select id="f-geo"><option value="all">География: любая</option>
+          <option value="domestic">Отечественная</option>
+          <option value="foreign">Зарубежная</option></select>
+        <input id="f-yearFrom" type="number" placeholder="Год от" />
+        <input id="f-yearTo" type="number" placeholder="Год до" />
+        <select id="f-conf"><option value="">Достоверность: любая</option>
+          <option value="medium">≥ medium</option>
+          <option value="high">только high</option></select>
+      </div>
+      <div class="searchbar">
+        <button onclick="runSearch()">Найти доказательства</button>
+        <button class="ghost" onclick="clearSearch()">Очистить</button>
+      </div>
+      <div id="results"></div>
+    </section>
+
+    <!-- GRAPH -->
+    <section class="view" id="view-graph">
+      <h1>Knowledge Graph</h1>
+      <p class="sub">material → process → technology → condition → effect → source</p>
+      <div class="row" style="margin-bottom:10px">
+        <select id="graph-topic" style="max-width:280px">
+          <option value="">Весь индекс</option>
+          <option value="обессоливание воды">Обессоливание воды</option>
+          <option value="циркуляция католита">Циркуляция католита</option>
+          <option value="распределение металлов">Распределение Au/Ag/МПГ</option>
+        </select>
+        <button class="ghost" onclick="loadGraph()">Построить</button>
+      </div>
+      <div class="legend" id="legend"></div>
+      <div id="graph"></div>
+    </section>
+
+    <!-- SOURCES -->
+    <section class="view" id="view-sources">
+      <h1>Sources</h1>
+      <p class="sub">Доказательная база claims: документы, авторы, надёжность, выдержки.</p>
+      <div id="sources"></div>
+    </section>
+
+    <!-- ISSUES -->
+    <section class="view" id="view-issues">
+      <h1>Противоречия &amp; Пробелы</h1>
+      <p class="sub">Где источники расходятся и где данных недостаточно.</p>
+      <h2>Противоречия</h2>
+      <div id="contradictions"></div>
+      <h2>Пробелы в знаниях</h2>
+      <div id="gaps"></div>
+    </section>
+
+    <!-- EXPORT -->
+    <section class="view" id="view-export">
+      <h1>Export Report</h1>
+      <p class="sub">Экспорт evidence report в Markdown или JSON.</p>
+      <div class="card">
+        <div class="grid g2">
+          <div>
+            <label class="muted">Название отчёта</label>
+            <input id="ex-title" value="Evidence report — обессоливание воды" />
+          </div>
+          <div>
+            <label class="muted">Запрос (или сценарий)</label>
+            <input id="ex-query" value="Какие методы обессоливания воды подходят при сульфатах 200–300 мг/л и сухом остатке ≤1000 мг/дм³?" />
+          </div>
+        </div>
+        <div class="row" style="margin-top:14px">
+          <select id="ex-format" style="max-width:180px">
+            <option value="markdown">Markdown</option>
+            <option value="json">JSON</option>
+          </select>
+          <label><input type="checkbox" id="ex-graph" checked/> граф</label>
+          <label><input type="checkbox" id="ex-sources" checked/> источники</label>
+          <label><input type="checkbox" id="ex-contr" checked/> противоречия</label>
+          <label><input type="checkbox" id="ex-gaps" checked/> пробелы</label>
+          <button onclick="doExport()">Сформировать отчёт</button>
+        </div>
+      </div>
+      <div id="export-out" style="margin-top:16px"></div>
+    </section>
+  </main>
+</div>
+
+<script>
+const API = '';
+const CONF = c => `<span class="conf ${c}">${c}</span>`;
+const el = id => document.getElementById(id);
+function esc(s){return (s||'').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]))}
+
+// --- navigation ---
+document.querySelectorAll('#nav a').forEach(a=>{
+  a.onclick=()=>{
+    document.querySelectorAll('#nav a').forEach(x=>x.classList.remove('active'));
+    a.classList.add('active');
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    el('view-'+a.dataset.view).classList.add('active');
+    if(a.dataset.view==='graph') loadGraph();
+    if(a.dataset.view==='sources') loadSources();
+    if(a.dataset.view==='issues') loadIssues();
+  };
+});
+
+async function api(path, opts){
+  const r = await fetch(API+path, opts);
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  return r.json();
+}
+
+// --- Dashboard ---
+async function loadDashboard(){
+  try{
+    const d = await api('/api/dashboard');
+    const cards = [
+      ['Документов', d.documents],['Claims', d.claims],['Источников', d.sources],
+      ['Связей в графе', d.graphRelations],['Противоречий', d.contradictions],
+      ['Пробелов', d.gaps],['Ср. достоверность', d.averageConfidence],
+    ];
+    el('stats').innerHTML = cards.map(([l,v])=>
+      `<div class="card stat"><div class="num">${v}</div><div class="lbl">${l}</div></div>`).join('');
+    el('domains').innerHTML = Object.entries(d.domainsCoverage).map(([k,v])=>{
+      const names={hydrometallurgy:'Гидрометаллургия',pyrometallurgy:'Пирометаллургия',
+        ecology:'Экология',waste_processing:'Переработка отходов'};
+      const pct = Math.min(100, v*22);
+      return `<div style="margin:8px 0"><div class="row" style="justify-content:space-between">
+        <span>${names[k]||k}</span><span class="muted">${v} claims</span></div>
+        <div style="height:7px;background:var(--panel2);border-radius:4px;margin-top:4px">
+        <div style="height:7px;width:${pct}%;background:var(--accent);border-radius:4px"></div></div></div>`;
+    }).join('');
+    el('priority-gaps').innerHTML = d.priorityGaps.map(g=>
+      `<div class="card gap" style="margin:8px 0;padding:11px"><b>${esc(g.title)}</b>
+       <div class="muted" style="margin-top:4px">${esc(g.description)}</div></div>`).join('')
+      || '<span class="muted">Нет приоритетных пробелов</span>';
+    el('recent-claims').innerHTML = claimsTable(d.recentClaims);
+  }catch(e){ el('stats').innerHTML='<span class="muted">Ошибка загрузки: '+e+'</span>'; }
+}
+
+function claimsTable(claims){
+  if(!claims||!claims.length) return '<span class="muted">Нет данных</span>';
+  return `<table><thead><tr><th>Claim</th><th>Условия</th><th>Эффект</th>
+    <th>Источник</th><th>Дост.</th></tr></thead><tbody>`+
+    claims.map(c=>`<tr>
+      <td>${esc(c.text)}</td>
+      <td>${(c.conditions||[]).map(x=>`<span class="chip cond">${esc(x.rawValue)}</span>`).join('')||'—'}</td>
+      <td>${c.effect?esc(c.effect.description):'—'}</td>
+      <td><span class="src">${esc(c.source.sourceName)}</span>${c.source.page?' · стр.'+c.source.page:''}</td>
+      <td>${CONF(c.confidence)}</td></tr>`).join('')+`</tbody></table>`;
+}
+
+// --- Search ---
+async function loadExamples(){
+  const sc = await api('/api/scenarios');
+  el('examples').innerHTML = sc.map(s=>
+    `<button onclick="setQuery(${JSON.stringify(s.query).replace(/"/g,'&quot;')})">${s.title}</button>`).join('');
+}
+function setQuery(q){ el('q').value=q; document.querySelector('#nav a[data-view=search]').click();
+  document.querySelectorAll('#nav a').forEach(x=>x.classList.remove('active'));
+  document.querySelector('#nav a[data-view=search]').classList.add('active');
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  el('view-search').classList.add('active'); runSearch(); }
+function clearSearch(){ el('q').value=''; el('results').innerHTML=''; }
+
+async function runSearch(){
+  const query = el('q').value.trim();
+  if(!query){ el('results').innerHTML='<span class="muted">Введите запрос</span>'; return; }
+  el('results').innerHTML='<div class="loader">Поиск доказательств…</div>';
+  const filters={};
+  if(el('f-geo').value!=='all') filters.geography=el('f-geo').value;
+  if(el('f-yearFrom').value) filters.yearFrom=+el('f-yearFrom').value;
+  if(el('f-yearTo').value) filters.yearTo=+el('f-yearTo').value;
+  if(el('f-conf').value) filters.confidence=el('f-conf').value;
+  try{
+    const r = await api('/api/query',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({query,filters})});
+    renderResult(r);
+  }catch(e){ el('results').innerHTML='<span class="muted">Ошибка: '+e+'</span>'; }
+}
+
+function renderResult(r){
+  const p=r.parsedQuery, a=r.answer;
+  let html='';
+  // parsed
+  html+=`<div class="card"><h2 style="margin-top:0">Как система поняла запрос</h2>
+    <div><span class="muted">intent:</span> <span class="badge">${esc(p.intent)}</span></div>
+    <div style="margin-top:8px">${chipRow('Материалы',p.materials,'mat')}
+      ${chipRow('Процессы',p.processes,'proc')}${chipRow('Технологии',p.technologies,'tech')}
+      ${chipRow('Свойства',p.properties,'')}
+      ${chipRow('Условия',(p.conditions||[]).map(c=>c.rawValue),'cond')}</div>
+    <div class="muted" style="margin-top:6px">География: ${p.geography}${p.timeRange?' · период: '+(p.timeRange.from||'…')+'–'+(p.timeRange.to||'…'):''}</div>
+  </div>`;
+  // answer
+  html+=`<div class="card" style="margin-top:14px"><div class="row" style="justify-content:space-between">
+     <h2 style="margin:0;border:none">Краткий вывод</h2>${CONF(a.confidence)}</div>
+     <p>${esc(a.shortConclusion)}</p>
+     <div class="muted">${esc(a.confidenceReason)}</div>
+     ${a.recommendation?`<p style="margin-top:8px"><b>Рекомендация:</b> ${esc(a.recommendation)}</p>`:''}
+     ${(a.warnings||[]).map(w=>`<div class="warnbox">⚠️ ${esc(w)}</div>`).join('')}</div>`;
+  // evidence
+  html+=`<div class="card" style="margin-top:14px"><h2 style="margin-top:0">Таблица доказательств (${r.evidence.length})</h2>
+     ${claimsTable(r.evidence)}</div>`;
+  // sources
+  if(r.sources.length){
+    html+=`<div class="card" style="margin-top:14px"><h2 style="margin-top:0">Источники (${r.sources.length})</h2>
+      ${r.sources.map(sourceCard).join('')}</div>`;
+  }
+  // contradictions
+  if(r.contradictions.length){
+    html+=`<div class="card" style="margin-top:14px"><h2 style="margin-top:0">Противоречия (${r.contradictions.length})</h2>
+      ${r.contradictions.map(contrCard).join('')}</div>`;
+  }
+  // gaps
+  if(r.gaps.length){
+    html+=`<div class="card" style="margin-top:14px"><h2 style="margin-top:0">Пробелы (${r.gaps.length})</h2>
+      ${r.gaps.map(gapCard).join('')}</div>`;
+  }
+  // graph inline
+  html+=`<div class="card" style="margin-top:14px"><h2 style="margin-top:0">Граф связей</h2>
+     <div id="inline-graph" style="height:420px;background:var(--panel2);border-radius:10px"></div></div>`;
+  el('results').innerHTML=html;
+  drawGraph(r.graph,'inline-graph');
+}
+function chipRow(label,arr,cls){
+  if(!arr||!arr.length) return '';
+  return `<div style="margin:5px 0"><span class="muted" style="font-size:12px">${label}:</span> `+
+    arr.map(x=>`<span class="chip ${cls}">${esc(x)}</span>`).join('')+'</div>';
+}
+function sourceCard(s){
+  return `<div class="card" style="margin:8px 0;padding:12px">
+    <div class="row" style="justify-content:space-between"><b>${esc(s.title)}</b>
+      <span class="conf ${s.reliability}">${s.reliability}</span></div>
+    <div class="muted" style="margin-top:4px">${s.type} · ${s.year||'н/д'} · ${geoName(s.geography)} · ${(s.authors||[]).join(', ')||'—'}</div>
+    ${s.excerpt?`<div style="margin-top:6px;font-style:italic">«${esc(s.excerpt)}»</div>`:''}</div>`;
+}
+function contrCard(c){
+  return `<div class="card contradiction" style="margin:8px 0;padding:12px">
+    <div class="row" style="justify-content:space-between"><b>${esc(c.title)}</b><span class="badge">${c.status}</span></div>
+    <div class="muted" style="margin:6px 0">${esc(c.description)}</div>
+    <div class="src">A: ${esc(c.sourceA.sourceName)} (стр.${c.sourceA.page||'?'}) &nbsp;·&nbsp; B: ${esc(c.sourceB.sourceName)} (стр.${c.sourceB.page||'?'})</div></div>`;
+}
+function gapCard(g){
+  return `<div class="card gap" style="margin:8px 0;padding:12px">
+    <div class="row" style="justify-content:space-between"><b>${esc(g.title)}</b><span class="badge">${g.type}</span></div>
+    <div class="muted" style="margin-top:5px">${esc(g.description)}</div></div>`;
+}
+function geoName(g){return {russia:'Россия',domestic:'Россия',foreign:'Зарубеж',mixed:'Смешанная',unknown:'н/д'}[g]||g;}
+
+// --- Graph ---
+const NODE_COLORS={material:'#3a5bd0',process:'#7c5bff',technology:'#31c48d',
+  condition:'#f6b73c',effect:'#48b0d8',equipment:'#a0a8bd',source:'#e08a4b',
+  claim:'#5b8cff',contradiction:'#f0616d',gap:'#c05bd0'};
+let network=null;
+function drawGraph(g,container){
+  const nodes=g.nodes.map(n=>({id:n.id,label:n.label.length>26?n.label.slice(0,24)+'…':n.label,
+    title:n.label+' ['+n.type+']',color:NODE_COLORS[n.type]||'#888',
+    shape:n.type==='claim'?'box':'dot',
+    font:{color:'#e6ebf5',size:12}}));
+  const edges=g.edges.map(e=>({from:e.source,to:e.target,label:e.relation,arrows:'to',
+    font:{color:'#8a97b1',size:9,strokeWidth:0},color:{color:'#2a3348'}}));
+  const data={nodes:new vis.DataSet(nodes),edges:new vis.DataSet(edges)};
+  const options={physics:{stabilization:true,barnesHut:{springLength:130,gravitationalConstant:-4000}},
+    interaction:{hover:true},nodes:{borderWidth:0,size:14}};
+  const c=el(container); if(!c) return;
+  new vis.Network(c,data,options);
+}
+async function loadGraph(){
+  const topic=el('graph-topic').value;
+  el('legend').innerHTML=Object.entries(NODE_COLORS).map(([k,v])=>
+    `<span><i style="background:${v}"></i>${k}</span>`).join('');
+  try{
+    const g=await api('/api/graph'+(topic?('?topic='+encodeURIComponent(topic)):''));
+    drawGraph(g,'graph');
+  }catch(e){ el('graph').innerHTML='<p class="loader">Ошибка: '+e+'</p>'; }
+}
+
+// --- Sources ---
+async function loadSources(){
+  el('sources').innerHTML='<div class="loader">Загрузка…</div>';
+  try{ const s=await api('/api/sources'); el('sources').innerHTML=s.map(sourceCard).join(''); }
+  catch(e){ el('sources').innerHTML='Ошибка: '+e; }
+}
+
+// --- Issues ---
+async function loadIssues(){
+  try{
+    const [c,g]=await Promise.all([api('/api/contradictions'),api('/api/gaps')]);
+    el('contradictions').innerHTML=c.map(contrCard).join('')||'<span class="muted">Нет</span>';
+    el('gaps').innerHTML=g.map(gapCard).join('')||'<span class="muted">Нет</span>';
+  }catch(e){ el('contradictions').innerHTML='Ошибка: '+e; }
+}
+
+// --- Export ---
+async function doExport(){
+  const body={title:el('ex-title').value,format:el('ex-format').value,
+    queryId:el('ex-query').value,includeGraph:el('ex-graph').checked,
+    includeSources:el('ex-sources').checked,includeContradictions:el('ex-contr').checked,
+    includeGaps:el('ex-gaps').checked};
+  el('export-out').innerHTML='<div class="loader">Формирование…</div>';
+  try{
+    const r=await api('/api/reports/export',{method:'POST',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const txt=await fetch(API+r.downloadUrl).then(x=>x.text());
+    el('export-out').innerHTML=`<div class="card"><div class="row" style="justify-content:space-between">
+      <b>Отчёт готов · ${r.format}</b>
+      <a href="${r.downloadUrl}" download><button class="ghost">⬇ Скачать</button></a></div>
+      <pre>${esc(txt)}</pre></div>`;
+  }catch(e){ el('export-out').innerHTML='Ошибка: '+e; }
+}
+
+// init
+loadDashboard(); loadExamples();
+</script>
+</body>
+</html>
