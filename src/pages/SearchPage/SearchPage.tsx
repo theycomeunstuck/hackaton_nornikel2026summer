@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { getDemoScenario, searchEvidence } from "../../shared/api/ragApi";
-import { adaptRagSearchResult } from "../../shared/api/ragResultAdapter";
+import { adaptRagSearchResult, adaptRagSourceRefs } from "../../shared/api/ragResultAdapter";
 import { demoScenarios } from "../../shared/mock/demoScenarios";
 import type {
   DemoScenario as RagDemoScenario,
@@ -45,6 +45,7 @@ export function SearchPage() {
     [activeScenarioId],
   );
   const uiResult = useMemo(() => (result ? adaptRagSearchResult(result) : null), [result]);
+  const sourceRefs = useMemo(() => (result ? adaptRagSourceRefs(result.sources) : []), [result]);
 
   const loadScenario = (scenario: RagDemoScenario) => {
     setIsLoading(true);
@@ -204,7 +205,7 @@ export function SearchPage() {
             description="Компактный список документов и фрагментов, на которые опирается текущий результат."
             defaultOpen={false}
           >
-            <SourcesPanel sources={uiResult.evidence.map((item) => item.sourceRef)} />
+            <SourcesPanel sources={sourceRefs} />
           </CollapsibleSection>
 
           <CollapsibleSection

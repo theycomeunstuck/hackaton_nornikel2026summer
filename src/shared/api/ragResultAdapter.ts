@@ -115,6 +115,10 @@ function toSourceRef(source: RagSourceRef, index: number): SourceRef {
   };
 }
 
+export function adaptRagSourceRefs(sources: RagSourceRef[]): SourceRef[] {
+  return sources.map(toSourceRef);
+}
+
 function toAnswerSummary(answer: RagAnswerSummary): AnswerSummary {
   return {
     shortConclusion: answer.shortConclusion,
