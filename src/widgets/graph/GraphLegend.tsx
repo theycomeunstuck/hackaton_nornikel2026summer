@@ -4,24 +4,32 @@ type LegendItem = {
   dotClassName: string;
 };
 
-const legendItems: LegendItem[] = [
-  { type: "material", label: "Материал", dotClassName: "border-slate-300 bg-slate-100" },
+const nodeLegendItems: LegendItem[] = [
+  { type: "material", label: "Материал", dotClassName: "border-slate-300 bg-slate-200" },
   { type: "process", label: "Процесс", dotClassName: "border-cyan-300 bg-cyan-100" },
   { type: "parameter", label: "Параметр", dotClassName: "border-amber-300 bg-amber-100" },
   { type: "condition", label: "Условие", dotClassName: "border-orange-300 bg-orange-100" },
   { type: "equipment", label: "Оборудование", dotClassName: "border-indigo-300 bg-indigo-100" },
   { type: "source", label: "Источник", dotClassName: "border-violet-300 bg-violet-100" },
-  { type: "other", label: "Другое", dotClassName: "border-ice-300 bg-ice-100" },
+  { type: "other", label: "Другое", dotClassName: "border-sky-300 bg-sky-100" },
 ];
 
-export function GraphLegend() {
+const edgeLegendItems: LegendItem[] = [
+  { type: "supports", label: "Подтверждает", dotClassName: "border-green-400 bg-green-400" },
+  { type: "contains", label: "Параметр/содержит", dotClassName: "border-sky-400 bg-sky-400" },
+  { type: "influences", label: "Влияет", dotClassName: "border-orange-400 bg-orange-400" },
+  { type: "contradicts", label: "Противоречит", dotClassName: "border-rose-400 bg-rose-400" },
+  { type: "uses", label: "Использует", dotClassName: "border-teal-400 bg-teal-400" },
+];
+
+function LegendGroup({ title, items }: { title: string; items: LegendItem[] }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white/82 px-4 py-3">
-      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-        Легенда
+    <div>
+      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+        {title}
       </p>
-      <div className="mt-3 flex flex-wrap gap-2">
-        {legendItems.map((item) => (
+      <div className="mt-2 flex flex-wrap gap-2">
+        {items.map((item) => (
           <div
             key={item.type}
             className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5"
@@ -31,6 +39,15 @@ export function GraphLegend() {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+export function GraphLegend() {
+  return (
+    <div className="grid gap-3 rounded-xl border border-slate-200 bg-white/82 px-4 py-3 lg:grid-cols-[1fr_1.15fr]">
+      <LegendGroup title="Узлы" items={nodeLegendItems} />
+      <LegendGroup title="Связи" items={edgeLegendItems} />
     </div>
   );
 }
