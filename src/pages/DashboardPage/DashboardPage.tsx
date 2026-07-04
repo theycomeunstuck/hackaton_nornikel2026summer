@@ -9,9 +9,9 @@ import {
   type DashboardMetric,
   type SourceDistributionItem,
 } from "../../shared/lib/dashboardStats";
+import { CollapsibleSection } from "../../shared/ui/CollapsibleSection";
 import { ConfidenceBadge } from "../../shared/ui/ConfidenceBadge";
 import { ContentContainer } from "../../shared/ui/ContentContainer";
-import { DisclosureSection } from "../../shared/ui/DisclosureSection";
 import { EvidencePageHeader } from "../../shared/ui/EvidencePageHeader";
 import { MetricCard } from "../../shared/ui/MetricCard";
 import { SectionCard } from "../../shared/ui/SectionCard";
@@ -280,10 +280,10 @@ export function DashboardPage() {
         </SectionCard>
       </div>
 
-      <DisclosureSection
+      <CollapsibleSection
         title="Подробная сводка"
         eyebrow="Расширенная аналитика"
-        summary="Метрики, покрытие источников и рабочие направления скрыты ниже, чтобы не перегружать первый экран."
+        description="Метрики, покрытие источников и рабочие направления скрыты ниже, чтобы не перегружать первый экран."
       >
         <div className="space-y-6">
           <section className="grid grid-cols-4 gap-4">
@@ -390,7 +390,7 @@ export function DashboardPage() {
             </div>
           </SectionCard>
         </div>
-      </DisclosureSection>
+      </CollapsibleSection>
     </ContentContainer>
   );
 }
