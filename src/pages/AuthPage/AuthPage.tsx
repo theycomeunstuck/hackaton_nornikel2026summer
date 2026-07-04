@@ -48,9 +48,15 @@ export function AuthPage() {
   };
 
   return (
-    <main className="min-h-screen bg-graphite-950 px-10 py-10 text-white">
-      <div className="mx-auto grid min-h-[calc(100vh-80px)] max-w-7xl grid-cols-[minmax(0,1fr)_440px] items-center gap-12">
-        <section>
+    <main className="auth-animated-bg relative min-h-screen overflow-hidden bg-graphite-950 px-10 py-10 text-white">
+      <div className="auth-dotted-wave pointer-events-none absolute inset-0" />
+      <div className="auth-glow-field pointer-events-none absolute inset-0" />
+      <div className="auth-floating-shape auth-floating-shape-one pointer-events-none" />
+      <div className="auth-floating-shape auth-floating-shape-two pointer-events-none" />
+      <div className="auth-floating-shape auth-floating-shape-three pointer-events-none" />
+
+      <div className="relative z-10 mx-auto grid min-h-[calc(100vh-80px)] max-w-7xl grid-cols-[minmax(0,1fr)_440px] items-center gap-12">
+        <section className="auth-hero-enter">
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-ice-300">
             R&D Evidence Hub
           </p>
@@ -76,7 +82,7 @@ export function AuthPage() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-white/12 bg-white/10 p-6 shadow-glass backdrop-blur-2xl">
+        <section className="auth-card-enter rounded-2xl border border-white/12 bg-white/10 p-6 shadow-glass backdrop-blur-2xl">
           <div className="rounded-xl border border-ice-300/20 bg-ice-500/10 p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ice-200">
               Тестовый доступ
