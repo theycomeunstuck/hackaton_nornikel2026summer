@@ -1,199 +1,136 @@
-import { useMemo, useState } from "react";
-import type { EvidenceClaim } from "../../entities/claim/types";
-import type { SourceType } from "../../entities/source/types";
-import { demoScenarios } from "../../shared/mock/demoScenarios.mock";
-import { mockSearchResults } from "../../shared/mock/searchResults.mock";
-import type { DemoScenario, SearchResult } from "../../shared/types/search";
-import { DisclosureSection } from "../../shared/ui/DisclosureSection";
-import { KnowledgeGraph } from "../../widgets/graph/KnowledgeGraph";
-import { AnswerSummaryCard } from "../../widgets/result/AnswerSummaryCard";
-import { ContradictionsPanel } from "../../widgets/result/ContradictionsPanel";
-import { EvidenceTable } from "../../widgets/result/EvidenceTable";
-import { ExportPanel } from "../../widgets/result/ExportPanel";
-import { GapsPanel } from "../../widgets/result/GapsPanel";
-import { ParsedQueryCard } from "../../widgets/result/ParsedQueryCard";
-import { SourcesPanel } from "../../widgets/result/SourcesPanel";
+import { useEffect, useMemo, useState } from "react";
+import { searchEvidenceByScenario } from "../../shared/api/searchApi";
+import { demoScenarios } from "../../shared/mock/demoScenarios";
+import type { DemoScenarioId, SearchResult } from "../../shared/types/search";
 import { DemoScenarioButtons } from "../../widgets/search/DemoScenarioButtons";
-import { type EvidenceFilters, FiltersPanel } from "../../widgets/search/FiltersPanel";
-import { SearchPanel } from "../../widgets/search/SearchPanel";
 
-const initialResult = mockSearchResults[0];
-
-const initialFilters: EvidenceFilters = {
-  geography: "all",
-  sourceType: "all",
-  confidence: "all",
-  yearFrom: 2020,
-  yearTo: 2026,
-};
-
-function getResultByScenario(scenario: DemoScenario): SearchResult {
-  return (
-    mockSearchResults.find((result) => result.id === scenario.searchResultId) ?? initialResult
-  );
-}
-
-function filterClaims(claims: EvidenceClaim[], filters: EvidenceFilters): EvidenceClaim[] {
-  return claims.filter((claim) => {
-    const matchesConfidence =
-      filters.confidence === "all" || claim.confidence === filters.confidence;
-    const matchesSourceType =
-      filters.sourceType === "all" || claim.sourceRef.sourceType === filters.sourceType;
-    const matchesYear = claim.year >= filters.yearFrom && claim.year <= filters.yearTo;
-
-    return matchesConfidence && matchesSourceType && matchesYear;
-  });
-}
-
-function getSourceTypes(result: SearchResult): SourceType[] {
-  return Array.from(new Set(result.sources.map((source) => source.sourceType)));
-}
+const defaultScenarioId: DemoScenarioId = "desalination";
 
 export function SearchPage() {
-  const [selectedResult, setSelectedResult] = useState<SearchResult>(initialResult);
-  const [query, setQuery] = useState<string>(initialResult.parsedQuery.originalText);
-  const [filters, setFilters] = useState<EvidenceFilters>(initialFilters);
+  const [activeScenarioId, setActiveScenarioId] = useState<DemoScenarioId>(defaultScenarioId);
+  const [result, setResult] = useState<SearchResult | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const filteredClaims = useMemo(
-    () => filterClaims(selectedResult.evidence, filters),
-    [filters, selectedResult.evidence],
+  const activeScenario = useMemo(
+    () => demoScenarios.find((scenario) => scenario.id === activeScenarioId),
+    [activeScenarioId],
   );
 
-  const filteredSourceIds = useMemo(
-    () => new Set(filteredClaims.map((claim) => claim.sourceRef.sourceId)),
-    [filteredClaims],
-  );
+  useEffect(() => {
+    let isCurrentRequest = true;
 
-  const filteredSources = useMemo(
-    () => selectedResult.sources.filter((source) => filteredSourceIds.has(source.id)),
-    [filteredSourceIds, selectedResult.sources],
-  );
+    setIsLoading(true);
+    setError(null);
 
-  const sourceTypes = useMemo(() => getSourceTypes(selectedResult), [selectedResult]);
-  const selectedScenario = useMemo(
-    () => demoScenarios.find((scenario) => scenario.id === selectedResult.scenarioId),
-    [selectedResult.scenarioId],
-  );
+    searchEvidenceByScenario(activeScenarioId)
+      .then((nextResult) => {
+        if (isCurrentRequest) {
+          setResult(nextResult);
+        }
+      })
+      .catch((caughtError: unknown) => {
+        if (isCurrentRequest) {
+          const message =
+            caughtError instanceof Error
+              ? caughtError.message
+              : "Не удалось загрузить сценарий анализа.";
+          setResult(null);
+          setError(message);
+        }
+      })
+      .finally(() => {
+        if (isCurrentRequest) {
+          setIsLoading(false);
+        }
+      });
 
-  const handleScenarioSelect = (scenario: DemoScenario) => {
-    const nextResult = getResultByScenario(scenario);
-    setSelectedResult(nextResult);
-    setQuery(scenario.defaultQuery);
-    setFilters(initialFilters);
-  };
+    return () => {
+      isCurrentRequest = false;
+    };
+  }, [activeScenarioId]);
 
-  const handleSearch = () => {
-    const normalizedQuery = query.trim().toLowerCase();
-    const matchedScenario = demoScenarios.find((scenario) =>
-      scenario.defaultQuery.toLowerCase().includes(normalizedQuery),
-    );
-
-    if (matchedScenario) {
-      setSelectedResult(getResultByScenario(matchedScenario));
-    }
+  const handleScenarioSelect = (scenarioId: DemoScenarioId) => {
+    setActiveScenarioId(scenarioId);
   };
 
   return (
     <div className="mx-auto max-w-[1680px] space-y-6">
-      <SearchPanel query={query} onQueryChange={setQuery} onSearch={handleSearch} />
+      <section className="rounded-xl border border-white/75 bg-white/72 p-6 shadow-glass backdrop-blur-2xl">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ice-600">
+          Поиск доказательств
+        </p>
+        <h2 className="mt-2 text-2xl font-semibold text-slate-950">
+          Выберите демонстрационный сценарий анализа
+        </h2>
+        <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
+          Сейчас страница подключает сценарий к состоянию результата. Подробные блоки
+          доказательств будут добавлены отдельным шагом.
+        </p>
+      </section>
 
       <DemoScenarioButtons
         scenarios={demoScenarios}
-        selectedScenarioId={selectedResult.scenarioId}
+        activeScenarioId={activeScenarioId}
         onSelect={handleScenarioSelect}
+        disabled={isLoading}
       />
 
-      <DisclosureSection
-        title="Фильтры"
-        eyebrow="Уточнение выдачи"
-        summary="Можно ограничить доказательства по типу источника, уровню достоверности и году публикации."
-      >
-        <FiltersPanel
-          filters={filters}
-          sourceTypes={sourceTypes}
-          onChange={setFilters}
-          onReset={() => setFilters(initialFilters)}
-        />
-      </DisclosureSection>
-
-      <section className="grid grid-cols-[minmax(0,1fr)_minmax(360px,0.36fr)] gap-6">
-        <AnswerSummaryCard answer={selectedResult.answer} />
-        <div className="rounded border border-ice-100 bg-ice-50/80 p-5 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ice-600">
-            Последовательность проверки
-          </p>
-          <ol className="mt-4 space-y-3 text-sm leading-6 text-slate-700">
-            <li className="flex gap-3">
-              <span className="font-semibold text-ice-600">1</span>
-              <span>Сначала читается краткий вывод и уровень достоверности.</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="font-semibold text-ice-600">2</span>
-              <span>Затем проверяются утверждения в таблице доказательств.</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="font-semibold text-ice-600">3</span>
-              <span>Граф, источники, противоречия и экспорт открываются ниже по необходимости.</span>
-            </li>
-          </ol>
-        </div>
-      </section>
-
-      <EvidenceTable claims={filteredClaims} />
-
-      <div className="space-y-4">
-        <DisclosureSection
-          title="Как разобран запрос"
-          eyebrow="Структура запроса"
-          summary="Интент, материалы, процессы, технологии, условия и временной диапазон."
-        >
-          <ParsedQueryCard parsedQuery={selectedResult.parsedQuery} />
-        </DisclosureSection>
-
-        <DisclosureSection
-          title="Граф связей"
-          eyebrow="Визуальная проверка"
-          summary="Связи между утверждениями, материалами, условиями, эффектами и источниками."
-        >
-          <KnowledgeGraph
-            graph={selectedResult.graph}
-            contradictions={selectedResult.contradictions}
-            gaps={selectedResult.gaps}
-            mode="compact"
-          />
-        </DisclosureSection>
-
-        <DisclosureSection
-          title="Источники"
-          eyebrow="Доказательная база"
-          summary="Список источников, которые поддерживают видимые утверждения."
-        >
-          <SourcesPanel sources={filteredSources} claims={filteredClaims} />
-        </DisclosureSection>
-
-        <DisclosureSection
-          title="Противоречия и пробелы"
-          eyebrow="Что требует проверки"
-          summary="Конфликтующие выводы и недостающие данные для экспертной проверки."
-        >
-          <div className="grid grid-cols-2 gap-6">
-            <ContradictionsPanel contradictions={selectedResult.contradictions} />
-            <GapsPanel gaps={selectedResult.gaps} />
+      <section className="rounded-xl border border-ice-100 bg-ice-50/70 p-5 shadow-sm">
+        <div className="flex items-start justify-between gap-5">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ice-600">
+              Состояние загрузки
+            </p>
+            <h3 className="mt-2 text-lg font-semibold text-slate-950">
+              {activeScenario?.title ?? "Сценарий не выбран"}
+            </h3>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              {activeScenario?.description ?? "Выберите один из доступных сценариев анализа."}
+            </p>
           </div>
-        </DisclosureSection>
+          <span
+            className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] ${
+              isLoading
+                ? "border-amber-200 bg-amber-50 text-amber-700"
+                : result
+                  ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                  : "border-slate-200 bg-white text-slate-500"
+            }`}
+          >
+            {isLoading ? "загрузка" : result ? "результат загружен" : "нет результата"}
+          </span>
+        </div>
 
-        <DisclosureSection
-          title="Экспорт отчета"
-          eyebrow="Сохранение результата"
-          summary="Скачивание текущего результата в Markdown или JSON."
-        >
-          <ExportPanel
-            query={query}
-            result={selectedResult}
-            scenarioTitle={selectedScenario?.title}
-          />
-        </DisclosureSection>
-      </div>
+        <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
+          <div className="rounded-lg border border-white/80 bg-white/82 p-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+              Активный сценарий
+            </p>
+            <p className="mt-2 font-semibold text-slate-900">{activeScenarioId}</p>
+          </div>
+          <div className="rounded-lg border border-white/80 bg-white/82 p-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+              Загрузка
+            </p>
+            <p className="mt-2 font-semibold text-slate-900">{isLoading ? "идёт" : "нет"}</p>
+          </div>
+          <div className="rounded-lg border border-white/80 bg-white/82 p-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+              Результат
+            </p>
+            <p className="mt-2 font-semibold text-slate-900">
+              {result ? "загружен в состояние" : "не загружен"}
+            </p>
+          </div>
+        </div>
+
+        {error ? (
+          <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            {error}
+          </div>
+        ) : null}
+      </section>
     </div>
   );
 }
