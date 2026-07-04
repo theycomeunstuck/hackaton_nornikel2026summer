@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { searchEvidenceByScenario } from "../../shared/api/searchApi";
 import { demoScenarios } from "../../shared/mock/demoScenarios";
 import type { DemoScenarioId, SearchResult } from "../../shared/types/search";
+import { KnowledgeGraph } from "../../widgets/graph/KnowledgeGraph";
 import { AnswerSummaryCard } from "../../widgets/result/AnswerSummaryCard";
 import { ContradictionsPanel } from "../../widgets/result/ContradictionsPanel";
 import { EvidenceTable } from "../../widgets/result/EvidenceTable";
@@ -145,6 +146,7 @@ export function SearchPage() {
             <ParsedQueryCard parsedQuery={result.parsedQuery} />
           </div>
           <EvidenceTable evidence={result.evidence} />
+          <KnowledgeGraph graph={result.graph} mode="compact" title="Граф связей" />
           <div className="grid grid-cols-[minmax(0,1fr)_minmax(360px,0.72fr)] gap-6">
             <SourcesPanel sources={result.evidence.map((item) => item.sourceRef)} />
             <ContradictionsPanel contradictions={result.contradictions} />
