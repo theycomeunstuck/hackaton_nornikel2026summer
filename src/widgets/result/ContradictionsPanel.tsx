@@ -5,26 +5,28 @@ type ContradictionsPanelProps = {
   contradictions: Contradiction[];
 };
 
-const severityClassName: Record<Contradiction["severity"], string> = {
-  minor: "border-amber-200 bg-amber-50 text-amber-700",
-  moderate: "border-orange-200 bg-orange-50 text-orange-700",
-  critical: "border-red-200 bg-red-50 text-red-700",
+type ContradictionStatus = NonNullable<Contradiction["status"]>;
+
+const statusLabel: Record<ContradictionStatus, string> = {
+  possible: "Возможное противоречие",
+  needs_review: "Требует экспертной проверки",
+  confirmed: "Подтверждено",
+  resolved: "Разрешено",
 };
 
-const severityLabel: Record<Contradiction["severity"], string> = {
-  minor: "низкая",
-  moderate: "средняя",
-  critical: "критичная",
+const statusClassName: Record<ContradictionStatus, string> = {
+  possible: "border-amber-200 bg-amber-50 text-amber-700",
+  needs_review: "border-ice-200 bg-ice-50 text-ice-700",
+  confirmed: "border-orange-200 bg-orange-50 text-orange-700",
+  resolved: "border-emerald-200 bg-emerald-50 text-emerald-700",
 };
 
-const statusLabel: Record<NonNullable<Contradiction["status"]>, string> = {
-  possible: "возможное",
-  confirmed: "подтверждённое",
-  resolved: "разрешено",
-};
+function getStatus(contradiction: Contradiction): ContradictionStatus {
+  return contradiction.status ?? "needs_review";
+}
 
-function formatStatus(contradiction: Contradiction): string {
-  return contradiction.status ? statusLabel[contradiction.status] : severityLabel[contradiction.severity];
+function getSourceName(source: SourceRef): string {
+  return source.sourceName ?? source.documentTitle;
 }
 
 function SourceReferenceCard({ source, label }: { source?: SourceRef; label: string }) {
@@ -41,12 +43,16 @@ function SourceReferenceCard({ source, label }: { source?: SourceRef; label: str
       <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
         {label}
       </p>
-      <p className="mt-1 line-clamp-2 text-sm font-semibold leading-5 text-slate-900">
-        {source.sourceName ?? source.documentTitle}
+      <p
+        className="mt-1 line-clamp-2 text-sm font-semibold leading-5 text-slate-900"
+        title={getSourceName(source)}
+      >
+        {getSourceName(source)}
       </p>
-      <p className="mt-2 text-xs text-slate-500">
-        стр. {source.page} · {source.chunkId}
-      </p>
+      <div className="mt-3 grid gap-2 text-xs text-slate-600">
+        <span>стр. {source.page}</span>
+        <span className="break-all">{source.chunkId}</span>
+      </div>
     </div>
   );
 }
@@ -56,9 +62,11 @@ export function ContradictionsPanel({ contradictions }: ContradictionsPanelProps
     <SectionCard title="Противоречия" eyebrow="Точки экспертной проверки">
       {contradictions.length === 0 ? (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-8 text-center">
-          <p className="text-sm font-semibold text-emerald-800">Явные противоречия не найдены</p>
+          <p className="text-sm font-semibold text-emerald-800">
+            Явных противоречий не найдено
+          </p>
           <p className="mt-2 text-sm text-emerald-700">
-            В выбранном результате нет конфликтующих выводов между источниками.
+            В текущем результате нет конфликтующих выводов между источниками.
           </p>
         </div>
       ) : (
@@ -66,11 +74,12 @@ export function ContradictionsPanel({ contradictions }: ContradictionsPanelProps
           {contradictions.map((contradiction) => {
             const sourceA = contradiction.sourceRefs[0];
             const sourceB = contradiction.sourceRefs[1];
+            const status = getStatus(contradiction);
 
             return (
               <article
                 key={contradiction.id}
-                className="rounded-xl border border-orange-200 bg-gradient-to-br from-orange-50 to-white p-4 shadow-sm"
+                className="rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50/70 to-white p-4 shadow-sm"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
@@ -80,20 +89,31 @@ export function ContradictionsPanel({ contradictions }: ContradictionsPanelProps
                     <p className="mt-2 text-sm leading-6 text-slate-700">
                       {contradiction.description}
                     </p>
+                    {contradiction.possibleReason ? (
+                      <p className="mt-3 rounded-lg border border-slate-200 bg-white/80 px-3 py-2 text-sm leading-6 text-slate-700">
+                        <span className="font-semibold">Возможная причина: </span>
+                        {contradiction.possibleReason}
+                      </p>
+                    ) : null}
                   </div>
-                  <div className="flex shrink-0 flex-col items-end gap-2">
-                    <span
-                      className={`rounded-full border px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.12em] ${severityClassName[contradiction.severity]}`}
-                    >
-                      {formatStatus(contradiction)}
-                    </span>
-                  </div>
+                  <span
+                    className={`shrink-0 rounded-full border px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.12em] ${statusClassName[status]}`}
+                  >
+                    {statusLabel[status]}
+                  </span>
                 </div>
 
                 <div className="mt-4 grid gap-3 md:grid-cols-2">
                   <SourceReferenceCard source={sourceA} label="Источник A" />
                   <SourceReferenceCard source={sourceB} label="Источник B" />
                 </div>
+
+                {contradiction.recommendation ? (
+                  <p className="mt-3 rounded-lg border border-ice-100 bg-ice-50/80 px-3 py-2 text-sm leading-6 text-ice-800">
+                    <span className="font-semibold">Следующий шаг: </span>
+                    {contradiction.recommendation}
+                  </p>
+                ) : null}
               </article>
             );
           })}

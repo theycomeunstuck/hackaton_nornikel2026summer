@@ -26,6 +26,8 @@ import type {
   SupportedConfidenceLevel,
 } from "../types/search";
 
+type UiContradictionStatus = NonNullable<Contradiction["status"]>;
+
 type EvidenceItemWithRagFields = EvidenceItem & {
   score?: number;
   numericStatus?: string;
@@ -247,6 +249,14 @@ function toOldSeverity(severity: GapSeverity): KnowledgeGap["severity"] {
   return "low";
 }
 
+function toContradictionStatus(status: RagContradiction["status"]): UiContradictionStatus {
+  if (status === "confirmed" || status === "resolved" || status === "possible") {
+    return status;
+  }
+
+  return "needs_review";
+}
+
 function toContradiction(contradiction: RagContradiction, index: number): Contradiction {
   const sourceRefs = [contradiction.sourceA, contradiction.sourceB]
     .filter((source): source is RagSourceRef => source !== null)
@@ -265,9 +275,7 @@ function toContradiction(contradiction: RagContradiction, index: number): Contra
     sourceRefs,
     confidence: "medium",
     resolutionHint: contradiction.recommendation ?? "Требуется экспертная проверка.",
-    status: contradiction.status === "confirmed" || contradiction.status === "resolved"
-      ? contradiction.status
-      : "possible",
+    status: toContradictionStatus(contradiction.status),
     possibleReason: contradiction.possibleReason ?? undefined,
     recommendation: contradiction.recommendation ?? undefined,
     topic: `RAG contradiction ${index + 1}`,

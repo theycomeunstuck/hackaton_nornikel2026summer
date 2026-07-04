@@ -4,7 +4,13 @@ export type NumericMode = "structured" | "none" | "mixed" | "unknown";
 
 export type NumericStatus = "structured" | "unmatched" | "partial" | "none" | "unknown";
 
-export type ContradictionStatus = "possible" | "confirmed" | "resolved" | "none" | "unknown";
+export type ContradictionStatus =
+  | "possible"
+  | "needs_review"
+  | "confirmed"
+  | "resolved"
+  | "none"
+  | "unknown";
 
 export type GapSeverity = "critical" | "high" | "medium" | "low" | "info" | "unknown";
 

@@ -210,7 +210,7 @@ export interface Contradiction {
   confidence: SupportedConfidenceLevel;
   resolutionHint: string;
   topic?: string;
-  status?: "possible" | "confirmed" | "resolved";
+  status?: "possible" | "needs_review" | "confirmed" | "resolved";
   possibleReason?: string;
   recommendation?: string;
 }
