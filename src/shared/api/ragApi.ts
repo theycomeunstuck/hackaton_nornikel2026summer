@@ -11,9 +11,21 @@ import type {
 } from "../types/rag";
 
 export type RagHealthResponse = {
-  status: "ok" | "mock" | "error";
+  status: string;
+  service: string | null;
+  version: string | null;
+  engine: "rag" | "mock" | null;
   baseUrl: string;
-  isMock: boolean;
+  isOffline: boolean;
+};
+
+export type HealthResponse = RagHealthResponse;
+
+type BackendHealthResponse = {
+  status: string;
+  service?: string | null;
+  version?: string | null;
+  engine?: "rag" | "mock" | null;
 };
 
 export type RagStatsResponse = {
@@ -158,13 +170,29 @@ function resolveScenarioFromQuery(query: string): LocalScenarioId {
 }
 
 export async function getRagHealth(): Promise<RagHealthResponse> {
+  return getHealth();
+}
+
+export async function getHealth(): Promise<HealthResponse> {
   try {
-    return await requestJson<RagHealthResponse>("/api/health");
+    const health = await requestJson<BackendHealthResponse>("/api/health");
+
+    return {
+      status: health.status,
+      service: health.service ?? null,
+      version: health.version ?? null,
+      engine: health.engine ?? null,
+      baseUrl: getBaseUrl(),
+      isOffline: false,
+    };
   } catch {
     return {
-      status: "mock",
+      status: "offline",
+      service: null,
+      version: null,
+      engine: null,
       baseUrl: getBaseUrl(),
-      isMock: true,
+      isOffline: true,
     };
   }
 }

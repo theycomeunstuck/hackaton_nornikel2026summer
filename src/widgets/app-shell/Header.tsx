@@ -1,9 +1,17 @@
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../entities/auth/model";
+import { getHealth, type HealthResponse } from "../../shared/api/ragApi";
 
 type HeaderMeta = {
   title: string;
   subtitle: string;
+};
+
+type BackendModeView = {
+  label: string;
+  dotClassName: string;
+  className: string;
 };
 
 const headerByPath: Record<string, HeaderMeta> = {
@@ -33,13 +41,87 @@ const headerByPath: Record<string, HeaderMeta> = {
   },
   "/export": {
     title: "Экспорт",
-    subtitle: "Формирование отчетов из текущих результатов поиска.",
+    subtitle: "Формирование отчётов из текущих результатов поиска.",
   },
   "/upload": {
     title: "Загрузка документов",
     subtitle: "Обработка документа и пополнение индекса доказательств.",
   },
 };
+
+function getBackendModeView(health: HealthResponse | null): BackendModeView {
+  if (!health) {
+    return {
+      label: "Проверка режима",
+      dotClassName: "bg-slate-400",
+      className: "border-slate-200 bg-white/80 text-slate-600",
+    };
+  }
+
+  if (health.isOffline) {
+    return {
+      label: "Offline · local samples",
+      dotClassName: "bg-amber-400 shadow-[0_0_16px_rgba(251,191,36,0.65)]",
+      className: "border-amber-200 bg-amber-50/85 text-amber-800",
+    };
+  }
+
+  if (health.engine === "rag") {
+    return {
+      label: "RAG · real index",
+      dotClassName: "bg-emerald-500 shadow-[0_0_16px_rgba(16,185,129,0.8)]",
+      className: "border-emerald-200 bg-emerald-50/85 text-emerald-800",
+    };
+  }
+
+  return {
+    label: "Demo · mock fallback",
+    dotClassName: "bg-ice-500 shadow-[0_0_16px_rgba(14,165,233,0.65)]",
+    className: "border-ice-200 bg-ice-50/85 text-ice-800",
+  };
+}
+
+function BackendModeIndicator() {
+  const [health, setHealth] = useState<HealthResponse | null>(null);
+
+  useEffect(() => {
+    let isActive = true;
+
+    void getHealth().then((nextHealth) => {
+      if (isActive) {
+        setHealth(nextHealth);
+      }
+    });
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  const mode = getBackendModeView(health);
+  const title = health
+    ? [
+        health.service,
+        health.version ? `v${health.version}` : null,
+        health.baseUrl,
+      ]
+        .filter(Boolean)
+        .join(" · ")
+    : "Проверка подключения к backend";
+
+  return (
+    <div
+      className={`rounded border px-3 py-2 text-xs font-semibold transition ${mode.className}`}
+      title={title}
+      aria-label={`Режим backend: ${mode.label}`}
+    >
+      <div className="flex items-center gap-2 whitespace-nowrap">
+        <span className={`h-2 w-2 rounded-full ${mode.dotClassName}`} />
+        <span>{mode.label}</span>
+      </div>
+    </div>
+  );
+}
 
 export function Header() {
   const { pathname } = useLocation();
@@ -63,11 +145,14 @@ export function Header() {
           <p className="mt-1 text-sm text-slate-600">{meta.subtitle}</p>
         </div>
         <div className="flex items-center gap-3">
+          <BackendModeIndicator />
           <div className="rounded border border-ice-100 bg-ice-50/80 px-4 py-3 text-sm text-slate-700">
             <div className="flex items-center gap-3">
               <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-[0_0_18px_rgba(16,185,129,0.8)]" />
               <div>
-                <p className="font-semibold text-slate-900">{user?.name ?? "Инженер-исследователь"}</p>
+                <p className="font-semibold text-slate-900">
+                  {user?.name ?? "Инженер-исследователь"}
+                </p>
                 <p className="text-xs text-slate-500">
                   Исследователь
                   {user?.organization ? ` / ${user.organization}` : ""}
