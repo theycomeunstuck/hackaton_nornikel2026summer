@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { searchEvidenceByScenario } from "../../shared/api/searchApi";
 import { demoScenarios } from "../../shared/mock/demoScenarios";
 import type { DemoScenarioId, SearchResult } from "../../shared/types/search";
+import { AnswerSummaryCard } from "../../widgets/result/AnswerSummaryCard";
 import { ParsedQueryCard } from "../../widgets/result/ParsedQueryCard";
 import { DemoScenarioButtons } from "../../widgets/search/DemoScenarioButtons";
 
@@ -133,7 +134,12 @@ export function SearchPage() {
         ) : null}
       </section>
 
-      {result ? <ParsedQueryCard parsedQuery={result.parsedQuery} /> : null}
+      {result ? (
+        <div className="grid grid-cols-[minmax(0,1fr)_minmax(420px,0.82fr)] gap-6">
+          <AnswerSummaryCard answer={result.answer} />
+          <ParsedQueryCard parsedQuery={result.parsedQuery} />
+        </div>
+      ) : null}
     </div>
   );
 }
